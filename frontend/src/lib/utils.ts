@@ -22,11 +22,20 @@ export function formatNumber(value: number | string | null | undefined): string 
 
 export function formatDate(value: string | Date | null | undefined): string {
   if (!value) return '—';
+  // Las fechas se almacenan como fecha-sin-hora (medianoche UTC). Formateamos
+  // en UTC para evitar que la zona horaria de Colombia (UTC-5) reste un día.
   return new Intl.DateTimeFormat('es-CO', {
     year: 'numeric',
     month: 'short',
     day: '2-digit',
+    timeZone: 'UTC',
   }).format(new Date(value));
+}
+
+/** Convierte una fecha ISO a formato yyyy-MM-dd para inputs tipo date. */
+export function toDateInput(value: string | Date | null | undefined): string {
+  if (!value) return '';
+  return new Date(value).toISOString().slice(0, 10);
 }
 
 export function getInitials(first?: string, last?: string): string {

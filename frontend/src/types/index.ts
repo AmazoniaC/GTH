@@ -10,6 +10,17 @@ export interface AuthUser {
   avatarUrl?: string | null;
 }
 
+export interface ManagedUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  isActive: boolean;
+  lastLoginAt?: string | null;
+  createdAt: string;
+}
+
 export type EmployeeStatus = 'ACTIVE' | 'ON_LEAVE' | 'SUSPENDED' | 'TERMINATED';
 export type DocumentType = 'CC' | 'CE' | 'TI' | 'PA' | 'PEP';
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER';

@@ -1,13 +1,19 @@
-import { Monitor, Moon, Sun, UserCircle } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Loader2, Monitor, Moon, Save, Sun, UserCircle } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/features/auth/auth.store';
+import { useUpdateProfile } from '@/features/users/users.api';
 import { useTheme } from '@/components/theme/theme-provider';
 import { getInitials } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api';
 
 const ROLE_LABEL: Record<string, string> = {
   SUPER_ADMIN: 'Super Administrador',
@@ -19,7 +25,32 @@ const ROLE_LABEL: Record<string, string> = {
 
 export function SettingsPage() {
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
   const { theme, setTheme } = useTheme();
+  const updateProfile = useUpdateProfile();
+
+  const [firstName, setFirstName] = useState(user?.firstName ?? '');
+  const [lastName, setLastName] = useState(user?.lastName ?? '');
+  const [password, setPassword] = useState('');
+
+  const saveProfile = async () => {
+    if (password && password.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    try {
+      const updated = await updateProfile.mutateAsync({
+        firstName,
+        lastName,
+        ...(password ? { password } : {}),
+      });
+      if (user) setUser({ ...user, firstName: updated.firstName, lastName: updated.lastName });
+      setPassword('');
+      toast.success('Perfil actualizado');
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
 
   return (
     <div>
@@ -32,7 +63,7 @@ export function SettingsPage() {
               <UserCircle className="h-4 w-4 text-primary" /> Mi perfil
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20 text-2xl">
                 <AvatarFallback>{getInitials(user?.firstName, user?.lastName)}</AvatarFallback>
@@ -45,6 +76,35 @@ export function SettingsPage() {
                 <Badge className="mt-2">{ROLE_LABEL[user?.role ?? 'EMPLOYEE']}</Badge>
               </div>
             </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Nombres</Label>
+                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Apellidos</Label>
+                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>Nueva contraseña (opcional)</Label>
+                <Input
+                  type="password"
+                  placeholder="Dejar en blanco para no cambiar"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <Button onClick={saveProfile} disabled={updateProfile.isPending}>
+              {updateProfile.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              Guardar cambios
+            </Button>
           </CardContent>
         </Card>
 

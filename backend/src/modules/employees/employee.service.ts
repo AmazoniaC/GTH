@@ -90,7 +90,7 @@ export class EmployeeService {
   async update(id: string, organizationId: string, input: UpdateEmployeeInput) {
     await this.getById(id, organizationId);
 
-    const { departmentId, positionId, ...rest } = input;
+    const { departmentId, positionId, contract, ...rest } = input;
     const data: Prisma.EmployeeUpdateInput = { ...rest };
 
     if (departmentId !== undefined) {
@@ -102,7 +102,44 @@ export class EmployeeService {
       data.position = positionId ? { connect: { id: positionId } } : { disconnect: true };
     }
 
-    return this.repo.update(id, data);
+    await this.repo.update(id, data);
+
+    // Actualiza (o crea) el contrato vigente si se envían datos de contrato.
+    if (contract && Object.keys(contract).length > 0) {
+      const active = await this.repo.findActiveContract(id);
+      const contractData = {
+        ...(contract.type !== undefined ? { type: contract.type } : {}),
+        ...(contract.paymentFrequency !== undefined
+          ? { paymentFrequency: contract.paymentFrequency }
+          : {}),
+        ...(contract.baseSalary !== undefined
+          ? { baseSalary: new Prisma.Decimal(contract.baseSalary) }
+          : {}),
+        ...(contract.isIntegralSalary !== undefined
+          ? { isIntegralSalary: contract.isIntegralSalary }
+          : {}),
+        ...(contract.transportAllowance !== undefined
+          ? { transportAllowance: contract.transportAllowance }
+          : {}),
+        ...(contract.startDate !== undefined ? { startDate: contract.startDate } : {}),
+      };
+
+      if (active) {
+        await this.repo.updateContract(active.id, contractData);
+      } else if (contract.baseSalary !== undefined) {
+        await this.repo.createContract({
+          employee: { connect: { id } },
+          type: contract.type ?? 'INDEFINITE',
+          baseSalary: new Prisma.Decimal(contract.baseSalary),
+          startDate: contract.startDate ?? new Date(),
+          isIntegralSalary: contract.isIntegralSalary ?? false,
+          transportAllowance: contract.transportAllowance ?? true,
+          isActive: true,
+        });
+      }
+    }
+
+    return this.repo.findById(id, organizationId);
   }
 
   async remove(id: string, organizationId: string) {

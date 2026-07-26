@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authRoutes } from '../modules/auth/auth.routes';
+import { userRoutes } from '../modules/users/user.routes';
 import { employeeRoutes } from '../modules/employees/employee.routes';
 import { payrollRoutes } from '../modules/payroll/payroll.routes';
 import { catalogRoutes } from '../modules/catalog/catalog.routes';
@@ -17,6 +18,7 @@ router.get('/health', (_req, res) =>
 );
 
 router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
 router.use('/employees', employeeRoutes);
 router.use('/payroll', payrollRoutes);
 router.use('/catalog', catalogRoutes);

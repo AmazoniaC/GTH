@@ -12,6 +12,7 @@ import { PayslipPage } from '@/features/payroll/pages/payslip-page';
 import { PayrollSimulatorPage } from '@/features/payroll/pages/payroll-simulator-page';
 import { PayrollConfigPage } from '@/features/payroll/pages/payroll-config-page';
 import { SettingsPage } from '@/features/settings/settings-page';
+import { UsersPage } from '@/features/users/pages/users-page';
 
 export default function App() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/payroll/config" element={<PayrollConfigPage />} />
         <Route path="/payroll/periods/:id" element={<PayrollPeriodPage />} />
         <Route path="/payroll/payslips/:id" element={<PayslipPage />} />
+        <Route path="/users" element={<UsersPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 

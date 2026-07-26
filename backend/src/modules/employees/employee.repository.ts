@@ -68,6 +68,21 @@ export class EmployeeRepository {
     return prisma.employee.delete({ where: { id } });
   }
 
+  findActiveContract(employeeId: string) {
+    return prisma.contract.findFirst({
+      where: { employeeId, isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  updateContract(id: string, data: Prisma.ContractUpdateInput) {
+    return prisma.contract.update({ where: { id }, data });
+  }
+
+  createContract(data: Prisma.ContractCreateInput) {
+    return prisma.contract.create({ data });
+  }
+
   countActive(organizationId: string) {
     return prisma.employee.count({ where: { organizationId, status: 'ACTIVE' } });
   }
