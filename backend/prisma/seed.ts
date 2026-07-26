@@ -1,11 +1,4 @@
-import {
-  PrismaClient,
-  UserRole,
-  DocumentType,
-  ContractType,
-  Gender,
-  EmployeeStatus,
-} from '@prisma/client';
+import { PrismaClient, UserRole, Gender, EmployeeStatus } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -78,12 +71,22 @@ async function main() {
     { title: 'Coordinador de Operaciones', dept: 'Operaciones' },
   ];
   const positions = [];
+  let posCounter = 1;
   for (const p of positionsData) {
     const dept = departments.find((d) => d.name === p.dept)!;
-    const pos = await prisma.position.create({
-      data: { organizationId: org.id, title: p.title, departmentId: dept.id },
+    const code = `CAR-${String(posCounter).padStart(3, '0')}`;
+    let pos = await prisma.position.findFirst({
+      where: { organizationId: org.id, title: p.title },
     });
+    if (!pos) {
+      pos = await prisma.position.create({
+        data: { organizationId: org.id, code, title: p.title, departmentId: dept.id },
+      });
+    } else if (!pos.code) {
+      pos = await prisma.position.update({ where: { id: pos.id }, data: { code } });
+    }
     positions.push(pos);
+    posCounter += 1;
   }
 
   // Empleados con contratos
@@ -153,8 +156,8 @@ async function main() {
     await prisma.employee.create({
       data: {
         organizationId: org.id,
-        employeeCode: `EMP-${String(counter).padStart(4, '0')}`,
-        documentType: DocumentType.CC,
+        employeeCode: e.doc,
+        documentType: 'CC',
         documentNumber: e.doc,
         firstName: e.firstName,
         lastName: e.lastName,
@@ -172,7 +175,7 @@ async function main() {
         compensationFund: 'Compensar',
         contracts: {
           create: {
-            type: ContractType.INDEFINITE,
+            type: 'INDEFINITE',
             baseSalary: e.salary,
             startDate: new Date(2023, 0, 15),
             transportAllowance: e.salary <= 1_623_500 * 2,

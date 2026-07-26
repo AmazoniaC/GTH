@@ -16,6 +16,14 @@ export class EmployeeController {
     return ok(res, employee);
   };
 
+  getByDocument = async (req: Request, res: Response) => {
+    const employee = await employeeService.getByDocument(
+      req.params.documentNumber,
+      req.auth!.organizationId,
+    );
+    return ok(res, employee);
+  };
+
   create = async (req: Request, res: Response) => {
     const employee = await employeeService.create(req.auth!.organizationId, req.body);
     return created(res, employee);

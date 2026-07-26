@@ -10,7 +10,6 @@ import { PayrollPage } from '@/features/payroll/pages/payroll-page';
 import { PayrollPeriodPage } from '@/features/payroll/pages/payroll-period-page';
 import { PayslipPage } from '@/features/payroll/pages/payslip-page';
 import { PayrollSimulatorPage } from '@/features/payroll/pages/payroll-simulator-page';
-import { PayrollConfigPage } from '@/features/payroll/pages/payroll-config-page';
 import { SettingsPage } from '@/features/settings/settings-page';
 import { UsersPage } from '@/features/users/pages/users-page';
 
@@ -30,10 +29,9 @@ export default function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/employees" element={<EmployeesPage />} />
-        <Route path="/employees/:id" element={<EmployeeDetailPage />} />
+        <Route path="/employees/:documentNumber" element={<EmployeeDetailPage />} />
         <Route path="/payroll" element={<PayrollPage />} />
         <Route path="/payroll/simulator" element={<PayrollSimulatorPage />} />
-        <Route path="/payroll/config" element={<PayrollConfigPage />} />
         <Route path="/payroll/periods/:id" element={<PayrollPeriodPage />} />
         <Route path="/payroll/payslips/:id" element={<PayslipPage />} />
         <Route path="/users" element={<UsersPage />} />

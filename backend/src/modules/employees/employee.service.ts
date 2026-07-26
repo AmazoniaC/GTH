@@ -54,6 +54,13 @@ export class EmployeeService {
     return employee;
   }
 
+  /** Busca un empleado por su cédula (identificador visible en la app). */
+  async getByDocument(documentNumber: string, organizationId: string) {
+    const employee = await this.repo.findByDocumentDetailed(documentNumber, organizationId);
+    if (!employee) throw new NotFoundError('Empleado');
+    return employee;
+  }
+
   async create(organizationId: string, input: CreateEmployeeInput) {
     const existing = await this.repo.findByDocument(input.documentNumber, organizationId);
     if (existing) {
@@ -61,7 +68,8 @@ export class EmployeeService {
     }
 
     const { contract, employeeCode, departmentId, positionId, ...rest } = input;
-    const code = employeeCode ?? (await this.repo.nextEmployeeCode(organizationId));
+    // El identificador del empleado es su cédula (número de documento).
+    const code = employeeCode ?? input.documentNumber;
 
     const data: Prisma.EmployeeCreateInput = {
       ...rest,

@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -104,7 +104,7 @@ export function EmployeesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Empleado</TableHead>
-                  <TableHead>Documento</TableHead>
+                  <TableHead>Cédula (ID)</TableHead>
                   <TableHead>Cargo</TableHead>
                   <TableHead>Departamento</TableHead>
                   <TableHead>Salario</TableHead>
@@ -116,11 +116,12 @@ export function EmployeesPage() {
                   <TableRow
                     key={emp.id}
                     className="cursor-pointer"
-                    onClick={() => navigate(`/employees/${emp.id}`)}
+                    onClick={() => navigate(`/employees/${emp.documentNumber}`)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
+                          {emp.photoUrl ? <AvatarImage src={emp.photoUrl} alt="" /> : null}
                           <AvatarFallback>
                             {getInitials(emp.firstName, emp.lastName)}
                           </AvatarFallback>
@@ -129,11 +130,11 @@ export function EmployeesPage() {
                           <p className="font-medium">
                             {emp.firstName} {emp.lastName}
                           </p>
-                          <p className="text-xs text-muted-foreground">{emp.employeeCode}</p>
+                          <p className="text-xs text-muted-foreground">{emp.position?.title ?? '—'}</p>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{emp.documentNumber}</TableCell>
+                    <TableCell className="font-medium">{emp.documentNumber}</TableCell>
                     <TableCell>{emp.position?.title ?? '—'}</TableCell>
                     <TableCell>{emp.department?.name ?? '—'}</TableCell>
                     <TableCell className="font-medium">
