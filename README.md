@@ -76,34 +76,44 @@ frontend/src/
 
 ### Requisitos
 - Node.js 20+
-- PostgreSQL 14+ (o Docker)
+- Docker Desktop (para la base de datos) **o** PostgreSQL 14+ instalado
 
-### 1. Base de datos
+### Opción A — rápida (scripts desde la raíz)
+
+Desde la carpeta raíz del proyecto:
 
 ```bash
-# Opción con Docker (recomendada)
-docker compose up -d
+npm run install:all   # instala raíz + backend + frontend
+npm run db:up         # levanta PostgreSQL con Docker
+npm run setup         # crea el .env, aplica migraciones y datos de demo
+npm run dev           # arranca backend y frontend a la vez
 ```
 
-### 2. Backend
+Luego abre **http://localhost:5173** en el navegador.
+
+### Opción B — manual (paso a paso)
 
 ```bash
+# 1) Base de datos (Docker)
+docker compose up -d
+
+# 2) Backend
 cd backend
-cp .env.example .env          # ajusta credenciales si es necesario
+cp .env.example .env
 npm install
 npm run prisma:generate
-npm run prisma:migrate        # crea las tablas
-npm run prisma:seed           # datos de demostración
+npm run prisma:migrate -- --name init
+npm run prisma:seed
 npm run dev                   # http://localhost:4000/api/v1
-```
 
-### 3. Frontend
-
-```bash
+# 3) Frontend (en otra terminal)
 cd frontend
 npm install
 npm run dev                   # http://localhost:5173
 ```
+
+> **¿Sin Docker?** Instala PostgreSQL, crea una base `gth_hr` y ajusta
+> `DATABASE_URL` en `backend/.env`.
 
 ### Credenciales de demostración
 

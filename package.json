@@ -1,0 +1,19 @@
+{
+  "name": "gth-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "GTH - SaaS de RRHH y Nómina para Colombia (monorepo)",
+  "scripts": {
+    "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install",
+    "ensure:env": "node -e \"const fs=require('fs');const p='backend/.env';if(!fs.existsSync(p)){fs.copyFileSync('backend/.env.example',p);console.log('Creado backend/.env');}else{console.log('backend/.env ya existe');}\"",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "setup": "npm run ensure:env && npm --prefix backend run prisma:generate && npm --prefix backend run prisma:migrate -- --name init && npm --prefix backend run prisma:seed",
+    "dev": "npm run ensure:env && concurrently -n backend,frontend -c blue,green \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
