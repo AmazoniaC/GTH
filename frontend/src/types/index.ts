@@ -24,6 +24,7 @@ export interface ManagedUser {
 export type EmployeeStatus = 'ACTIVE' | 'ON_LEAVE' | 'SUSPENDED' | 'TERMINATED';
 export type DocumentType = 'CC' | 'CE' | 'TI' | 'PA' | 'PEP';
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+export type MaritalStatus = 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED' | 'FREE_UNION';
 export type ContractType =
   | 'INDEFINITE'
   | 'FIXED_TERM'
@@ -79,15 +80,25 @@ export interface Employee {
   employeeCode: string;
   documentType: DocumentType;
   documentNumber: string;
+  issuePlace?: string | null;
+  issueDate?: string | null;
   firstName: string;
+  middleName?: string | null;
   lastName: string;
+  secondLastName?: string | null;
   email?: string | null;
   phone?: string | null;
+  mobile?: string | null;
   photoUrl?: string | null;
   birthDate?: string | null;
   gender?: Gender | null;
+  maritalStatus?: MaritalStatus | null;
+  nationality?: string | null;
+  bloodType?: string | null;
   address?: string | null;
   city?: string | null;
+  stateProvince?: string | null;
+  country?: string | null;
   status: string;
   hireDate: string;
   terminationDate?: string | null;
@@ -96,16 +107,17 @@ export interface Employee {
   department?: Department | null;
   position?: Position | null;
   contracts?: Contract[];
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
   eps?: string | null;
   pensionFund?: string | null;
   severanceFund?: string | null;
   compensationFund?: string | null;
+  arl?: string | null;
   arlRiskClass: number;
   bankName?: string | null;
   bankAccountType?: string | null;
   bankAccountNumber?: string | null;
-  emergencyContactName?: string | null;
-  emergencyContactPhone?: string | null;
 }
 
 export type PayrollStatus = 'DRAFT' | 'PROCESSED' | 'APPROVED' | 'PAID' | 'CANCELLED';

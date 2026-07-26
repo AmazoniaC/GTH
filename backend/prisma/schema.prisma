@@ -175,17 +175,26 @@ model Employee {
   employeeCode   String
   documentType   String   @default("CC") // Catálogo editable DOCUMENT_TYPE
   documentNumber String
+  issuePlace     String? // Lugar de expedición del documento
+  issueDate      DateTime? // Fecha de expedición del documento
 
   // Datos personales
-  firstName      String
-  lastName       String
+  firstName      String // Primer nombre
+  middleName     String? // Segundo nombre
+  lastName       String // Primer apellido
+  secondLastName String? // Segundo apellido
   email          String?
-  phone          String?
+  phone          String? // Teléfono fijo
+  mobile         String? // Celular
   birthDate      DateTime?
   gender         Gender?
   maritalStatus  MaritalStatus?
+  nationality    String? // Nacionalidad
+  bloodType      String? // Grupo sanguíneo (O+, A-, etc.)
   address        String?
   city           String?
+  stateProvince  String? // Departamento (geográfico)
+  country        String? // País
   photoUrl       String?
 
   // Contacto de emergencia
@@ -204,7 +213,8 @@ model Employee {
   pensionFund         String? // Administradora de Fondo de Pensiones (AFP)
   severanceFund       String? // Fondo de cesantías
   compensationFund    String? // Caja de compensación familiar
-  arlRiskClass        Int     @default(1) // Clase de riesgo ARL (1-5)
+  arl                 String? // Administradora de Riesgos Laborales (entidad)
+  arlRiskClass        Int     @default(1) // Nivel/clase de riesgo ARL (1-5)
 
   // Datos bancarios
   bankName       String?
