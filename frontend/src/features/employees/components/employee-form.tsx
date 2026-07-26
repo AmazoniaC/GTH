@@ -30,6 +30,7 @@ import { PhotoUpload } from '@/components/shared/photo-upload';
 import { getErrorMessage } from '@/lib/api';
 import { getInitials, toDateInput } from '@/lib/utils';
 import { COLOMBIA, COUNTRIES, DEPARTMENTS } from '@/lib/colombia-geo';
+import { ACCOUNT_TYPES, BANKS } from '@/lib/banks';
 import type { Employee } from '@/types';
 
 const BLOOD_TYPES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
@@ -75,6 +76,9 @@ const schema = z.object({
   compensationFund: z.string().optional(),
   arl: z.string().optional(),
   arlRiskClass: z.coerce.number().min(1).max(5),
+  bankName: z.string().optional(),
+  bankAccountType: z.string().optional(),
+  bankAccountNumber: z.string().optional(),
   contractType: z.string().min(1),
   baseSalary: z.coerce.number().positive('Debe ser mayor a 0'),
   startDate: z.string().min(1, 'Requerido'),
@@ -125,6 +129,9 @@ const emptyDefaults: FormValues = {
   compensationFund: '',
   arl: '',
   arlRiskClass: 1,
+  bankName: '',
+  bankAccountType: '',
+  bankAccountNumber: '',
   contractType: 'INDEFINITE',
   baseSalary: 0,
   startDate: today,
@@ -189,6 +196,9 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
         compensationFund: employee.compensationFund ?? '',
         arl: employee.arl ?? '',
         arlRiskClass: employee.arlRiskClass,
+        bankName: employee.bankName ?? '',
+        bankAccountType: employee.bankAccountType ?? '',
+        bankAccountNumber: employee.bankAccountNumber ?? '',
         contractType: contract?.type ?? 'INDEFINITE',
         baseSalary: contract ? Number(contract.baseSalary) : 0,
         startDate: toDateInput(contract?.startDate ?? employee.hireDate),
@@ -235,6 +245,9 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
       compensationFund: opt(values.compensationFund),
       arl: opt(values.arl),
       arlRiskClass: values.arlRiskClass,
+      bankName: opt(values.bankName),
+      bankAccountType: opt(values.bankAccountType),
+      bankAccountNumber: opt(values.bankAccountNumber),
     };
     const contract = {
       type: values.contractType,
@@ -275,12 +288,13 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <Tabs defaultValue="personal">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
               <TabsTrigger value="personal">Personal</TabsTrigger>
               <TabsTrigger value="contacto">Contacto</TabsTrigger>
               <TabsTrigger value="laboral">Laboral</TabsTrigger>
               <TabsTrigger value="seguridad">Seg. Social</TabsTrigger>
               <TabsTrigger value="contrato">Contrato</TabsTrigger>
+              <TabsTrigger value="bancarios">Bancarios</TabsTrigger>
             </TabsList>
 
             {/* ---------- PERSONAL ---------- */}
@@ -572,6 +586,40 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                   <p className="text-xs text-muted-foreground">Aplica hasta 2 SMMLV</p>
                 </div>
                 <Switch checked={watch('transportAllowance')} onCheckedChange={(c) => setValue('transportAllowance', c)} />
+              </div>
+            </TabsContent>
+
+            {/* ---------- BANCARIOS ---------- */}
+            <TabsContent value="bancarios" className="space-y-4">
+              <Field label="Banco / Entidad">
+                <Input list="bank-suggestions" {...register('bankName')} placeholder="Escribe o elige" />
+                <datalist id="bank-suggestions">
+                  {BANKS.map((b) => (
+                    <option key={b} value={b} />
+                  ))}
+                </datalist>
+              </Field>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Tipo de cuenta">
+                  <Select
+                    value={watch('bankAccountType') || ''}
+                    onValueChange={(v) => setValue('bankAccountType', v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ACCOUNT_TYPES.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Número de cuenta">
+                  <Input {...register('bankAccountNumber')} inputMode="numeric" />
+                </Field>
               </div>
             </TabsContent>
           </Tabs>
