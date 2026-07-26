@@ -1,25 +1,35 @@
 /** Categorías de opciones configurables. */
 export const CATALOG_CATEGORY = {
+  // Basadas en código (el valor guardado es el código; hay lógica asociada)
   DOCUMENT_TYPE: 'DOCUMENT_TYPE',
   CONTRACT_TYPE: 'CONTRACT_TYPE',
   EMPLOYEE_STATUS: 'EMPLOYEE_STATUS',
   FILE_TYPE: 'FILE_TYPE',
+  // Basadas en etiqueta (listas de valores libres editables)
+  BLOOD_TYPE: 'BLOOD_TYPE',
+  NATIONALITY: 'NATIONALITY',
+  COUNTRY: 'COUNTRY',
+  EPS: 'EPS',
+  PENSION_FUND: 'PENSION_FUND',
+  SEVERANCE_FUND: 'SEVERANCE_FUND',
+  COMPENSATION_FUND: 'COMPENSATION_FUND',
+  ARL: 'ARL',
+  BANK: 'BANK',
+  ACCOUNT_TYPE: 'ACCOUNT_TYPE',
 } as const;
 
 export type CatalogCategory = (typeof CATALOG_CATEGORY)[keyof typeof CATALOG_CATEGORY];
 
-export const CATALOG_CATEGORIES: CatalogCategory[] = [
-  CATALOG_CATEGORY.DOCUMENT_TYPE,
-  CATALOG_CATEGORY.CONTRACT_TYPE,
-  CATALOG_CATEGORY.EMPLOYEE_STATUS,
-  CATALOG_CATEGORY.FILE_TYPE,
-];
+export const CATALOG_CATEGORIES: CatalogCategory[] = Object.values(CATALOG_CATEGORY);
 
 interface DefaultOption {
   code: string;
   label: string;
   isSystem?: boolean;
 }
+
+/** Construye opciones donde el código es igual a la etiqueta (listas libres). */
+const list = (labels: string[]): DefaultOption[] => labels.map((l) => ({ code: l, label: l }));
 
 /**
  * Opciones por defecto que se provisionan automáticamente para cada
@@ -48,7 +58,6 @@ export const DEFAULT_OPTIONS: Record<CatalogCategory, DefaultOption[]> = {
     { code: 'SUSPENDED', label: 'Suspendido', isSystem: true },
     { code: 'TERMINATED', label: 'Retirado', isSystem: true },
   ],
-  // Tipos de documento adjunto de los empleados.
   FILE_TYPE: [
     { code: 'CONTRACT', label: 'Contrato' },
     { code: 'ID', label: 'Documento de identidad' },
@@ -57,4 +66,41 @@ export const DEFAULT_OPTIONS: Record<CatalogCategory, DefaultOption[]> = {
     { code: 'MEDICAL_EXAM', label: 'Examen médico' },
     { code: 'OTHER', label: 'Otro' },
   ],
+
+  // ---- Listas de valores libres (código = etiqueta) ----
+  BLOOD_TYPE: list(['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']),
+  NATIONALITY: list([
+    'Colombiana', 'Venezolana', 'Ecuatoriana', 'Peruana', 'Brasileña',
+    'Argentina', 'Chilena', 'Mexicana', 'Española', 'Estadounidense', 'Otra',
+  ]),
+  COUNTRY: list([
+    'Colombia', 'Venezuela', 'Ecuador', 'Perú', 'Panamá', 'Brasil', 'Chile',
+    'Argentina', 'México', 'España', 'Estados Unidos', 'Otro',
+  ]),
+  EPS: list([
+    'Nueva EPS', 'Sura EPS', 'Sanitas', 'Salud Total', 'Compensar EPS', 'Famisanar',
+    'Coosalud', 'Mutual Ser', 'SOS', 'Aliansalud', 'Cajacopi', 'Asmet Salud',
+    'Emssanar', 'Savia Salud', 'Capital Salud', 'Otra',
+  ]),
+  PENSION_FUND: list(['Porvenir', 'Protección', 'Colfondos', 'Skandia', 'Colpensiones', 'Otra']),
+  SEVERANCE_FUND: list([
+    'Porvenir', 'Protección', 'Colfondos', 'Skandia', 'Fondo Nacional del Ahorro', 'Otra',
+  ]),
+  COMPENSATION_FUND: list([
+    'Compensar', 'Colsubsidio', 'Cafam', 'Comfama', 'Comfenalco Antioquia',
+    'Comfenalco Valle', 'Comfandi', 'Cafba', 'Otra',
+  ]),
+  ARL: list([
+    'Sura ARL', 'Positiva', 'Colmena Seguros', 'Seguros Bolívar', 'AXA Colpatria',
+    'La Equidad', 'Liberty Seguros', 'Mapfre', 'Otra',
+  ]),
+  BANK: list([
+    'Bancolombia', 'Davivienda', 'BBVA Colombia', 'Banco de Bogotá', 'Banco Caja Social',
+    'Banco de Occidente', 'Banco Popular', 'Banco AV Villas', 'Banco Agrario de Colombia',
+    'Scotiabank Colpatria', 'Itaú', 'Banco Falabella', 'Banco Pichincha', 'Banco GNB Sudameris',
+    'Bancoomeva', 'Banco Serfinanza', 'Banco W', 'Bancamía', 'Banco Mundo Mujer',
+    'Banco Finandina', 'Banco Cooperativo Coopcentral', 'Confiar', 'Citibank Colombia',
+    'Nequi', 'Daviplata', 'Lulo Bank', 'Nu (Nubank)', 'RappiPay', 'Movii', 'Coink', 'Otro',
+  ]),
+  ACCOUNT_TYPE: list(['Ahorros', 'Corriente', 'Depósito electrónico']),
 };

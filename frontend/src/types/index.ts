@@ -54,7 +54,17 @@ export type CatalogCategory =
   | 'DOCUMENT_TYPE'
   | 'CONTRACT_TYPE'
   | 'EMPLOYEE_STATUS'
-  | 'FILE_TYPE';
+  | 'FILE_TYPE'
+  | 'BLOOD_TYPE'
+  | 'NATIONALITY'
+  | 'COUNTRY'
+  | 'EPS'
+  | 'PENSION_FUND'
+  | 'SEVERANCE_FUND'
+  | 'COMPENSATION_FUND'
+  | 'ARL'
+  | 'BANK'
+  | 'ACCOUNT_TYPE';
 
 export interface EmployeeDocument {
   id: string;
