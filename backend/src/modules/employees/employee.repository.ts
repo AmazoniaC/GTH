@@ -56,6 +56,13 @@ export class EmployeeRepository {
     });
   }
 
+  findByDocumentDetailed(documentNumber: string, organizationId: string) {
+    return prisma.employee.findFirst({
+      where: { documentNumber, organizationId },
+      include: this.detailInclude,
+    });
+  }
+
   create(data: Prisma.EmployeeCreateInput) {
     return prisma.employee.create({ data, include: this.detailInclude });
   }

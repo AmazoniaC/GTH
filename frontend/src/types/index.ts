@@ -41,11 +41,24 @@ export interface Department {
 
 export interface Position {
   id: string;
+  code?: string | null;
   title: string;
   description?: string | null;
   departmentId?: string | null;
   department?: Department | null;
   _count?: { employees: number };
+}
+
+export type CatalogCategory = 'DOCUMENT_TYPE' | 'CONTRACT_TYPE' | 'EMPLOYEE_STATUS';
+
+export interface CatalogOption {
+  id: string;
+  category: CatalogCategory;
+  code: string;
+  label: string;
+  order: number;
+  isSystem: boolean;
+  isActive: boolean;
 }
 
 export interface Contract {
@@ -70,6 +83,7 @@ export interface Employee {
   lastName: string;
   email?: string | null;
   phone?: string | null;
+  photoUrl?: string | null;
   birthDate?: string | null;
   gender?: Gender | null;
   address?: string | null;

@@ -25,14 +25,17 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useCreateEmployee, useDepartments, usePositions, useUpdateEmployee } from '../employees.api';
+import { useOptions } from '@/features/catalog/catalog.api';
+import { PhotoUpload } from '@/components/shared/photo-upload';
 import { getErrorMessage } from '@/lib/api';
-import { toDateInput } from '@/lib/utils';
+import { getInitials, toDateInput } from '@/lib/utils';
 import type { Employee } from '@/types';
 
 const schema = z.object({
   firstName: z.string().min(2, 'Requerido'),
   lastName: z.string().min(2, 'Requerido'),
-  documentType: z.enum(['CC', 'CE', 'TI', 'PA', 'PEP']),
+  photoUrl: z.string().nullable().optional(),
+  documentType: z.string().min(1),
   documentNumber: z.string().min(3, 'Requerido'),
   email: z.string().email('Correo inválido').optional().or(z.literal('')),
   phone: z.string().optional(),
@@ -42,13 +45,13 @@ const schema = z.object({
   hireDate: z.string().min(1, 'Requerido'),
   departmentId: z.string().optional(),
   positionId: z.string().optional(),
-  status: z.enum(['ACTIVE', 'ON_LEAVE', 'SUSPENDED', 'TERMINATED']),
+  status: z.string().min(1),
   eps: z.string().optional(),
   pensionFund: z.string().optional(),
   severanceFund: z.string().optional(),
   compensationFund: z.string().optional(),
   arlRiskClass: z.coerce.number().min(1).max(5),
-  contractType: z.enum(['INDEFINITE', 'FIXED_TERM', 'WORK_LABOR', 'APPRENTICESHIP', 'TEMPORARY']),
+  contractType: z.string().min(1),
   baseSalary: z.coerce.number().positive('Debe ser mayor a 0'),
   startDate: z.string().min(1, 'Requerido'),
   isIntegralSalary: z.boolean(),
@@ -65,6 +68,7 @@ interface EmployeeFormProps {
 const emptyDefaults: FormValues = {
   firstName: '',
   lastName: '',
+  photoUrl: null,
   documentType: 'CC',
   documentNumber: '',
   email: '',
@@ -92,6 +96,9 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
   const isEdit = !!employee;
   const { data: departments } = useDepartments();
   const { data: positions } = usePositions();
+  const { data: documentTypes } = useOptions('DOCUMENT_TYPE');
+  const { data: contractTypes } = useOptions('CONTRACT_TYPE');
+  const { data: statuses } = useOptions('EMPLOYEE_STATUS');
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee(employee?.id ?? '');
 
@@ -112,6 +119,7 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
       reset({
         firstName: employee.firstName,
         lastName: employee.lastName,
+        photoUrl: employee.photoUrl ?? null,
         documentType: employee.documentType,
         documentNumber: employee.documentNumber,
         email: employee.email ?? '',
@@ -143,6 +151,7 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
     const commonFields = {
       firstName: values.firstName,
       lastName: values.lastName,
+      photoUrl: values.photoUrl ?? null,
       documentType: values.documentType,
       documentNumber: values.documentNumber,
       email: values.email || undefined,
@@ -217,6 +226,11 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
             </TabsList>
 
             <TabsContent value="personal" className="space-y-4">
+              <PhotoUpload
+                value={watch('photoUrl')}
+                onChange={(url) => setValue('photoUrl', url)}
+                fallback={getInitials(watch('firstName'), watch('lastName'))}
+              />
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Nombres" error={errors.firstName?.message}>
                   <Input {...register('firstName')} />
@@ -229,21 +243,23 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                 <Field label="Tipo de documento">
                   <Select
                     value={watch('documentType')}
-                    onValueChange={(v) => setValue('documentType', v as FormValues['documentType'])}
+                    onValueChange={(v) => setValue('documentType', v)}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="CC">Cédula de ciudadanía</SelectItem>
-                      <SelectItem value="CE">Cédula de extranjería</SelectItem>
-                      <SelectItem value="TI">Tarjeta de identidad</SelectItem>
-                      <SelectItem value="PA">Pasaporte</SelectItem>
-                      <SelectItem value="PEP">PEP</SelectItem>
+                      {documentTypes
+                        ?.filter((o) => o.isActive)
+                        .map((o) => (
+                          <SelectItem key={o.id} value={o.code}>
+                            {o.label}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </Field>
-                <Field label="Número de documento" error={errors.documentNumber?.message}>
+                <Field label="Cédula / Número de documento" error={errors.documentNumber?.message}>
                   <Input {...register('documentNumber')} />
                 </Field>
               </div>
@@ -286,18 +302,18 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                   <Input type="date" {...register('hireDate')} />
                 </Field>
                 <Field label="Estado">
-                  <Select
-                    value={watch('status')}
-                    onValueChange={(v) => setValue('status', v as FormValues['status'])}
-                  >
+                  <Select value={watch('status')} onValueChange={(v) => setValue('status', v)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ACTIVE">Activo</SelectItem>
-                      <SelectItem value="ON_LEAVE">En licencia</SelectItem>
-                      <SelectItem value="SUSPENDED">Suspendido</SelectItem>
-                      <SelectItem value="TERMINATED">Retirado</SelectItem>
+                      {statuses
+                        ?.filter((o) => o.isActive)
+                        .map((o) => (
+                          <SelectItem key={o.id} value={o.code}>
+                            {o.label}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </Field>
@@ -381,17 +397,19 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                 <Field label="Tipo de contrato">
                   <Select
                     value={watch('contractType')}
-                    onValueChange={(v) => setValue('contractType', v as FormValues['contractType'])}
+                    onValueChange={(v) => setValue('contractType', v)}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="INDEFINITE">Término indefinido</SelectItem>
-                      <SelectItem value="FIXED_TERM">Término fijo</SelectItem>
-                      <SelectItem value="WORK_LABOR">Obra o labor</SelectItem>
-                      <SelectItem value="APPRENTICESHIP">Aprendizaje</SelectItem>
-                      <SelectItem value="TEMPORARY">Temporal</SelectItem>
+                      {contractTypes
+                        ?.filter((o) => o.isActive)
+                        .map((o) => (
+                          <SelectItem key={o.id} value={o.code}>
+                            {o.label}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </Field>

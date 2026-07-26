@@ -4,7 +4,6 @@ import {
   Wallet,
   Calculator,
   Settings,
-  SlidersHorizontal,
   UserCog,
   type LucideIcon,
 } from 'lucide-react';
@@ -42,7 +41,6 @@ export const navSections: NavSection[] = [
     items: [
       { label: 'Nóminas', to: '/payroll', icon: Wallet, end: true },
       { label: 'Simulador', to: '/payroll/simulator', icon: Calculator },
-      { label: 'Parámetros', to: '/payroll/config', icon: SlidersHorizontal },
     ],
   },
   {

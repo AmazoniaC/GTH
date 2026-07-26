@@ -31,6 +31,20 @@ export function useEmployee(id: string) {
   });
 }
 
+/** Busca un empleado por su cédula (identificador visible / de la URL). */
+export function useEmployeeByDocument(documentNumber: string) {
+  return useQuery({
+    queryKey: ['employees', 'by-document', documentNumber],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: Employee }>(
+        `/employees/by-document/${documentNumber}`,
+      );
+      return data.data;
+    },
+    enabled: !!documentNumber,
+  });
+}
+
 export function useCreateEmployee() {
   const qc = useQueryClient();
   return useMutation({

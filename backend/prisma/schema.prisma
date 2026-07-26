@@ -41,6 +41,7 @@ model Organization {
   positions      Position[]
   payrollPeriods PayrollPeriod[]
   payrollConfigs PayrollConfig[]
+  catalogOptions CatalogOption[]
 
   @@map("organizations")
 }
@@ -99,6 +100,7 @@ model Position {
   id             String   @id @default(cuid())
   organizationId String
   departmentId   String?
+  code           String? // Identificador legible del cargo (ej: CAR-001)
   title          String
   description    String?
   createdAt      DateTime @default(now())
@@ -108,6 +110,7 @@ model Position {
   department   Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   employees    Employee[]
 
+  @@unique([organizationId, code])
   @@index([organizationId])
   @@map("positions")
 }
@@ -116,13 +119,8 @@ model Position {
 // MÓDULO: GESTIÓN DE EMPLEADOS
 // ==================================================================
 
-enum DocumentType {
-  CC // Cédula de ciudadanía
-  CE // Cédula de extranjería
-  TI // Tarjeta de identidad
-  PA // Pasaporte
-  PEP // Permiso especial de permanencia
-}
+// Los tipos de documento y de contrato se gestionan como catálogos
+// editables (modelo CatalogOption), por eso se almacenan como texto.
 
 enum Gender {
   MALE
@@ -145,17 +143,31 @@ enum EmployeeStatus {
   TERMINATED
 }
 
-enum ContractType {
-  INDEFINITE // Término indefinido
-  FIXED_TERM // Término fijo
-  WORK_LABOR // Obra o labor
-  APPRENTICESHIP // Aprendizaje (SENA)
-  TEMPORARY // Temporal / ocasional
-}
-
 enum PaymentFrequency {
   MONTHLY
   BIWEEKLY // Quincenal
+}
+
+// Catálogo de opciones configurables (tipos de documento, tipos de
+// contrato, etiquetas de estado, etc.). Permite editar las listas
+// seleccionables desde el módulo de Configuración sin tocar el código.
+model CatalogOption {
+  id             String   @id @default(cuid())
+  organizationId String
+  category       String // DOCUMENT_TYPE | CONTRACT_TYPE | EMPLOYEE_STATUS
+  code           String
+  label          String
+  order          Int      @default(0)
+  isSystem       Boolean  @default(false) // No se puede eliminar (afecta lógica)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, category, code])
+  @@index([organizationId, category])
+  @@map("catalog_options")
 }
 
 model Employee {
@@ -165,7 +177,7 @@ model Employee {
 
   // Identificación
   employeeCode   String
-  documentType   DocumentType @default(CC)
+  documentType   String   @default("CC") // Catálogo editable DOCUMENT_TYPE
   documentNumber String
 
   // Datos personales
@@ -224,7 +236,7 @@ model Contract {
   id             String   @id @default(cuid())
   employeeId     String
 
-  type           ContractType     @default(INDEFINITE)
+  type           String           @default("INDEFINITE") // Catálogo editable CONTRACT_TYPE
   paymentFrequency PaymentFrequency @default(MONTHLY)
   baseSalary     Decimal          @db.Decimal(14, 2)
   // ¿Salario integral? (Ley 50). Si es true no aplica factor prestacional aparte.

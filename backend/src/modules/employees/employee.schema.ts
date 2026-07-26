@@ -1,15 +1,10 @@
 import { z } from 'zod';
-import {
-  ContractType,
-  DocumentType,
-  EmployeeStatus,
-  Gender,
-  MaritalStatus,
-  PaymentFrequency,
-} from '@prisma/client';
+import { EmployeeStatus, Gender, MaritalStatus, PaymentFrequency } from '@prisma/client';
 
+// Tipo de documento y tipo de contrato son catálogos editables (texto libre
+// validado contra las opciones configuradas en Configuración).
 const contractSchema = z.object({
-  type: z.nativeEnum(ContractType).default(ContractType.INDEFINITE),
+  type: z.string().min(1).default('INDEFINITE'),
   paymentFrequency: z.nativeEnum(PaymentFrequency).default(PaymentFrequency.MONTHLY),
   baseSalary: z.number().positive('El salario debe ser mayor a 0.'),
   isIntegralSalary: z.boolean().default(false),
@@ -20,8 +15,9 @@ const contractSchema = z.object({
 });
 
 const employeeBase = {
-  documentType: z.nativeEnum(DocumentType).default(DocumentType.CC),
+  documentType: z.string().min(1).default('CC'),
   documentNumber: z.string().min(3, 'Número de documento inválido.'),
+  photoUrl: z.string().optional().nullable(),
   employeeCode: z.string().min(1).optional(),
   firstName: z.string().min(2, 'El nombre es obligatorio.'),
   lastName: z.string().min(2, 'El apellido es obligatorio.'),
@@ -57,7 +53,7 @@ export const createEmployeeSchema = z.object({
 
 const contractUpdateSchema = z
   .object({
-    type: z.nativeEnum(ContractType),
+    type: z.string().min(1),
     paymentFrequency: z.nativeEnum(PaymentFrequency),
     baseSalary: z.number().positive('El salario debe ser mayor a 0.'),
     isIntegralSalary: z.boolean(),

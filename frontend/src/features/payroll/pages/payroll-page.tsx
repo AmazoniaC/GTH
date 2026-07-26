@@ -32,7 +32,7 @@ export function PayrollPage() {
           </Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link to="/payroll/config">
+          <Link to="/settings">
             <SlidersHorizontal className="h-4 w-4" /> Parámetros
           </Link>
         </Button>

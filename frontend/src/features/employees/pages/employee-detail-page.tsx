@@ -15,27 +15,28 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeStatusBadge, CONTRACT_TYPE_LABEL, DOCUMENT_TYPE_LABEL } from '@/components/shared/status-badges';
-import { useDeleteEmployee, useEmployee } from '../employees.api';
+import { useDeleteEmployee, useEmployeeByDocument } from '../employees.api';
 import { EmployeeForm } from '../components/employee-form';
 import { usePermissions } from '@/features/auth/use-permissions';
 import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
 
 export function EmployeeDetailPage() {
-  const { id = '' } = useParams();
+  const { documentNumber = '' } = useParams();
   const navigate = useNavigate();
-  const { data: emp, isLoading } = useEmployee(id);
+  const { data: emp, isLoading } = useEmployeeByDocument(documentNumber);
   const deleteEmployee = useDeleteEmployee();
   const { isAdmin, canManageEmployees } = usePermissions();
   const [editOpen, setEditOpen] = useState(false);
 
   const handleDelete = async () => {
+    if (!emp) return;
     if (!confirm('¿Eliminar este empleado? Esta acción no se puede deshacer.')) return;
     try {
-      await deleteEmployee.mutateAsync(id);
+      await deleteEmployee.mutateAsync(emp.id);
       toast.success('Empleado eliminado');
       navigate('/employees');
     } catch (error) {
@@ -71,6 +72,7 @@ export function EmployeeDetailPage() {
         <CardContent className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20 text-2xl">
+              {emp.photoUrl ? <AvatarImage src={emp.photoUrl} alt="" /> : null}
               <AvatarFallback>{getInitials(emp.firstName, emp.lastName)}</AvatarFallback>
             </Avatar>
             <div>
@@ -83,7 +85,7 @@ export function EmployeeDetailPage() {
               <p className="text-muted-foreground">{emp.position?.title ?? 'Sin cargo asignado'}</p>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Briefcase className="h-3.5 w-3.5" /> {emp.employeeCode}
+                  <Briefcase className="h-3.5 w-3.5" /> Cédula: {emp.documentNumber}
                 </span>
                 <span className="flex items-center gap-1">
                   <Building2 className="h-3.5 w-3.5" /> {emp.department?.name ?? '—'}
@@ -120,7 +122,7 @@ export function EmployeeDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Row label="Tipo de documento" value={DOCUMENT_TYPE_LABEL[emp.documentType]} />
+            <Row label="Tipo de documento" value={DOCUMENT_TYPE_LABEL[emp.documentType] ?? emp.documentType} />
             <Row label="Número de documento" value={emp.documentNumber} />
             <Row label="Correo" value={emp.email} icon={Mail} />
             <Row label="Teléfono" value={emp.phone} icon={Phone} />
@@ -139,7 +141,7 @@ export function EmployeeDetailPage() {
           <CardContent className="space-y-3">
             {contract ? (
               <>
-                <Row label="Tipo" value={CONTRACT_TYPE_LABEL[contract.type]} />
+                <Row label="Tipo" value={CONTRACT_TYPE_LABEL[contract.type] ?? contract.type} />
                 <div className="rounded-lg bg-primary/5 p-4">
                   <p className="text-xs text-muted-foreground">Salario base</p>
                   <p className="text-2xl font-bold text-primary">
