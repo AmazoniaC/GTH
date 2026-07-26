@@ -1,0 +1,39 @@
+import { Request, Response } from 'express';
+import { employeeService } from './employee.service';
+import { created, ok } from '../../core/utils/apiResponse';
+
+export class EmployeeController {
+  list = async (req: Request, res: Response) => {
+    const { items, meta } = await employeeService.list(
+      req.auth!.organizationId,
+      req.query as never,
+    );
+    return ok(res, items, meta);
+  };
+
+  getById = async (req: Request, res: Response) => {
+    const employee = await employeeService.getById(req.params.id, req.auth!.organizationId);
+    return ok(res, employee);
+  };
+
+  create = async (req: Request, res: Response) => {
+    const employee = await employeeService.create(req.auth!.organizationId, req.body);
+    return created(res, employee);
+  };
+
+  update = async (req: Request, res: Response) => {
+    const employee = await employeeService.update(
+      req.params.id,
+      req.auth!.organizationId,
+      req.body,
+    );
+    return ok(res, employee);
+  };
+
+  remove = async (req: Request, res: Response) => {
+    const result = await employeeService.remove(req.params.id, req.auth!.organizationId);
+    return ok(res, result);
+  };
+}
+
+export const employeeController = new EmployeeController();

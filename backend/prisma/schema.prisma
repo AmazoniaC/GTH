@@ -1,0 +1,387 @@
+// ------------------------------------------------------------------
+// GTH - Gestión de Talento Humano
+// Esquema de base de datos (PostgreSQL + Prisma)
+//
+// Diseñado de forma modular y preparado para multi-empresa (multi-tenant
+// por columna `organizationId`). Actualmente incluye únicamente los
+// módulos de Empleados y Nómina, pero la arquitectura permite añadir
+// nuevos módulos (Vacaciones, Reclutamiento, etc.) sin refactorizar.
+// ------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================================================================
+// NÚCLEO / MULTI-EMPRESA
+// ==================================================================
+
+model Organization {
+  id           String   @id @default(cuid())
+  name         String
+  nit          String   @unique
+  legalName    String?
+  address      String?
+  city         String?
+  phone        String?
+  email        String?
+  logoUrl      String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  users          User[]
+  employees      Employee[]
+  departments    Department[]
+  positions      Position[]
+  payrollPeriods PayrollPeriod[]
+  payrollConfigs PayrollConfig[]
+
+  @@map("organizations")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  HR_MANAGER
+  PAYROLL_MANAGER
+  EMPLOYEE
+}
+
+model User {
+  id             String   @id @default(cuid())
+  organizationId String
+  email          String   @unique
+  password       String
+  firstName      String
+  lastName       String
+  role           UserRole @default(HR_MANAGER)
+  avatarUrl      String?
+  isActive       Boolean  @default(true)
+  lastLoginAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee     Employee?
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+// ==================================================================
+// ESTRUCTURA ORGANIZACIONAL
+// ==================================================================
+
+model Department {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employees    Employee[]
+  positions    Position[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("departments")
+}
+
+model Position {
+  id             String   @id @default(cuid())
+  organizationId String
+  departmentId   String?
+  title          String
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  department   Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  employees    Employee[]
+
+  @@index([organizationId])
+  @@map("positions")
+}
+
+// ==================================================================
+// MÓDULO: GESTIÓN DE EMPLEADOS
+// ==================================================================
+
+enum DocumentType {
+  CC // Cédula de ciudadanía
+  CE // Cédula de extranjería
+  TI // Tarjeta de identidad
+  PA // Pasaporte
+  PEP // Permiso especial de permanencia
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+  FREE_UNION
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum ContractType {
+  INDEFINITE // Término indefinido
+  FIXED_TERM // Término fijo
+  WORK_LABOR // Obra o labor
+  APPRENTICESHIP // Aprendizaje (SENA)
+  TEMPORARY // Temporal / ocasional
+}
+
+enum PaymentFrequency {
+  MONTHLY
+  BIWEEKLY // Quincenal
+}
+
+model Employee {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?  @unique
+
+  // Identificación
+  employeeCode   String
+  documentType   DocumentType @default(CC)
+  documentNumber String
+
+  // Datos personales
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  birthDate      DateTime?
+  gender         Gender?
+  maritalStatus  MaritalStatus?
+  address        String?
+  city           String?
+  photoUrl       String?
+
+  // Contacto de emergencia
+  emergencyContactName  String?
+  emergencyContactPhone String?
+
+  // Organización
+  departmentId   String?
+  positionId     String?
+  hireDate       DateTime
+  terminationDate DateTime?
+  status         EmployeeStatus @default(ACTIVE)
+
+  // Seguridad social (Colombia)
+  eps                 String? // Entidad Promotora de Salud
+  pensionFund         String? // Administradora de Fondo de Pensiones (AFP)
+  severanceFund       String? // Fondo de cesantías
+  compensationFund    String? // Caja de compensación familiar
+  arlRiskClass        Int     @default(1) // Clase de riesgo ARL (1-5)
+
+  // Datos bancarios
+  bankName       String?
+  bankAccountType String? // Ahorros / Corriente
+  bankAccountNumber String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  department   Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  position     Position?    @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  contracts    Contract[]
+  payslips     Payslip[]
+
+  @@unique([organizationId, employeeCode])
+  @@unique([organizationId, documentNumber])
+  @@index([organizationId])
+  @@index([status])
+  @@map("employees")
+}
+
+model Contract {
+  id             String   @id @default(cuid())
+  employeeId     String
+
+  type           ContractType     @default(INDEFINITE)
+  paymentFrequency PaymentFrequency @default(MONTHLY)
+  baseSalary     Decimal          @db.Decimal(14, 2)
+  // ¿Salario integral? (Ley 50). Si es true no aplica factor prestacional aparte.
+  isIntegralSalary Boolean        @default(false)
+  // ¿Tiene derecho a auxilio de transporte? (normalmente <= 2 SMMLV)
+  transportAllowance Boolean      @default(true)
+
+  startDate      DateTime
+  endDate        DateTime?
+  isActive       Boolean  @default(true)
+  notes          String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@map("contracts")
+}
+
+// ==================================================================
+// MÓDULO: NÓMINA
+// ==================================================================
+
+// Parámetros legales configurables por año (SMMLV, auxilio de transporte,
+// porcentajes de aportes, UVT, etc.). Permite adaptar la nómina a cambios
+// de legislación sin tocar el código.
+model PayrollConfig {
+  id                    String   @id @default(cuid())
+  organizationId        String
+  year                  Int
+
+  minimumWage           Decimal  @db.Decimal(14, 2) // SMMLV
+  transportAllowance    Decimal  @db.Decimal(14, 2) // Auxilio de transporte
+  uvt                   Decimal  @db.Decimal(14, 2) // Unidad de Valor Tributario
+
+  // Porcentajes (expresados como fracción, ej: 0.04 = 4%)
+  healthEmployeeRate    Decimal  @db.Decimal(6, 5) @default(0.04000)
+  healthEmployerRate    Decimal  @db.Decimal(6, 5) @default(0.08500)
+  pensionEmployeeRate   Decimal  @db.Decimal(6, 5) @default(0.04000)
+  pensionEmployerRate   Decimal  @db.Decimal(6, 5) @default(0.12000)
+
+  // Parafiscales
+  senaRate              Decimal  @db.Decimal(6, 5) @default(0.02000)
+  icbfRate              Decimal  @db.Decimal(6, 5) @default(0.03000)
+  compensationFundRate  Decimal  @db.Decimal(6, 5) @default(0.04000)
+
+  // Prestaciones sociales (provisiones)
+  severanceRate         Decimal  @db.Decimal(6, 5) @default(0.08330) // Cesantías
+  severanceInterestRate Decimal  @db.Decimal(6, 5) @default(0.01000) // Intereses cesantías (mensual)
+  serviceBonusRate      Decimal  @db.Decimal(6, 5) @default(0.08330) // Prima de servicios
+  vacationRate          Decimal  @db.Decimal(6, 5) @default(0.04170) // Vacaciones
+
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, year])
+  @@index([organizationId])
+  @@map("payroll_configs")
+}
+
+enum PayrollPeriodType {
+  MONTHLY
+  BIWEEKLY_FIRST // 1ra quincena
+  BIWEEKLY_SECOND // 2da quincena
+}
+
+enum PayrollStatus {
+  DRAFT
+  PROCESSED
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+model PayrollPeriod {
+  id             String   @id @default(cuid())
+  organizationId String
+
+  name           String // Ej: "Nómina Julio 2026"
+  type           PayrollPeriodType @default(MONTHLY)
+  year           Int
+  month          Int
+  startDate      DateTime
+  endDate        DateTime
+  paymentDate    DateTime?
+  status         PayrollStatus @default(DRAFT)
+
+  // Totales consolidados (denormalizados para reportes rápidos)
+  totalEarnings  Decimal  @db.Decimal(16, 2) @default(0)
+  totalDeductions Decimal @db.Decimal(16, 2) @default(0)
+  totalNet       Decimal  @db.Decimal(16, 2) @default(0)
+  totalEmployerCost Decimal @db.Decimal(16, 2) @default(0)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  payslips     Payslip[]
+
+  @@unique([organizationId, year, month, type])
+  @@index([organizationId])
+  @@map("payroll_periods")
+}
+
+model Payslip {
+  id             String   @id @default(cuid())
+  periodId       String
+  employeeId     String
+
+  workedDays     Int      @default(30)
+  baseSalary     Decimal  @db.Decimal(14, 2)
+
+  totalEarnings  Decimal  @db.Decimal(14, 2) @default(0)
+  totalDeductions Decimal @db.Decimal(14, 2) @default(0)
+  netPay         Decimal  @db.Decimal(14, 2) @default(0)
+  employerCost   Decimal  @db.Decimal(14, 2) @default(0)
+
+  status         PayrollStatus @default(DRAFT)
+  notes          String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  period   PayrollPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  employee Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  items    PayslipItem[]
+
+  @@unique([periodId, employeeId])
+  @@index([employeeId])
+  @@map("payslips")
+}
+
+enum PayslipItemType {
+  EARNING // Devengado
+  DEDUCTION // Deducción
+  EMPLOYER_COST // Costo/provisión del empleador (no afecta neto del empleado)
+}
+
+model PayslipItem {
+  id          String   @id @default(cuid())
+  payslipId   String
+
+  type        PayslipItemType
+  code        String   // Código interno (ej: SALARY, HEALTH_EMP, TRANSPORT)
+  concept     String   // Descripción visible
+  quantity    Decimal  @db.Decimal(10, 2) @default(1)
+  amount      Decimal  @db.Decimal(14, 2)
+
+  createdAt   DateTime @default(now())
+
+  payslip Payslip @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+
+  @@index([payslipId])
+  @@map("payslip_items")
+}

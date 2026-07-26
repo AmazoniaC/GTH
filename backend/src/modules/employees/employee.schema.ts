@@ -1,0 +1,85 @@
+import { z } from 'zod';
+import {
+  ContractType,
+  DocumentType,
+  EmployeeStatus,
+  Gender,
+  MaritalStatus,
+  PaymentFrequency,
+} from '@prisma/client';
+
+const contractSchema = z.object({
+  type: z.nativeEnum(ContractType).default(ContractType.INDEFINITE),
+  paymentFrequency: z.nativeEnum(PaymentFrequency).default(PaymentFrequency.MONTHLY),
+  baseSalary: z.number().positive('El salario debe ser mayor a 0.'),
+  isIntegralSalary: z.boolean().default(false),
+  transportAllowance: z.boolean().default(true),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+const employeeBase = {
+  documentType: z.nativeEnum(DocumentType).default(DocumentType.CC),
+  documentNumber: z.string().min(3, 'Número de documento inválido.'),
+  employeeCode: z.string().min(1).optional(),
+  firstName: z.string().min(2, 'El nombre es obligatorio.'),
+  lastName: z.string().min(2, 'El apellido es obligatorio.'),
+  email: z.string().email().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  birthDate: z.coerce.date().optional().nullable(),
+  gender: z.nativeEnum(Gender).optional().nullable(),
+  maritalStatus: z.nativeEnum(MaritalStatus).optional().nullable(),
+  address: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  emergencyContactName: z.string().optional().nullable(),
+  emergencyContactPhone: z.string().optional().nullable(),
+  departmentId: z.string().optional().nullable(),
+  positionId: z.string().optional().nullable(),
+  hireDate: z.coerce.date(),
+  status: z.nativeEnum(EmployeeStatus).default(EmployeeStatus.ACTIVE),
+  eps: z.string().optional().nullable(),
+  pensionFund: z.string().optional().nullable(),
+  severanceFund: z.string().optional().nullable(),
+  compensationFund: z.string().optional().nullable(),
+  arlRiskClass: z.number().int().min(1).max(5).default(1),
+  bankName: z.string().optional().nullable(),
+  bankAccountType: z.string().optional().nullable(),
+  bankAccountNumber: z.string().optional().nullable(),
+};
+
+export const createEmployeeSchema = z.object({
+  body: z.object({
+    ...employeeBase,
+    contract: contractSchema,
+  }),
+});
+
+export const updateEmployeeSchema = z.object({
+  params: z.object({ id: z.string().cuid() }),
+  body: z.object({
+    ...employeeBase,
+    hireDate: z.coerce.date().optional(),
+    documentNumber: z.string().min(3).optional(),
+    firstName: z.string().min(2).optional(),
+    lastName: z.string().min(2).optional(),
+  }).partial(),
+});
+
+export const listEmployeesSchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce.number().int().min(1).max(100).default(10),
+    search: z.string().optional(),
+    status: z.nativeEnum(EmployeeStatus).optional(),
+    departmentId: z.string().optional(),
+  }),
+});
+
+export const idParamSchema = z.object({
+  params: z.object({ id: z.string().cuid() }),
+});
+
+export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>['body'];
+export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>['body'];
+export type ListEmployeesQuery = z.infer<typeof listEmployeesSchema>['query'];
