@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { navSections } from './nav-config';
+import { useAuthStore } from '@/features/auth/auth.store';
 
 interface SidebarProps {
   open: boolean;
@@ -9,6 +10,16 @@ interface SidebarProps {
 }
 
 export function Sidebar({ open, onClose }: SidebarProps) {
+  const role = useAuthStore((s) => s.user?.role);
+
+  // Filtra los ítems restringidos por rol y descarta secciones vacías.
+  const sections = navSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => !item.roles || (role && item.roles.includes(role))),
+    }))
+    .filter((section) => section.items.length > 0);
+
   return (
     <>
       {/* Overlay móvil */}
@@ -48,7 +59,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
         {/* Navegación */}
         <nav className="flex-1 overflow-y-auto px-3 py-5">
-          {navSections.map((section) => (
+          {sections.map((section) => (
             <div key={section.title} className="mb-6">
               <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-muted">
                 {section.title}

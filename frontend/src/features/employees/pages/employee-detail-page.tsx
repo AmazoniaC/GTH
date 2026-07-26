@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -7,6 +8,7 @@ import {
   CreditCard,
   Mail,
   MapPin,
+  Pencil,
   Phone,
   ShieldPlus,
   Trash2,
@@ -17,6 +19,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeStatusBadge, CONTRACT_TYPE_LABEL, DOCUMENT_TYPE_LABEL } from '@/components/shared/status-badges';
 import { useDeleteEmployee, useEmployee } from '../employees.api';
+import { EmployeeForm } from '../components/employee-form';
+import { usePermissions } from '@/features/auth/use-permissions';
 import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
 
@@ -25,6 +29,8 @@ export function EmployeeDetailPage() {
   const navigate = useNavigate();
   const { data: emp, isLoading } = useEmployee(id);
   const deleteEmployee = useDeleteEmployee();
+  const { isAdmin, canManageEmployees } = usePermissions();
+  const [editOpen, setEditOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!confirm('¿Eliminar este empleado? Esta acción no se puede deshacer.')) return;
@@ -88,11 +94,22 @@ export function EmployeeDetailPage() {
               </div>
             </div>
           </div>
-          <Button variant="destructive" onClick={handleDelete}>
-            <Trash2 className="h-4 w-4" /> Eliminar
-          </Button>
+          <div className="flex gap-2">
+            {canManageEmployees && (
+              <Button variant="outline" onClick={() => setEditOpen(true)}>
+                <Pencil className="h-4 w-4" /> Editar
+              </Button>
+            )}
+            {isAdmin && (
+              <Button variant="destructive" onClick={handleDelete}>
+                <Trash2 className="h-4 w-4" /> Eliminar
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
+
+      <EmployeeForm open={editOpen} onOpenChange={setEditOpen} employee={emp} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Información personal */}

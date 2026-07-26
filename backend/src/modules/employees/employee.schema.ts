@@ -55,15 +55,23 @@ export const createEmployeeSchema = z.object({
   }),
 });
 
+const contractUpdateSchema = z
+  .object({
+    type: z.nativeEnum(ContractType),
+    paymentFrequency: z.nativeEnum(PaymentFrequency),
+    baseSalary: z.number().positive('El salario debe ser mayor a 0.'),
+    isIntegralSalary: z.boolean(),
+    transportAllowance: z.boolean(),
+    startDate: z.coerce.date(),
+  })
+  .partial();
+
 export const updateEmployeeSchema = z.object({
   params: z.object({ id: z.string().cuid() }),
-  body: z.object({
-    ...employeeBase,
-    hireDate: z.coerce.date().optional(),
-    documentNumber: z.string().min(3).optional(),
-    firstName: z.string().min(2).optional(),
-    lastName: z.string().min(2).optional(),
-  }).partial(),
+  body: z
+    .object({ ...employeeBase })
+    .partial()
+    .extend({ contract: contractUpdateSchema.optional() }),
 });
 
 export const listEmployeesSchema = z.object({

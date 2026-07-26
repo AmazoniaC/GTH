@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   Banknote,
   Receipt,
+  Trash2,
   TrendingDown,
   TrendingUp,
   Users,
@@ -22,7 +23,8 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { PayrollStatusBadge } from '@/components/shared/status-badges';
-import { usePayrollPeriod, useUpdatePeriodStatus } from '../payroll.api';
+import { useDeletePeriod, usePayrollPeriod, useUpdatePeriodStatus } from '../payroll.api';
+import { usePermissions } from '@/features/auth/use-permissions';
 import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
 import type { PayrollStatus } from '@/types';
@@ -38,6 +40,8 @@ export function PayrollPeriodPage() {
   const navigate = useNavigate();
   const { data: period, isLoading } = usePayrollPeriod(id);
   const updateStatus = useUpdatePeriodStatus();
+  const deletePeriod = useDeletePeriod();
+  const { isAdmin, canManagePayroll } = usePermissions();
 
   const handleAdvance = async () => {
     if (!period) return;
@@ -46,6 +50,17 @@ export function PayrollPeriodPage() {
     try {
       await updateStatus.mutateAsync({ id, status: action.next });
       toast.success('Estado actualizado');
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('¿Eliminar esta nómina? Esta acción no se puede deshacer.')) return;
+    try {
+      await deletePeriod.mutateAsync(id);
+      toast.success('Nómina eliminada');
+      navigate('/payroll');
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
@@ -81,9 +96,14 @@ export function PayrollPeriodPage() {
           <PayrollStatusBadge status={period.status} />
         </div>
         <div className="flex gap-2">
-          {action && (
+          {action && canManagePayroll && (
             <Button onClick={handleAdvance} disabled={updateStatus.isPending}>
               <BadgeCheck className="h-4 w-4" /> {action.label}
+            </Button>
+          )}
+          {isAdmin && period.status !== 'PAID' && (
+            <Button variant="destructive" onClick={handleDelete} disabled={deletePeriod.isPending}>
+              <Trash2 className="h-4 w-4" /> Eliminar
             </Button>
           )}
         </div>

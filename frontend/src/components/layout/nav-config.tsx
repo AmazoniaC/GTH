@@ -5,14 +5,18 @@ import {
   Calculator,
   Settings,
   SlidersHorizontal,
+  UserCog,
   type LucideIcon,
 } from 'lucide-react';
+import type { UserRole } from '@/types';
 
 export interface NavItem {
   label: string;
   to: string;
   icon: LucideIcon;
   end?: boolean;
+  /** Si se define, el ítem solo se muestra a estos roles. */
+  roles?: UserRole[];
 }
 
 export interface NavSection {
@@ -43,6 +47,14 @@ export const navSections: NavSection[] = [
   },
   {
     title: 'Sistema',
-    items: [{ label: 'Configuración', to: '/settings', icon: Settings }],
+    items: [
+      {
+        label: 'Usuarios',
+        to: '/users',
+        icon: UserCog,
+        roles: ['ADMIN', 'SUPER_ADMIN'],
+      },
+      { label: 'Configuración', to: '/settings', icon: Settings },
+    ],
   },
 ];
