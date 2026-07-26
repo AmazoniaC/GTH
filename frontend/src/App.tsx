@@ -12,6 +12,8 @@ import { PayslipPage } from '@/features/payroll/pages/payslip-page';
 import { PayrollSimulatorPage } from '@/features/payroll/pages/payroll-simulator-page';
 import { SettingsPage } from '@/features/settings/settings-page';
 import { UsersPage } from '@/features/users/pages/users-page';
+import { OrgChartPage } from '@/features/organization/org-chart-page';
+import { AlertsPage } from '@/features/alerts/pages/alerts-page';
 
 export default function App() {
   return (
@@ -28,7 +30,9 @@ export default function App() {
       >
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/employees" element={<EmployeesPage />} />
+        <Route path="/organization" element={<OrgChartPage />} />
         <Route path="/employees/:documentNumber" element={<EmployeeDetailPage />} />
         <Route path="/payroll" element={<PayrollPage />} />
         <Route path="/payroll/simulator" element={<PayrollSimulatorPage />} />

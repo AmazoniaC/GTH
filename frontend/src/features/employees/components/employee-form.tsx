@@ -24,7 +24,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useCreateEmployee, useDepartments, usePositions, useUpdateEmployee } from '../employees.api';
+import {
+  useCreateEmployee,
+  useDepartments,
+  useOrgChart,
+  usePositions,
+  useUpdateEmployee,
+} from '../employees.api';
 import { useOptions } from '@/features/catalog/catalog.api';
 import { PhotoUpload } from '@/components/shared/photo-upload';
 import { CatalogSelect } from '@/components/shared/catalog-select';
@@ -68,6 +74,7 @@ const schema = z.object({
   hireDate: z.string().min(1, 'Requerido'),
   departmentId: z.string().optional(),
   positionId: z.string().optional(),
+  managerId: z.string().optional(),
   status: z.string().min(1),
   eps: z.string().optional(),
   pensionFund: z.string().optional(),
@@ -121,6 +128,7 @@ const emptyDefaults: FormValues = {
   hireDate: today,
   departmentId: undefined,
   positionId: undefined,
+  managerId: undefined,
   status: 'ACTIVE',
   eps: '',
   pensionFund: '',
@@ -145,6 +153,7 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
   const { data: documentTypes } = useOptions('DOCUMENT_TYPE');
   const { data: contractTypes } = useOptions('CONTRACT_TYPE');
   const { data: statuses } = useOptions('EMPLOYEE_STATUS');
+  const { data: orgPeople } = useOrgChart();
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee(employee?.id ?? '');
 
@@ -188,6 +197,7 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
         hireDate: toDateInput(employee.hireDate),
         departmentId: employee.departmentId ?? undefined,
         positionId: employee.positionId ?? undefined,
+        managerId: employee.managerId ?? undefined,
         status: employee.status,
         eps: employee.eps ?? '',
         pensionFund: employee.pensionFund ?? '',
@@ -238,6 +248,7 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
       hireDate: values.hireDate,
       departmentId: values.departmentId || undefined,
       positionId: values.positionId || undefined,
+      managerId: values.managerId || undefined,
       eps: opt(values.eps),
       pensionFund: opt(values.pensionFund),
       severanceFund: opt(values.severanceFund),
@@ -503,6 +514,23 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                           {p.title}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Jefe directo">
+                  <Select value={watch('managerId') ?? ''} onValueChange={(v) => setValue('managerId', v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sin jefe asignado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {orgPeople
+                        ?.filter((p) => p.id !== employee?.id)
+                        .map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.firstName} {p.lastName}
+                            {p.position?.title ? ` · ${p.position.title}` : ''}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </Field>

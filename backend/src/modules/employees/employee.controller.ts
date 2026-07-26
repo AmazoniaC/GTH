@@ -42,6 +42,16 @@ export class EmployeeController {
     const result = await employeeService.remove(req.params.id, req.auth!.organizationId);
     return ok(res, result);
   };
+
+  orgChart = async (req: Request, res: Response) => {
+    const data = await employeeService.orgChart(req.auth!.organizationId);
+    return ok(res, data);
+  };
+
+  exportAll = async (req: Request, res: Response) => {
+    const data = await employeeService.exportAll(req.auth!.organizationId);
+    return ok(res, data);
+  };
 }
 
 export const employeeController = new EmployeeController();

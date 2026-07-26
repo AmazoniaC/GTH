@@ -41,6 +41,7 @@ const employeeBase = {
   emergencyContactPhone: z.string().optional().nullable(),
   departmentId: z.string().optional().nullable(),
   positionId: z.string().optional().nullable(),
+  managerId: z.string().optional().nullable(),
   hireDate: z.coerce.date(),
   status: z.string().min(1).default('ACTIVE'),
   eps: z.string().optional().nullable(),

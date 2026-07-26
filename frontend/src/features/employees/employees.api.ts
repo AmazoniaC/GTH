@@ -1,6 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { Department, Employee, Paginated, Position } from '@/types';
+import type { Department, Employee, OrgNode, Paginated, Position } from '@/types';
+
+export function useOrgChart() {
+  return useQuery({
+    queryKey: ['employees', 'org-chart'],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: OrgNode[] }>('/employees/org-chart');
+      return data.data;
+    },
+  });
+}
+
+/** Devuelve todos los empleados de la organización (para exportar). */
+export async function fetchAllEmployees(): Promise<Employee[]> {
+  const { data } = await api.get<{ data: Employee[] }>('/employees/export');
+  return data.data;
+}
 
 interface EmployeeFilters {
   page: number;

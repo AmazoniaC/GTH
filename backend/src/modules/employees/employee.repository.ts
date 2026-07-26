@@ -10,7 +10,11 @@ export class EmployeeRepository {
   private readonly detailInclude = {
     department: true,
     position: true,
+    manager: {
+      select: { id: true, firstName: true, lastName: true, documentNumber: true, photoUrl: true },
+    },
     contracts: { orderBy: { createdAt: 'desc' as const } },
+    _count: { select: { reports: true } },
   } satisfies Prisma.EmployeeInclude;
 
   findManyPaginated(params: {
@@ -92,6 +96,36 @@ export class EmployeeRepository {
 
   countActive(organizationId: string) {
     return prisma.employee.count({ where: { organizationId, status: 'ACTIVE' } });
+  }
+
+  orgChart(organizationId: string) {
+    return prisma.employee.findMany({
+      where: { organizationId, status: { not: 'TERMINATED' } },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        documentNumber: true,
+        photoUrl: true,
+        managerId: true,
+        position: { select: { title: true } },
+        department: { select: { name: true } },
+      },
+      orderBy: { firstName: 'asc' },
+    });
+  }
+
+  exportAll(organizationId: string) {
+    return prisma.employee.findMany({
+      where: { organizationId },
+      orderBy: { firstName: 'asc' },
+      include: {
+        department: true,
+        position: true,
+        manager: { select: { firstName: true, lastName: true } },
+        contracts: { where: { isActive: true }, take: 1, orderBy: { createdAt: 'desc' } },
+      },
+    });
   }
 
   async nextEmployeeCode(organizationId: string): Promise<string> {
