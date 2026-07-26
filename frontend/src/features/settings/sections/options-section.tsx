@@ -38,7 +38,7 @@ export function OptionsSection() {
       <OptionList
         category="EMPLOYEE_STATUS"
         title="Estados del empleado"
-        description="Solo se pueden renombrar (afectan la nómina)."
+        description="Agrega estados (licencias, etc.). Los del sistema no se eliminan."
       />
     </div>
   );
@@ -81,15 +81,22 @@ function OptionList({
       toast.error('El nombre visible es obligatorio.');
       return;
     }
+    if (code.trim().length < 1) {
+      toast.error('El código es obligatorio.');
+      return;
+    }
     try {
       if (editing) {
-        await updateOption.mutateAsync({ id: editing.id, label });
+        await updateOption.mutateAsync({
+          id: editing.id,
+          label,
+          // Solo enviamos el código si cambió y la opción no es del sistema.
+          ...(!editing.isSystem && code.trim().toUpperCase() !== editing.code
+            ? { code: code.trim().toUpperCase() }
+            : {}),
+        });
         toast.success('Opción actualizada');
       } else {
-        if (code.trim().length < 1) {
-          toast.error('El código es obligatorio.');
-          return;
-        }
         await createOption.mutateAsync({ category, code: code.trim().toUpperCase(), label });
         toast.success('Opción creada');
       }
@@ -109,18 +116,14 @@ function OptionList({
     }
   };
 
-  const canAdd = category !== 'EMPLOYEE_STATUS';
-
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">{title}</CardTitle>
-          {canAdd && (
-            <Button size="sm" variant="ghost" onClick={openNew}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          )}
+          <Button size="sm" variant="ghost" onClick={openNew}>
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
@@ -176,12 +179,18 @@ function OptionList({
               <Label>Código</Label>
               <Input
                 value={code}
-                disabled={!!editing}
-                placeholder="Ej: RC"
+                disabled={!!editing && editing.isSystem}
+                placeholder="Ej: PPT"
                 onChange={(e) => setCode(e.target.value)}
               />
-              {editing && (
-                <p className="text-xs text-muted-foreground">El código no se puede cambiar.</p>
+              {editing && editing.isSystem ? (
+                <p className="text-xs text-muted-foreground">
+                  Opción del sistema: el código no se puede cambiar.
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Se actualizará en todos los registros que lo usen.
+                </p>
               )}
             </div>
             <div className="space-y-1.5">

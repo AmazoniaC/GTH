@@ -36,7 +36,11 @@ const optionSchema = z.object({
 
 const optionUpdateSchema = z.object({
   params: z.object({ id: z.string().cuid() }),
-  body: z.object({ label: z.string().min(1).optional(), isActive: z.boolean().optional() }),
+  body: z.object({
+    code: z.string().min(1).optional(),
+    label: z.string().min(1).optional(),
+    isActive: z.boolean().optional(),
+  }),
 });
 
 const idParam = z.object({ params: z.object({ id: z.string().cuid() }) });

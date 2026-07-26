@@ -88,7 +88,7 @@ export interface Employee {
   gender?: Gender | null;
   address?: string | null;
   city?: string | null;
-  status: EmployeeStatus;
+  status: string;
   hireDate: string;
   terminationDate?: string | null;
   departmentId?: string | null;
