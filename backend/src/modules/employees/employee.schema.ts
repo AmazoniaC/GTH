@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EmployeeStatus, Gender, MaritalStatus, PaymentFrequency } from '@prisma/client';
+import { Gender, MaritalStatus, PaymentFrequency } from '@prisma/client';
 
 // Tipo de documento y tipo de contrato son catálogos editables (texto libre
 // validado contra las opciones configuradas en Configuración).
@@ -33,7 +33,7 @@ const employeeBase = {
   departmentId: z.string().optional().nullable(),
   positionId: z.string().optional().nullable(),
   hireDate: z.coerce.date(),
-  status: z.nativeEnum(EmployeeStatus).default(EmployeeStatus.ACTIVE),
+  status: z.string().min(1).default('ACTIVE'),
   eps: z.string().optional().nullable(),
   pensionFund: z.string().optional().nullable(),
   severanceFund: z.string().optional().nullable(),
@@ -75,7 +75,7 @@ export const listEmployeesSchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     pageSize: z.coerce.number().int().min(1).max(100).default(10),
     search: z.string().optional(),
-    status: z.nativeEnum(EmployeeStatus).optional(),
+    status: z.string().optional(),
     departmentId: z.string().optional(),
   }),
 });

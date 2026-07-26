@@ -1,16 +1,30 @@
 import { Badge } from '@/components/ui/badge';
-import type { EmployeeStatus, PayrollStatus } from '@/types';
+import type { PayrollStatus } from '@/types';
+import { useOptions } from '@/features/catalog/catalog.api';
 
-const EMPLOYEE_STATUS: Record<EmployeeStatus, { label: string; variant: 'success' | 'warning' | 'destructive' | 'secondary' }> = {
-  ACTIVE: { label: 'Activo', variant: 'success' },
-  ON_LEAVE: { label: 'En licencia', variant: 'warning' },
-  SUSPENDED: { label: 'Suspendido', variant: 'warning' },
-  TERMINATED: { label: 'Retirado', variant: 'destructive' },
+type BadgeVariant = 'success' | 'warning' | 'destructive' | 'secondary';
+
+// Variante de color por código conocido; el resto usa un color neutro.
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  ACTIVE: 'success',
+  ON_LEAVE: 'warning',
+  SUSPENDED: 'warning',
+  TERMINATED: 'destructive',
 };
 
-export function EmployeeStatusBadge({ status }: { status: EmployeeStatus }) {
-  const s = EMPLOYEE_STATUS[status];
-  return <Badge variant={s.variant}>{s.label}</Badge>;
+const STATUS_FALLBACK_LABEL: Record<string, string> = {
+  ACTIVE: 'Activo',
+  ON_LEAVE: 'En licencia',
+  SUSPENDED: 'Suspendido',
+  TERMINATED: 'Retirado',
+};
+
+export function EmployeeStatusBadge({ status }: { status: string }) {
+  const { data: options } = useOptions('EMPLOYEE_STATUS');
+  const label =
+    options?.find((o) => o.code === status)?.label ?? STATUS_FALLBACK_LABEL[status] ?? status;
+  const variant = STATUS_VARIANT[status] ?? 'secondary';
+  return <Badge variant={variant}>{label}</Badge>;
 }
 
 const PAYROLL_STATUS: Record<PayrollStatus, { label: string; variant: 'success' | 'warning' | 'destructive' | 'secondary' | 'default' }> = {

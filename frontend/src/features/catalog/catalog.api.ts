@@ -32,9 +32,20 @@ export function useCreateOption() {
 }
 
 export function useUpdateOption() {
-  const invalidate = useInvalidate([['catalog', 'options']]);
+  const invalidate = useInvalidate([
+    ['catalog', 'options'],
+    ['employees'],
+  ]);
   return useMutation({
-    mutationFn: async ({ id, ...payload }: { id: string; label?: string; isActive?: boolean }) => {
+    mutationFn: async ({
+      id,
+      ...payload
+    }: {
+      id: string;
+      code?: string;
+      label?: string;
+      isActive?: boolean;
+    }) => {
       const { data } = await api.put(`/catalog/options/${id}`, payload);
       return data.data;
     },

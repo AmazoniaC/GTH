@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, Gender, EmployeeStatus } from '@prisma/client';
+import { PrismaClient, UserRole, Gender } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -165,7 +165,7 @@ async function main() {
         gender: e.gender,
         city: 'Bogotá D.C.',
         hireDate: new Date(2023, 0, 15),
-        status: EmployeeStatus.ACTIVE,
+        status: 'ACTIVE',
         departmentId: dept.id,
         positionId: pos.id,
         arlRiskClass: e.arl,

@@ -67,9 +67,64 @@ export class CatalogService {
     });
   }
 
-  async updateOption(id: string, organizationId: string, data: { label?: string; isActive?: boolean }) {
-    await this.ensureOption(id, organizationId);
-    return prisma.catalogOption.update({ where: { id }, data });
+  async updateOption(
+    id: string,
+    organizationId: string,
+    data: { code?: string; label?: string; isActive?: boolean },
+  ) {
+    const option = await this.ensureOption(id, organizationId);
+    const newCode = data.code?.trim().toUpperCase();
+
+    // Cambiar el código requiere actualizar en cascada los registros que lo usan.
+    if (newCode && newCode !== option.code) {
+      if (option.isSystem) {
+        throw new AppError('El código de una opción del sistema no se puede cambiar.', 422);
+      }
+      const collision = await prisma.catalogOption.findFirst({
+        where: { organizationId, category: option.category, code: newCode },
+      });
+      if (collision) throw new ConflictError('Ya existe una opción con ese código.');
+
+      await prisma.$transaction(async (tx) => {
+        if (option.category === 'DOCUMENT_TYPE') {
+          await tx.employee.updateMany({
+            where: { organizationId, documentType: option.code },
+            data: { documentType: newCode },
+          });
+        } else if (option.category === 'EMPLOYEE_STATUS') {
+          await tx.employee.updateMany({
+            where: { organizationId, status: option.code },
+            data: { status: newCode },
+          });
+        } else if (option.category === 'CONTRACT_TYPE') {
+          const emps = await tx.employee.findMany({
+            where: { organizationId },
+            select: { id: true },
+          });
+          await tx.contract.updateMany({
+            where: { type: option.code, employeeId: { in: emps.map((e) => e.id) } },
+            data: { type: newCode },
+          });
+        }
+        await tx.catalogOption.update({
+          where: { id },
+          data: {
+            code: newCode,
+            ...(data.label !== undefined ? { label: data.label } : {}),
+            ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+          },
+        });
+      });
+      return prisma.catalogOption.findUnique({ where: { id } });
+    }
+
+    return prisma.catalogOption.update({
+      where: { id },
+      data: {
+        ...(data.label !== undefined ? { label: data.label } : {}),
+        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+      },
+    });
   }
 
   async deleteOption(id: string, organizationId: string) {
