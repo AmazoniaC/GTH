@@ -50,7 +50,25 @@ export interface Position {
   _count?: { employees: number };
 }
 
-export type CatalogCategory = 'DOCUMENT_TYPE' | 'CONTRACT_TYPE' | 'EMPLOYEE_STATUS';
+export type CatalogCategory =
+  | 'DOCUMENT_TYPE'
+  | 'CONTRACT_TYPE'
+  | 'EMPLOYEE_STATUS'
+  | 'FILE_TYPE';
+
+export interface EmployeeDocument {
+  id: string;
+  employeeId: string;
+  type: string;
+  name: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+  issueDate?: string | null;
+  expiryDate?: string | null;
+  createdAt: string;
+  content?: string;
+}
 
 export interface CatalogOption {
   id: string;

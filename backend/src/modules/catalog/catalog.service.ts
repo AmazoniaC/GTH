@@ -14,13 +14,23 @@ import {
 export class CatalogService {
   // ================= Opciones configurables =================
 
-  /** Provisiona las opciones por defecto para una organización (idempotente). */
+  /**
+   * Provisiona las opciones por defecto para una organización (idempotente).
+   * Se evalúa por categoría, de modo que si se agrega una nueva categoría
+   * (ej: FILE_TYPE) las organizaciones existentes también la reciben, sin
+   * resucitar opciones que el usuario haya eliminado en otras categorías.
+   */
   async ensureDefaults(organizationId: string) {
-    const count = await prisma.catalogOption.count({ where: { organizationId } });
-    if (count > 0) return;
+    const existing = await prisma.catalogOption.groupBy({
+      by: ['category'],
+      where: { organizationId },
+      _count: { _all: true },
+    });
+    const populated = new Set(existing.map((e) => e.category));
 
     const rows: Prisma.CatalogOptionCreateManyInput[] = [];
     for (const category of CATALOG_CATEGORIES) {
+      if (populated.has(category)) continue;
       DEFAULT_OPTIONS[category].forEach((opt, index) => {
         rows.push({
           organizationId,
@@ -32,7 +42,9 @@ export class CatalogService {
         });
       });
     }
-    await prisma.catalogOption.createMany({ data: rows, skipDuplicates: true });
+    if (rows.length) {
+      await prisma.catalogOption.createMany({ data: rows, skipDuplicates: true });
+    }
   }
 
   async listOptions(organizationId: string, category?: string) {

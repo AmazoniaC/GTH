@@ -5,6 +5,7 @@ import { employeeRoutes } from '../modules/employees/employee.routes';
 import { payrollRoutes } from '../modules/payroll/payroll.routes';
 import { catalogRoutes } from '../modules/catalog/catalog.routes';
 import { dashboardRoutes } from '../modules/dashboard/dashboard.routes';
+import { documentRoutes } from '../modules/documents/document.routes';
 
 /**
  * Registro central de módulos. Para añadir un nuevo módulo en el futuro
@@ -23,5 +24,6 @@ router.use('/employees', employeeRoutes);
 router.use('/payroll', payrollRoutes);
 router.use('/catalog', catalogRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/documents', documentRoutes);
 
 export const apiRouter = router;

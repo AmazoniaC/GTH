@@ -21,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeStatusBadge, CONTRACT_TYPE_LABEL, DOCUMENT_TYPE_LABEL } from '@/components/shared/status-badges';
 import { useDeleteEmployee, useEmployeeByDocument } from '../employees.api';
 import { EmployeeForm } from '../components/employee-form';
+import { DocumentsSection } from '../components/documents-section';
 import { usePermissions } from '@/features/auth/use-permissions';
 import { formatCurrency, formatDate, fullName, getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
@@ -231,6 +232,9 @@ export function EmployeeDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Documentos adjuntos */}
+      <DocumentsSection employeeId={emp.id} />
     </div>
   );
 }

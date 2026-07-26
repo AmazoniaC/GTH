@@ -18,8 +18,9 @@ export function createApp(): Application {
       credentials: true,
     }),
   );
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  // Límite amplio para permitir archivos adjuntos (base64) y fotos.
+  app.use(express.json({ limit: '15mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '15mb' }));
   app.use(cookieParser());
   if (!env.isProduction) app.use(morgan('dev'));
 

@@ -230,12 +230,39 @@ model Employee {
   position     Position?    @relation(fields: [positionId], references: [id], onDelete: SetNull)
   contracts    Contract[]
   payslips     Payslip[]
+  documents    EmployeeDocument[]
 
   @@unique([organizationId, employeeCode])
   @@unique([organizationId, documentNumber])
   @@index([organizationId])
   @@index([status])
   @@map("employees")
+}
+
+// Documentos adjuntos del empleado (contrato, cédula, hoja de vida, etc.).
+// El contenido se guarda como data URL (base64). El tipo se controla con el
+// catálogo editable FILE_TYPE.
+model EmployeeDocument {
+  id          String   @id @default(cuid())
+  employeeId  String
+
+  type        String // Código del catálogo FILE_TYPE
+  name        String // Nombre/descripción visible
+  fileName    String
+  mimeType    String
+  size        Int // Tamaño en bytes
+  content     String // data URL base64
+
+  issueDate   DateTime?
+  expiryDate  DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@map("employee_documents")
 }
 
 model Contract {

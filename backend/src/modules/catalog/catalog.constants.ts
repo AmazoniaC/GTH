@@ -3,6 +3,7 @@ export const CATALOG_CATEGORY = {
   DOCUMENT_TYPE: 'DOCUMENT_TYPE',
   CONTRACT_TYPE: 'CONTRACT_TYPE',
   EMPLOYEE_STATUS: 'EMPLOYEE_STATUS',
+  FILE_TYPE: 'FILE_TYPE',
 } as const;
 
 export type CatalogCategory = (typeof CATALOG_CATEGORY)[keyof typeof CATALOG_CATEGORY];
@@ -11,6 +12,7 @@ export const CATALOG_CATEGORIES: CatalogCategory[] = [
   CATALOG_CATEGORY.DOCUMENT_TYPE,
   CATALOG_CATEGORY.CONTRACT_TYPE,
   CATALOG_CATEGORY.EMPLOYEE_STATUS,
+  CATALOG_CATEGORY.FILE_TYPE,
 ];
 
 interface DefaultOption {
@@ -45,5 +47,14 @@ export const DEFAULT_OPTIONS: Record<CatalogCategory, DefaultOption[]> = {
     { code: 'ON_LEAVE', label: 'En licencia', isSystem: true },
     { code: 'SUSPENDED', label: 'Suspendido', isSystem: true },
     { code: 'TERMINATED', label: 'Retirado', isSystem: true },
+  ],
+  // Tipos de documento adjunto de los empleados.
+  FILE_TYPE: [
+    { code: 'CONTRACT', label: 'Contrato' },
+    { code: 'ID', label: 'Documento de identidad' },
+    { code: 'RESUME', label: 'Hoja de vida' },
+    { code: 'CERTIFICATE', label: 'Certificado' },
+    { code: 'MEDICAL_EXAM', label: 'Examen médico' },
+    { code: 'OTHER', label: 'Otro' },
   ],
 };
