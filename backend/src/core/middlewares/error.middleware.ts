@@ -37,6 +37,25 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     if (err.code === 'P2025') {
       return res.status(404).json({ status: 'error', message: 'Registro no encontrado.' });
     }
+    // Tabla o columna inexistente: la base de datos está desactualizada.
+    if (err.code === 'P2021' || err.code === 'P2022') {
+      return res.status(500).json({
+        status: 'error',
+        message:
+          'La base de datos está desactualizada. Ejecuta las migraciones: ' +
+          'cd backend && npx prisma migrate dev',
+      });
+    }
+  }
+
+  // Cliente de Prisma desactualizado (validación de argumentos desconocidos).
+  if (err instanceof Prisma.PrismaClientValidationError) {
+    return res.status(500).json({
+      status: 'error',
+      message:
+        'El cliente de la base de datos está desactualizado. Ejecuta: ' +
+        'cd backend && npx prisma generate (o npx prisma migrate dev).',
+    });
   }
 
   // eslint-disable-next-line no-console
