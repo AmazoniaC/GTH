@@ -18,6 +18,8 @@ router.use(authenticate);
 const managers = [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.SUPER_ADMIN];
 
 router.get('/', validate(listEmployeesSchema), asyncHandler(employeeController.list));
+router.get('/org-chart', asyncHandler(employeeController.orgChart));
+router.get('/export', asyncHandler(employeeController.exportAll));
 router.get('/by-document/:documentNumber', asyncHandler(employeeController.getByDocument));
 router.get('/:id', validate(idParamSchema), asyncHandler(employeeController.getById));
 router.post(

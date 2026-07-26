@@ -5,6 +5,8 @@ import {
   Calculator,
   Settings,
   UserCog,
+  Bell,
+  Network,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserRole } from '@/types';
@@ -30,11 +32,17 @@ export interface NavSection {
 export const navSections: NavSection[] = [
   {
     title: 'Principal',
-    items: [{ label: 'Panel', to: '/dashboard', icon: LayoutDashboard }],
+    items: [
+      { label: 'Panel', to: '/dashboard', icon: LayoutDashboard },
+      { label: 'Alertas', to: '/alerts', icon: Bell },
+    ],
   },
   {
     title: 'Talento Humano',
-    items: [{ label: 'Empleados', to: '/employees', icon: Users }],
+    items: [
+      { label: 'Empleados', to: '/employees', icon: Users, end: true },
+      { label: 'Organigrama', to: '/organization', icon: Network },
+    ],
   },
   {
     title: 'Nómina',

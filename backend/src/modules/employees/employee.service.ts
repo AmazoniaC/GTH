@@ -67,7 +67,7 @@ export class EmployeeService {
       throw new ConflictError('Ya existe un empleado con este número de documento.');
     }
 
-    const { contract, employeeCode, departmentId, positionId, ...rest } = input;
+    const { contract, employeeCode, departmentId, positionId, managerId, ...rest } = input;
     // El identificador del empleado es su cédula (número de documento).
     const code = employeeCode ?? input.documentNumber;
 
@@ -77,6 +77,7 @@ export class EmployeeService {
       organization: { connect: { id: organizationId } },
       ...(departmentId ? { department: { connect: { id: departmentId } } } : {}),
       ...(positionId ? { position: { connect: { id: positionId } } } : {}),
+      ...(managerId ? { manager: { connect: { id: managerId } } } : {}),
       contracts: {
         create: {
           type: contract.type,
@@ -98,7 +99,7 @@ export class EmployeeService {
   async update(id: string, organizationId: string, input: UpdateEmployeeInput) {
     await this.getById(id, organizationId);
 
-    const { departmentId, positionId, contract, ...rest } = input;
+    const { departmentId, positionId, managerId, contract, ...rest } = input;
     const data: Prisma.EmployeeUpdateInput = { ...rest };
 
     if (departmentId !== undefined) {
@@ -108,6 +109,10 @@ export class EmployeeService {
     }
     if (positionId !== undefined) {
       data.position = positionId ? { connect: { id: positionId } } : { disconnect: true };
+    }
+    if (managerId !== undefined) {
+      // Evita que un empleado sea su propio jefe.
+      data.manager = managerId && managerId !== id ? { connect: { id: managerId } } : { disconnect: true };
     }
 
     await this.repo.update(id, data);
@@ -154,6 +159,14 @@ export class EmployeeService {
     await this.getById(id, organizationId);
     await this.repo.delete(id);
     return { id };
+  }
+
+  orgChart(organizationId: string) {
+    return this.repo.orgChart(organizationId);
+  }
+
+  exportAll(organizationId: string) {
+    return this.repo.exportAll(organizationId);
   }
 }
 

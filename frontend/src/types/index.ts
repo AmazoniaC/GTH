@@ -92,15 +92,68 @@ export interface CatalogOption {
 
 export interface Contract {
   id: string;
-  type: ContractType;
+  employeeId?: string;
+  type: string;
   paymentFrequency: PaymentFrequency;
   baseSalary: string;
   isIntegralSalary: boolean;
   transportAllowance: boolean;
   startDate: string;
   endDate?: string | null;
+  probationEndDate?: string | null;
   isActive: boolean;
+  endReason?: string | null;
   notes?: string | null;
+}
+
+export interface SalaryChange {
+  id: string;
+  employeeId: string;
+  previousSalary: string;
+  newSalary: string;
+  effectiveDate: string;
+  reason?: string | null;
+  createdAt: string;
+}
+
+export interface ManagerRef {
+  id: string;
+  firstName: string;
+  lastName: string;
+  documentNumber: string;
+  photoUrl?: string | null;
+}
+
+export type AlertCategory = 'CONTRACT' | 'PROBATION' | 'DOCUMENT' | 'BIRTHDAY';
+export type AlertSeverity = 'critical' | 'warning' | 'info';
+
+export interface Alert {
+  id: string;
+  category: AlertCategory;
+  severity: AlertSeverity;
+  title: string;
+  detail: string;
+  employeeId: string;
+  employeeName: string;
+  documentNumber: string;
+  date: string | null;
+}
+
+export interface AlertsResponse {
+  total: number;
+  counts: Record<AlertCategory, number>;
+  items: Alert[];
+}
+
+export interface OrgNode {
+  id: string;
+  firstName: string;
+  lastName: string;
+  documentNumber: string;
+  photoUrl?: string | null;
+  managerId?: string | null;
+  position?: { title: string } | null;
+  department?: { name: string } | null;
 }
 
 export interface Employee {
@@ -132,9 +185,12 @@ export interface Employee {
   terminationDate?: string | null;
   departmentId?: string | null;
   positionId?: string | null;
+  managerId?: string | null;
   department?: Department | null;
   position?: Position | null;
+  manager?: ManagerRef | null;
   contracts?: Contract[];
+  _count?: { reports: number };
   emergencyContactName?: string | null;
   emergencyContactPhone?: string | null;
   eps?: string | null;

@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Users } from 'lucide-react';
+import { Download, FileSpreadsheet, FileText, Loader2, Plus, Search, Users } from 'lucide-react';
+import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { exportEmployeesCsv, exportEmployeesPdf } from '../export';
+import { getErrorMessage } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -33,6 +42,19 @@ export function EmployeesPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string>('ALL');
   const [formOpen, setFormOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const runExport = async (kind: 'csv' | 'pdf') => {
+    setExporting(true);
+    try {
+      if (kind === 'csv') await exportEmployeesCsv();
+      else await exportEmployeesPdf();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const { data, isLoading } = useEmployees({
     page,
@@ -49,6 +71,22 @@ export function EmployeesPage() {
         title="Empleados"
         description="Administra la información de tus colaboradores."
       >
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" disabled={exporting}>
+              {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              Exportar
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => runExport('csv')}>
+              <FileSpreadsheet className="h-4 w-4" /> Excel (CSV)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => runExport('pdf')}>
+              <FileText className="h-4 w-4" /> PDF (imprimir)
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button onClick={() => setFormOpen(true)}>
           <Plus className="h-4 w-4" /> Nuevo empleado
         </Button>

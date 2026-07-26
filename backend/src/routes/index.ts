@@ -6,6 +6,8 @@ import { payrollRoutes } from '../modules/payroll/payroll.routes';
 import { catalogRoutes } from '../modules/catalog/catalog.routes';
 import { dashboardRoutes } from '../modules/dashboard/dashboard.routes';
 import { documentRoutes } from '../modules/documents/document.routes';
+import { contractRoutes } from '../modules/contracts/contract.routes';
+import { alertsRoutes } from '../modules/alerts/alerts.routes';
 
 /**
  * Registro central de módulos. Para añadir un nuevo módulo en el futuro
@@ -25,5 +27,8 @@ router.use('/payroll', payrollRoutes);
 router.use('/catalog', catalogRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/documents', documentRoutes);
+router.use('/alerts', alertsRoutes);
+// Rutas de contratos e historial salarial (usan rutas absolutas propias).
+router.use('/', contractRoutes);
 
 export const apiRouter = router;
