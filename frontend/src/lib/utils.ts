@@ -41,3 +41,17 @@ export function toDateInput(value: string | Date | null | undefined): string {
 export function getInitials(first?: string, last?: string): string {
   return `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase() || '?';
 }
+
+/** Nombre completo del empleado (nombres + apellidos). */
+export function fullName(e?: {
+  firstName?: string;
+  middleName?: string | null;
+  lastName?: string;
+  secondLastName?: string | null;
+}): string {
+  if (!e) return '';
+  return [e.firstName, e.middleName, e.lastName, e.secondLastName]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+}

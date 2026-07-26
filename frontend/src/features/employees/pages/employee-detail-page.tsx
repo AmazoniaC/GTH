@@ -12,6 +12,7 @@ import {
   Phone,
   ShieldPlus,
   Trash2,
+  UserRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,8 +22,21 @@ import { EmployeeStatusBadge, CONTRACT_TYPE_LABEL, DOCUMENT_TYPE_LABEL } from '@
 import { useDeleteEmployee, useEmployeeByDocument } from '../employees.api';
 import { EmployeeForm } from '../components/employee-form';
 import { usePermissions } from '@/features/auth/use-permissions';
-import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
+import { formatCurrency, formatDate, fullName, getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
+
+const GENDER_LABEL: Record<string, string> = {
+  MALE: 'Masculino',
+  FEMALE: 'Femenino',
+  OTHER: 'Otro',
+};
+const MARITAL_LABEL: Record<string, string> = {
+  SINGLE: 'Soltero(a)',
+  MARRIED: 'Casado(a)',
+  DIVORCED: 'Divorciado(a)',
+  WIDOWED: 'Viudo(a)',
+  FREE_UNION: 'Unión libre',
+};
 
 export function EmployeeDetailPage() {
   const { documentNumber = '' } = useParams();
@@ -77,9 +91,7 @@ export function EmployeeDetailPage() {
             </Avatar>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold">
-                  {emp.firstName} {emp.lastName}
-                </h1>
+                <h1 className="text-2xl font-bold">{fullName(emp)}</h1>
                 <EmployeeStatusBadge status={emp.status} />
               </div>
               <p className="text-muted-foreground">{emp.position?.title ?? 'Sin cargo asignado'}</p>
@@ -114,20 +126,43 @@ export function EmployeeDetailPage() {
       <EmployeeForm open={editOpen} onOpenChange={setEditOpen} employee={emp} />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Información personal */}
+        {/* Datos personales */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Mail className="h-4 w-4 text-primary" /> Información de contacto
+              <UserRound className="h-4 w-4 text-primary" /> Datos personales
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Row label="Tipo de documento" value={DOCUMENT_TYPE_LABEL[emp.documentType] ?? emp.documentType} />
             <Row label="Número de documento" value={emp.documentNumber} />
+            <Row label="Lugar de expedición" value={emp.issuePlace} />
+            <Row label="Fecha de expedición" value={emp.issueDate ? formatDate(emp.issueDate) : null} />
+            <Row label="Fecha de nacimiento" value={emp.birthDate ? formatDate(emp.birthDate) : null} />
+            <Row label="Sexo" value={emp.gender ? GENDER_LABEL[emp.gender] : null} />
+            <Row label="Estado civil" value={emp.maritalStatus ? MARITAL_LABEL[emp.maritalStatus] : null} />
+            <Row label="Nacionalidad" value={emp.nationality} />
+            <Row label="Grupo sanguíneo" value={emp.bloodType} />
+          </CardContent>
+        </Card>
+
+        {/* Contacto */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Mail className="h-4 w-4 text-primary" /> Contacto
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
             <Row label="Correo" value={emp.email} icon={Mail} />
-            <Row label="Teléfono" value={emp.phone} icon={Phone} />
+            <Row label="Teléfono fijo" value={emp.phone} icon={Phone} />
+            <Row label="Celular" value={emp.mobile} icon={Phone} />
             <Row label="Dirección" value={emp.address} />
-            <Row label="Fecha de ingreso" value={formatDate(emp.hireDate)} />
+            <Row label="Ciudad" value={emp.city} />
+            <Row label="Departamento" value={emp.stateProvince} />
+            <Row label="País" value={emp.country} />
+            <Row label="Contacto emergencia" value={emp.emergencyContactName} />
+            <Row label="Tel. emergencia" value={emp.emergencyContactPhone} />
           </CardContent>
         </Card>
 
@@ -176,7 +211,8 @@ export function EmployeeDetailPage() {
             <Row label="Fondo de pensión" value={emp.pensionFund} />
             <Row label="Fondo de cesantías" value={emp.severanceFund} />
             <Row label="Caja de compensación" value={emp.compensationFund} />
-            <Row label="Clase de riesgo ARL" value={`Clase ${emp.arlRiskClass}`} />
+            <Row label="ARL (entidad)" value={emp.arl} />
+            <Row label="Nivel de riesgo ARL" value={`Nivel ${emp.arlRiskClass}`} />
           </CardContent>
         </Card>
 
@@ -191,8 +227,7 @@ export function EmployeeDetailPage() {
             <Row label="Banco" value={emp.bankName} />
             <Row label="Tipo de cuenta" value={emp.bankAccountType} />
             <Row label="Número de cuenta" value={emp.bankAccountNumber} />
-            <Row label="Contacto de emergencia" value={emp.emergencyContactName} />
-            <Row label="Tel. emergencia" value={emp.emergencyContactPhone} />
+            <Row label="Fecha de ingreso" value={formatDate(emp.hireDate)} />
           </CardContent>
         </Card>
       </div>
