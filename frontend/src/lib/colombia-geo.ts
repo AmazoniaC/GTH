@@ -1,55 +1,43 @@
 /**
- * Departamentos de Colombia (32 + Bogotá D.C.) y una selección de sus
- * municipios principales usada como sugerencias. El campo de ciudad admite
- * texto libre, por lo que si un municipio no está en la lista igual puede
- * escribirse. Para un listado 100% completo del DANE, reemplaza este archivo.
+ * Departamentos y municipios de Colombia — datos oficiales del DANE
+ * (DIVIPOLA, 1119 municipios / 33 divisiones). Generado a partir del archivo
+ * oficial suministrado. El campo de ciudad admite texto libre por si se
+ * requiere una entidad no municipalizada adicional.
  */
 export const COLOMBIA: Record<string, string[]> = {
-  Amazonas: ['Leticia', 'Puerto Nariño'],
-  Antioquia: [
-    'Medellín', 'Bello', 'Itagüí', 'Envigado', 'Rionegro', 'Apartadó', 'Turbo',
-    'Sabaneta', 'La Estrella', 'Copacabana', 'Caldas', 'Marinilla', 'Caucasia',
-  ],
-  Arauca: ['Arauca', 'Tame', 'Saravena', 'Arauquita', 'Fortul'],
-  Atlántico: ['Barranquilla', 'Soledad', 'Malambo', 'Sabanalarga', 'Puerto Colombia', 'Galapa', 'Baranoa'],
-  Bolívar: ['Cartagena', 'Magangué', 'Turbaco', 'Arjona', 'El Carmen de Bolívar', 'Mompós'],
-  Boyacá: ['Tunja', 'Duitama', 'Sogamoso', 'Chiquinquirá', 'Paipa', 'Puerto Boyacá'],
-  Caldas: ['Manizales', 'La Dorada', 'Chinchiná', 'Villamaría', 'Riosucio', 'Anserma'],
-  Caquetá: ['Florencia', 'San Vicente del Caguán', 'Puerto Rico', 'La Montañita'],
-  Casanare: ['Yopal', 'Aguazul', 'Villanueva', 'Tauramena', 'Monterrey'],
-  Cauca: ['Popayán', 'Santander de Quilichao', 'Puerto Tejada', 'Patía', 'Guapi'],
-  Cesar: ['Valledupar', 'Aguachica', 'Bosconia', 'Agustín Codazzi', 'La Jagua de Ibirico'],
-  Chocó: ['Quibdó', 'Istmina', 'Condoto', 'Tadó', 'Bahía Solano'],
-  Córdoba: ['Montería', 'Lorica', 'Cereté', 'Sahagún', 'Montelíbano', 'Tierralta', 'Planeta Rica'],
-  Cundinamarca: [
-    'Soacha', 'Facatativá', 'Zipaquirá', 'Chía', 'Girardot', 'Fusagasugá', 'Mosquera',
-    'Madrid', 'Funza', 'Cajicá', 'Ubaté', 'Cota', 'La Calera', 'Sibaté', 'Tocancipá',
-  ],
-  Guainía: ['Inírida'],
-  Guaviare: ['San José del Guaviare', 'El Retorno', 'Calamar'],
-  Huila: ['Neiva', 'Pitalito', 'Garzón', 'La Plata', 'Campoalegre', 'Gigante'],
-  'La Guajira': ['Riohacha', 'Maicao', 'Uribia', 'Fonseca', 'San Juan del Cesar', 'Manaure', 'Villanueva'],
-  Magdalena: ['Santa Marta', 'Ciénaga', 'Fundación', 'El Banco', 'Plato', 'Zona Bananera'],
-  Meta: ['Villavicencio', 'Acacías', 'Granada', 'Puerto López', 'Cumaral', 'San Martín'],
-  Nariño: ['Pasto', 'Ipiales', 'Tumaco', 'Túquerres', 'La Unión', 'Samaniego'],
-  'Norte de Santander': ['Cúcuta', 'Ocaña', 'Pamplona', 'Villa del Rosario', 'Los Patios', 'Tibú'],
-  Putumayo: ['Mocoa', 'Puerto Asís', 'Orito', 'Valle del Guamuez', 'Sibundoy'],
-  Quindío: ['Armenia', 'Calarcá', 'La Tebaida', 'Montenegro', 'Quimbaya', 'Circasia'],
-  Risaralda: ['Pereira', 'Dosquebradas', 'Santa Rosa de Cabal', 'La Virginia', 'Marsella'],
-  'San Andrés y Providencia': ['San Andrés', 'Providencia'],
-  Santander: [
-    'Bucaramanga', 'Floridablanca', 'Girón', 'Piedecuesta', 'Barrancabermeja', 'San Gil',
-    'Socorro', 'Barbosa', 'Málaga',
-  ],
-  Sucre: ['Sincelejo', 'Corozal', 'Sampués', 'San Marcos', 'Tolú', 'San Onofre'],
-  Tolima: ['Ibagué', 'Espinal', 'Melgar', 'Honda', 'Líbano', 'Chaparral', 'Mariquita'],
-  'Valle del Cauca': [
-    'Cali', 'Palmira', 'Buenaventura', 'Tuluá', 'Cartago', 'Buga', 'Jamundí', 'Yumbo',
-    'Candelaria', 'Florida', 'Zarzal',
-  ],
-  Vaupés: ['Mitú'],
-  Vichada: ['Puerto Carreño', 'La Primavera', 'Cumaribo'],
-  'Bogotá D.C.': ['Bogotá D.C.'],
+  'Amazonas': ['El Encanto', 'La Chorrera', 'La Pedrera', 'La Victoria', 'Leticia', 'Miriti - Paraná', 'Puerto Alegria', 'Puerto Arica', 'Puerto Nariño', 'Puerto Santander', 'Tarapacá'],
+  'Antioquia': ['Abejorral', 'Abriaquí', 'Alejandría', 'Amaga', 'Amalfi', 'Andes', 'Angelopolis', 'Angostura', 'Anorí', 'Anza', 'Apartadó', 'Arboletes', 'Argelia', 'Armenia', 'Barbosa', 'Bello', 'Belmira', 'Betania', 'Betulia', 'Briceño', 'Buriticá', 'Caicedo', 'Caldas', 'Campamento', 'Caracolí', 'Caramanta', 'Carepa', 'Carmen de Viboral', 'Carolina', 'Caucasia', 'Cañasgordas', 'Chigorodó', 'Cisneros', 'Ciudad Bolívar', 'Cocorná', 'Concepción', 'Concordia', 'Copacabana', 'Cáceres', 'Dabeiba', 'Don Matias', 'Ebéjico', 'El Bagre', 'Entrerrios', 'Envigado', 'Fredonia', 'Frontino', 'Giraldo', 'Girardota', 'Granada', 'Guadalupe', 'Guarne', 'Guatape', 'Gómez Plata', 'Heliconia', 'Hispania', 'Itagui', 'Ituango', 'Jardín', 'Jericó', 'La Ceja', 'La Estrella', 'La Pintada', 'La Unión', 'Liborina', 'Maceo', 'Marinilla', 'Medellín', 'Montebello', 'Murindó', 'Mutata', 'Nariño', 'Nechí', 'Necoclí', 'Olaya', 'Peque', 'Peñol', 'Pueblorrico', 'Puerto Berrio', 'Puerto Nare', 'Puerto Triunfo', 'Remedios', 'Retiro', 'Rionegro', 'Sabanalarga', 'Sabaneta', 'Salgar', 'San Andrés', 'San Carlos', 'San Francisco', 'San Jerónimo', 'San José de la Montaña', 'San Juan de Uraba', 'San Luis', 'San Pedro', 'San Pedro de Uraba', 'San Rafael', 'San Roque', 'San Vicente', 'Santa Barbara', 'Santa Rosa de Osos', 'Santafé de Antioquia', 'Santo Domingo', 'Santuario', 'Segovia', 'Sonson', 'Sopetran', 'Tarazá', 'Tarso', 'Titiribí', 'Toledo', 'Turbo', 'Támesis', 'Uramita', 'Urrao', 'Valdivia', 'Valparaiso', 'Vegachí', 'Venecia', 'Vigía del Fuerte', 'Yalí', 'Yarumal', 'Yolombó', 'Yondó', 'Zaragoza'],
+  'Arauca': ['Arauca', 'Arauquita', 'Cravo Norte', 'Fortul', 'Puerto Rondón', 'Saravena', 'Tame'],
+  'Atlántico': ['Baranoa', 'Barranquilla', 'Campo de la Cruz', 'Candelaria', 'Galapa', 'Juan de Acosta', 'Luruaco', 'Malambo', 'Manati', 'Palmar de Varela', 'Piojó', 'Polonuevo', 'Ponedera', 'Puerto Colombia', 'Repelon', 'Sabanagrande', 'Sabanalarga', 'Santa Lucia', 'Santo Tomas', 'Soledad', 'Suan', 'Tubara', 'Usiacuri'],
+  'Bogotá D.C.': ['Bogota D.C.'],
+  'Bolívar': ['Achí', 'Altos del Rosario', 'Arenal', 'Arjona', 'Arroyohondo', 'Barranco de Loba', 'Calamar', 'Cantagallo', 'Carmen de Bolívar', 'Cartagena', 'Cicuco', 'Clemencia', 'Córdoba', 'El Guamo', 'El Peñon', 'Hatillo de Loba', 'Magangué', 'Mahates', 'Margarita', 'María la Baja', 'Mompós', 'Montecristo', 'Morales', 'Pinillos', 'Regidor', 'Río Viejo', 'San Cristobal', 'San Estanislao', 'San Fernando', 'San Jacinto', 'San Jacinto del Cauca', 'San Juan Nepomuceno', 'San Martin de Loba', 'San Pablo', 'Santa Catalina', 'Santa Rosa de Lima', 'Santa Rosa del Sur', 'Simití', 'Soplaviento', 'Talaigua Nuevo', 'Tiquisio', 'Turbaco', 'Turbana', 'Villanueva', 'Zambrano'],
+  'Boyacá': ['Almeida', 'Aquitania', 'Arcabuco', 'Belén', 'Berbeo', 'Betéitiva', 'Boavita', 'Boyacá', 'Briceño', 'Buenavista', 'Busbanzá', 'Caldas', 'Campohermoso', 'Cerinza', 'Chinavita', 'Chiquinquirá', 'Chiscas', 'Chita', 'Chitaraque', 'Chivatá', 'Chivor', 'Chíquiza', 'Ciénega', 'Coper', 'Corrales', 'Covarachía', 'Cubará', 'Cucaita', 'Cuítiva', 'Cómbita', 'Duitama', 'El Cocuy', 'El Espino', 'Firavitoba', 'Floresta', 'Gachantivá', 'Gameza', 'Garagoa', 'Guacamayas', 'Guateque', 'Guayatá', 'Güicán', 'Iza', 'Jenesano', 'Jericó', 'La Capilla', 'La Uvita', 'La Victoria', 'Labranzagrande', 'Macanal', 'Maripí', 'Miraflores', 'Mongua', 'Monguí', 'Moniquirá', 'Motavita', 'Muzo', 'Nobsa', 'Nuevo Colón', 'Oicatá', 'Otanche', 'Pachavita', 'Paipa', 'Pajarito', 'Panqueba', 'Pauna', 'Paya', 'Paz de Río', 'Pesca', 'Pisba', 'Puerto Boyaca', 'Páez', 'Quípama', 'Ramiriquí', 'Rondón', 'Ráquira', 'Saboyá', 'Samacá', 'San Eduardo', 'San José de Pare', 'San Luis de Gaceno', 'San Mateo', 'San Miguel de Sema', 'San Pablo Borbur', 'San Rosa Viterbo', 'Santa María', 'Santa Sofía', 'Santana', 'Sativanorte', 'Sativasur', 'Siachoque', 'Soatá', 'Socha', 'Socotá', 'Sogamoso', 'Somondoco', 'Sora', 'Soracá', 'Sotaquirá', 'Susacón', 'Sutamarchán', 'Sutatenza', 'Sáchica', 'Tasco', 'Tenza', 'Tibaná', 'Tibasosa', 'Tinjacá', 'Tipacoque', 'Toca', 'Togüí', 'Tota', 'Tunja', 'Tununguá', 'Turmequé', 'Tuta', 'Tutazá', 'Tópaga', 'Umbita', 'Ventaquemada', 'Villa de Leyva', 'Viracachá', 'Zetaquira'],
+  'Caldas': ['Aguadas', 'Anserma', 'Aranzazu', 'Belalcázar', 'Chinchina', 'Filadelfia', 'La Dorada', 'La Merced', 'Manizales', 'Manzanares', 'Marmato', 'Marquetalia', 'Marulanda', 'Neira', 'Norcasia', 'Palestina', 'Pensilvania', 'Pácora', 'Riosucio', 'Risaralda', 'Salamina', 'Samaná', 'San José', 'Supía', 'Victoria', 'Villamaria', 'Viterbo'],
+  'Caquetá': ['Albania', 'Belén de los Andaquies', 'Cartagena del Chairá', 'Currillo', 'El Doncello', 'El Paujil', 'Florencia', 'La Montañita', 'Milan', 'Morelia', 'Puerto Rico', 'San Jose del Fragua', 'San Vicente del Caguán', 'Solano', 'Solita', 'Valparaiso'],
+  'Casanare': ['Aguazul', 'Chameza', 'Hato Corozal', 'La Salina', 'Maní', 'Monterrey', 'Nunchía', 'Orocué', 'Paz de Ariporo', 'Pore', 'Recetor', 'Sabanalarga', 'San Luis de Palenque', 'Sácama', 'Tauramena', 'Trinidad', 'Támara', 'Villanueva', 'Yopal'],
+  'Cauca': ['Almaguer', 'Argelia', 'Balboa', 'Bolívar', 'Buenos Aires', 'Cajibío', 'Caldono', 'Caloto', 'Corinto', 'El Tambo', 'Florencia', 'Guapi', 'Inzá', 'Jambalo', 'La Sierra', 'La Vega', 'Lopez', 'Mercaderes', 'Miranda', 'Morales', 'Padilla', 'Paez', 'Patia', 'Piamonte', 'Piendamo', 'Popayán', 'Puerto Tejada', 'Purace', 'Rosas', 'San Sebastian', 'Santa Rosa', 'Santander de Quilichao', 'Silvia', 'Sotara', 'Suarez', 'Sucre', 'Timbio', 'Timbiqui', 'Toribio', 'Totoro', 'Villa Rica'],
+  'Cesar': ['Aguachica', 'Agustín Codazzi', 'Astrea', 'Becerril', 'Bosconia', 'Chimichagua', 'Chiriguana', 'Curumaní', 'El Copey', 'El Paso', 'Gamarra', 'González', 'La Gloria', 'La Jagua de Ibirico', 'La Paz', 'Manaure', 'Pailitas', 'Pelaya', 'Pueblo Bello', 'Río de Oro', 'San Alberto', 'San Diego', 'San Martín', 'Tamalameque', 'Valledupar'],
+  'Chocó': ['Acandí', 'Alto Baudó', 'Atrato', 'Bagadó', 'Bahía Solano', 'Bajo Baudó', 'Belén de Bajira', 'Bojaya', 'Canton de San Pablo', 'Carmén del Darién', 'Certegui', 'Condoto', 'El Carmen de Atrato', 'El Litoral del San Juan', 'Itsmina', 'Juradó', 'Lloró', 'Medio Atrato', 'Medio Baudó', 'Medio San Juan', 'Nuquí', 'Nóvita', 'Quibdó', 'Rio Quito', 'Riosucio', 'Río Frío', 'San José del Palmar', 'Sipí', 'Tadó', 'Unguía', 'Union Panamericana'],
+  'Cundinamarca': ['Agua de Dios', 'Albán', 'Anapoima', 'Anolaima', 'Apulo', 'Arbeláez', 'Beltrán', 'Bituima', 'Bojacá', 'Cabrera', 'Cachipay', 'Cajicá', 'Caparrapí', 'Caqueza', 'Carmen de Carupa', 'Chaguaní', 'Chipaque', 'Choachí', 'Chocontá', 'Chía', 'Cogua', 'Cota', 'Cucunubá', 'El Colegio', 'El Peñón', 'El Rosal', 'Facatativá', 'Fomeque', 'Fosca', 'Funza', 'Fusagasugá', 'Fúquene', 'Gachala', 'Gachancipá', 'Gacheta', 'Gama', 'Girardot', 'Granada', 'Guachetá', 'Guaduas', 'Guasca', 'Guataquí', 'Guatavita', 'Guayabal de Siquima', 'Guayabetal', 'Gutiérrez', 'Jerusalén', 'Junín', 'La Calera', 'La Mesa', 'La Palma', 'La Peña', 'La Vega', 'Lenguazaque', 'Macheta', 'Madrid', 'Manta', 'Medina', 'Mosquera', 'Nariño', 'Nemocon', 'Nilo', 'Nimaima', 'Nocaima', 'Pacho', 'Paime', 'Pandi', 'Paratebueno', 'Pasca', 'Puerto Salgar', 'Puli', 'Quebradanegra', 'Quetame', 'Quipile', 'Ricaurte', 'San Antonio de Tequendama', 'San Bernardo', 'San Cayetano', 'San Francisco', 'San Juan de Río Seco', 'Sasaima', 'Sesquilé', 'Sibaté', 'Silvania', 'Simijaca', 'Soacha', 'Sopó', 'Subachoque', 'Suesca', 'Supatá', 'Susa', 'Sutatausa', 'Tabio', 'Tausa', 'Tena', 'Tenjo', 'Tibacuy', 'Tibirita', 'Tocaima', 'Tocancipá', 'Topaipi', 'Ubalá', 'Ubaque', 'Ubate', 'Une', 'Venecia', 'Vergara', 'Vianí', 'Villagomez', 'Villapinzón', 'Villeta', 'Viotá', 'Yacopí', 'Zipacon', 'Zipaquirá', 'Útica'],
+  'Córdoba': ['Ayapel', 'Buenavista', 'Canalete', 'Cereté', 'Chimá', 'Chinú', 'Ciénaga de Oro', 'Cotorra', 'La Apartada', 'Lorica', 'Los Córdobas', 'Momil', 'Montelíbano', 'Montería', 'Moñitos', 'Planeta Rica', 'Pueblo Nuevo', 'Puerto Escondido', 'Puerto Libertador', 'Purísima', 'Sahagún', 'San Andrés Sotavento', 'San Antero', 'San Bernardo del Viento', 'San Carlos', 'San Pelayo', 'Tierralta', 'Valencia'],
+  'Guainía': ['Barranco Mina', 'Cacahual', 'Inírida', 'La Guadalupe', 'Mapiripan', 'Morichal', 'Pana Pana', 'Puerto Colombia', 'San Felipe'],
+  'Guaviare': ['Calamar', 'El Retorno', 'Miraflores', 'San José del Guaviare'],
+  'Huila': ['Acevedo', 'Agrado', 'Aipe', 'Algeciras', 'Altamira', 'Baraya', 'Campoalegre', 'Colombia', 'Elías', 'Garzón', 'Gigante', 'Guadalupe', 'Hobo', 'Iquira', 'Isnos', 'La Argentina', 'La Plata', 'Neiva', 'Nátaga', 'Oporapa', 'Paicol', 'Palermo', 'Palestina', 'Pital', 'Pitalito', 'Rivera', 'Saladoblanco', 'San Agustín', 'Santa María', 'Suaza', 'Tarqui', 'Tello', 'Teruel', 'Tesalia', 'Timaná', 'Villavieja', 'Yaguará'],
+  'La Guajira': ['Albania', 'Barrancas', 'Dibulla', 'Distraccion', 'El Molino', 'Fonseca', 'Hatonuevo', 'La Jagua del Pilar', 'Maicao', 'Manaure', 'Riohacha', 'San Juan del Cesar', 'Uribia', 'Urumita', 'Villanueva'],
+  'Magdalena': ['Algarrobo', 'Aracataca', 'Ariguaní', 'Cerro San Antonio', 'Chibolo', 'Ciénaga', 'Concordia', 'El Banco', 'El Piñon', 'El Reten', 'Fundacion', 'Guamal', 'Nueva Granada', 'Pedraza', 'Pijiño del Carmen', 'Pivijay', 'Plato', 'Pueblo Viejo', 'Remolino', 'Sabanas de San Angel', 'Salamina', 'San Sebastian de Buenavista', 'San Zenon', 'Santa Ana', 'Santa Barbara de Pinto', 'Santa Marta', 'Sitionuevo', 'Tenerife', 'Zapayan', 'Zona Bananera'],
+  'Meta': ['Acacias', 'Barranca de Upia', 'Cabuyaro', 'Castilla la Nueva', 'Cumaral', 'El Calvario', 'El Castillo', 'El Dorado', 'Fuente de Oro', 'Granada', 'Guamal', 'La Macarena', 'La Uribe', 'Lejanías', 'Mapiripan', 'Mesetas', 'Puerto Concordia', 'Puerto Gaitán', 'Puerto Lleras', 'Puerto Lopez', 'Puerto Rico', 'Restrepo', 'San Carlos Guaroa', 'San Juan de Arama', 'San Juanito', 'San Luis de Cubarral', 'San Martín', 'Villavicencio', 'Vista Hermosa'],
+  'Nariño': ['Alban', 'Aldana', 'Ancuya', 'Arboleda', 'Barbacoas', 'Belen', 'Buesaco', 'Chachagui', 'Colon', 'Consaca', 'Contadero', 'Cuaspud', 'Cumbal', 'Cumbitara', 'Córdoba', 'El Charco', 'El Peñol', 'El Rosario', 'El Tablon de Gomez', 'El Tambo', 'Francisco Pizarro', 'Funes', 'Guachucal', 'Guaitarilla', 'Gualmatan', 'Iles', 'Imues', 'Ipiales', 'La Cruz', 'La Florida', 'La Llanada', 'La Tola', 'La Union', 'Leiva', 'Linares', 'Los Andes', 'Magui', 'Mallama', 'Mosquera', 'Nariño', 'Olaya Herrera', 'Ospina', 'Pasto', 'Policarpa', 'Potosí', 'Providencia', 'Puerres', 'Pupiales', 'Ricaurte', 'Roberto Payan', 'Samaniego', 'San Bernardo', 'San Lorenzo', 'San Pablo', 'San Pedro de Cartago', 'Sandoná', 'Santa Barbara', 'Santa Cruz', 'Sapuyes', 'Taminango', 'Tangua', 'Tumaco', 'Tuquerres', 'Yacuanquer'],
+  'Norte de Santander': ['Abrego', 'Arboledas', 'Bochalema', 'Bucarasica', 'Cachirá', 'Chinácota', 'Chitagá', 'Convención', 'Cucutilla', 'Cácota', 'Cúcuta', 'Durania', 'El Carmen', 'El Tarra', 'El Zulia', 'Gramalote', 'Hacarí', 'Herrán', 'La Esperanza', 'La Playa', 'Labateca', 'Los Patios', 'Lourdes', 'Mutiscua', 'Ocaña', 'Pamplona', 'Pamplonita', 'Puerto Santander', 'Ragonvalia', 'Salazar', 'San Calixto', 'San Cayetano', 'Santiago', 'Sardinata', 'Silos', 'Teorama', 'Tibú', 'Toledo', 'Villa Caro', 'Villa del Rosario'],
+  'Putumayo': ['Colón', 'Mocoa', 'Orito', 'Puerto Asis', 'Puerto Caicedo', 'Puerto Guzman', 'Puerto Leguizamo', 'San Francisco', 'San Miguel', 'Santiago', 'Sibundoy', 'Valle del Guamuez', 'Villa Garzon'],
+  'Quindío': ['Armenia', 'Buenavista', 'Calarca', 'Circasia', 'Cordoba', 'Filandia', 'Genova', 'La Tebaida', 'Montengro', 'Pijao', 'Quimbaya', 'Salento'],
+  'Risaralda': ['Apía', 'Balboa', 'Belén de Umbría', 'Dosquebradas', 'Guática', 'La Celia', 'La Virginia', 'Marsella', 'Mistrató', 'Pereira', 'Pueblo Rico', 'Quinchia', 'Santa Rosa de Cabal', 'Santuario'],
+  'San Andrés y Providencia': ['Providencia y Santa Catalina', 'San Andres'],
+  'Santander': ['Aguada', 'Albania', 'Aratoca', 'Barbosa', 'Barichara', 'Barrancabermeja', 'Betulia', 'Bolívar', 'Bucaramanga', 'Cabrera', 'California', 'Capitanejo', 'Carcasí', 'Cepitá', 'Cerrito', 'Charalá', 'Charta', 'Chima', 'Chipatá', 'Cimitarra', 'Concepción', 'Confines', 'Contratación', 'Coromoro', 'Curití', 'El Carmen de Chucurí', 'El Guacamayo', 'El Peñón', 'El Playón', 'Encino', 'Enciso', 'Floridablanca', 'Florián', 'Galán', 'Gambita', 'Girón', 'Guaca', 'Guadalupe', 'Guapotá', 'Guavatá', 'Guepsa', 'Hato', 'Jesús María', 'Jordán', 'La Belleza', 'La Paz', 'Landázuri', 'Lebríja', 'Los Santos', 'Macaravita', 'Matanza', 'Mogotes', 'Molagavita', 'Málaga', 'Ocamonte', 'Oiba', 'Onzaga', 'Palmar', 'Palmas del Socorro', 'Piedecuesta', 'Pinchote', 'Puente Nacional', 'Puerto Parra', 'Puerto Wilches', 'Páramo', 'Rionegro', 'Sabana de Torres', 'San Andrés', 'San Benito', 'San Gil', 'San Joaquín', 'San José de Miranda', 'San Miguel', 'San Vicente de Chucurí', 'Santa Bárbara', 'Santa Helena del Opón', 'Simacota', 'Socorro', 'Suaita', 'Sucre', 'Surata', 'Tona', 'Valle de San José', 'Vetas', 'Villanueva', 'Vélez', 'Zapatoca'],
+  'Sucre': ['Buenavista', 'Caimito', 'Chalán', 'Coloso', 'Corozal', 'Coveñas', 'El Roble', 'Galeras', 'Guaranda', 'La Unión', 'Los Palmitos', 'Majagual', 'Morroa', 'Ovejas', 'Palmito', 'Sampués', 'San Benito Abad', 'San Juan Betulia', 'San Marcos', 'San Onofre', 'San Pedro', 'Santiago de Tolú', 'Sincelejo', 'Sincé', 'Sucre', 'Tolú Viejo'],
+  'Tolima': ['Alpujarra', 'Alvarado', 'Ambalema', 'Anzoátegui', 'Armero', 'Ataco', 'Cajamarca', 'Carmen de Apicalá', 'Casabianca', 'Chaparral', 'Coello', 'Coyaima', 'Cunday', 'Dolores', 'Espinal', 'Falan', 'Flandes', 'Fresno', 'Guamo', 'Herveo', 'Honda', 'Ibague', 'Icononzo', 'Lerida', 'Libano', 'Mariquita', 'Melgar', 'Murillo', 'Natagaima', 'Ortega', 'Palocabildo', 'Piedras', 'Planadas', 'Prado', 'Purificación', 'Rioblanco', 'Roncesvalles', 'Rovira', 'Saldaña', 'San Antonio', 'San Luis', 'Santa Isabel', 'Suárez', 'Valle de San Juan', 'Venadillo', 'Villahermosa', 'Villarrica'],
+  'Valle del Cauca': ['Alcala', 'Andalucía', 'Ansermanuevo', 'Argelia', 'Bolívar', 'Buenaventura', 'Buga', 'Bugalagrande', 'Caicedonia', 'Cali', 'Calima', 'Candelaria', 'Cartago', 'Dagua', 'El Cairo', 'El Cerrito', 'El Dovio', 'El Águila', 'Florida', 'Ginebra', 'Guacarí', 'Jamundí', 'La Cumbre', 'La Unión', 'La Victoria', 'Obando', 'Palmira', 'Pradera', 'Restrepo', 'Riofrio', 'Roldanillo', 'San Pedro', 'Sevilla', 'Toro', 'Trujillo', 'Tuluá', 'Ulloa', 'Versalles', 'Vijes', 'Yotoco', 'Yumbo', 'Zarzal'],
+  'Vaupés': ['Caruru', 'Mitú', 'Pacoa', 'Papunahua', 'Taraira', 'Yavaraté'],
+  'Vichada': ['Cumaribo', 'La Primavera', 'Puerto Carreño', 'Santa Rosalía'],
 };
 
 export const DEPARTMENTS = Object.keys(COLOMBIA).sort((a, b) => a.localeCompare(b, 'es'));
