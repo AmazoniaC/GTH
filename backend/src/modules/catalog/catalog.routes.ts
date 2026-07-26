@@ -26,9 +26,15 @@ const positionSchema = z.object({
   }),
 });
 
+const CATEGORY_VALUES = [
+  'DOCUMENT_TYPE', 'CONTRACT_TYPE', 'EMPLOYEE_STATUS', 'FILE_TYPE',
+  'BLOOD_TYPE', 'NATIONALITY', 'COUNTRY', 'EPS', 'PENSION_FUND',
+  'SEVERANCE_FUND', 'COMPENSATION_FUND', 'ARL', 'BANK', 'ACCOUNT_TYPE',
+] as const;
+
 const optionSchema = z.object({
   body: z.object({
-    category: z.enum(['DOCUMENT_TYPE', 'CONTRACT_TYPE', 'EMPLOYEE_STATUS', 'FILE_TYPE']),
+    category: z.enum(CATEGORY_VALUES),
     code: z.string().min(1),
     label: z.string().min(1),
   }),

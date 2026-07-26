@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2, Lock, Pencil, Plus, Trash2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,42 +22,78 @@ import {
 import { getErrorMessage } from '@/lib/api';
 import type { CatalogCategory, CatalogOption } from '@/types';
 
+// Categorías cuyo valor es un código con lógica asociada (se muestra el código).
+const CODE_BASED = new Set<CatalogCategory>([
+  'DOCUMENT_TYPE',
+  'CONTRACT_TYPE',
+  'EMPLOYEE_STATUS',
+  'FILE_TYPE',
+]);
+
+interface ListDef {
+  category: CatalogCategory;
+  title: string;
+  description?: string;
+}
+
+const GROUPS: { heading: string; lists: ListDef[] }[] = [
+  {
+    heading: 'Datos personales',
+    lists: [
+      { category: 'DOCUMENT_TYPE', title: 'Tipos de documento' },
+      { category: 'EMPLOYEE_STATUS', title: 'Estados del empleado', description: 'Los del sistema no se eliminan.' },
+      { category: 'BLOOD_TYPE', title: 'Grupo sanguíneo' },
+      { category: 'NATIONALITY', title: 'Nacionalidad' },
+      { category: 'COUNTRY', title: 'País' },
+    ],
+  },
+  {
+    heading: 'Contrato y documentos',
+    lists: [
+      { category: 'CONTRACT_TYPE', title: 'Tipos de contrato' },
+      { category: 'FILE_TYPE', title: 'Tipos de documento adjunto' },
+    ],
+  },
+  {
+    heading: 'Seguridad social',
+    lists: [
+      { category: 'EPS', title: 'EPS (Salud)' },
+      { category: 'PENSION_FUND', title: 'Fondo de pensión' },
+      { category: 'SEVERANCE_FUND', title: 'Fondo de cesantías' },
+      { category: 'COMPENSATION_FUND', title: 'Caja de compensación' },
+      { category: 'ARL', title: 'ARL' },
+    ],
+  },
+  {
+    heading: 'Bancarios',
+    lists: [
+      { category: 'BANK', title: 'Bancos / Entidades' },
+      { category: 'ACCOUNT_TYPE', title: 'Tipos de cuenta' },
+    ],
+  },
+];
+
 export function OptionsSection() {
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <OptionList
-        category="DOCUMENT_TYPE"
-        title="Tipos de documento"
-        description="CC, CE, pasaporte, etc."
-      />
-      <OptionList
-        category="CONTRACT_TYPE"
-        title="Tipos de contrato"
-        description="Indefinido, fijo, obra o labor…"
-      />
-      <OptionList
-        category="EMPLOYEE_STATUS"
-        title="Estados del empleado"
-        description="Agrega estados (licencias, etc.). Los del sistema no se eliminan."
-      />
-      <OptionList
-        category="FILE_TYPE"
-        title="Tipos de documento adjunto"
-        description="Contrato, hoja de vida, certificado, examen médico…"
-      />
+    <div className="space-y-8">
+      {GROUPS.map((group) => (
+        <div key={group.heading}>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            {group.heading}
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {group.lists.map((l) => (
+              <OptionList key={l.category} {...l} />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
-function OptionList({
-  category,
-  title,
-  description,
-}: {
-  category: CatalogCategory;
-  title: string;
-  description: string;
-}) {
+function OptionList({ category, title, description }: ListDef) {
+  const codeBased = CODE_BASED.has(category);
   const { data: options, isLoading } = useOptions(category);
   const createOption = useCreateOption();
   const updateOption = useUpdateOption();
@@ -82,27 +118,22 @@ function OptionList({
   };
 
   const save = async () => {
-    if (label.trim().length < 1) {
-      toast.error('El nombre visible es obligatorio.');
-      return;
-    }
-    if (code.trim().length < 1) {
-      toast.error('El código es obligatorio.');
-      return;
-    }
+    if (label.trim().length < 1) return toast.error('El nombre es obligatorio.');
+    // En listas de valores el código es igual a la etiqueta.
+    const finalCode = codeBased ? code.trim().toUpperCase() : label.trim();
     try {
       if (editing) {
         await updateOption.mutateAsync({
           id: editing.id,
           label,
-          // Solo enviamos el código si cambió y la opción no es del sistema.
-          ...(!editing.isSystem && code.trim().toUpperCase() !== editing.code
-            ? { code: code.trim().toUpperCase() }
+          ...(codeBased && !editing.isSystem && finalCode !== editing.code
+            ? { code: finalCode }
             : {}),
         });
         toast.success('Opción actualizada');
       } else {
-        await createOption.mutateAsync({ category, code: code.trim().toUpperCase(), label });
+        if (codeBased && finalCode.length < 1) return toast.error('El código es obligatorio.');
+        await createOption.mutateAsync({ category, code: finalCode, label });
         toast.success('Opción creada');
       }
       setOpen(false);
@@ -123,46 +154,45 @@ function OptionList({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">{title}</CardTitle>
-          <Button size="sm" variant="ghost" onClick={openNew}>
+          <CardTitle className="text-sm">{title}</CardTitle>
+          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={openNew}>
             <Plus className="h-4 w-4" />
           </Button>
         </div>
-        <CardDescription>{description}</CardDescription>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="max-h-64 space-y-1.5 overflow-y-auto">
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Cargando...</p>
         ) : (
           options?.map((o) => (
             <div
               key={o.id}
-              className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2"
+              className="flex items-center justify-between rounded-md border border-border/60 px-2.5 py-1.5"
             >
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="font-mono text-[10px]">
-                  {o.code}
-                </Badge>
-                <span className="text-sm">{o.label}</span>
+              <div className="flex min-w-0 items-center gap-2">
+                {codeBased && (
+                  <Badge variant="secondary" className="shrink-0 font-mono text-[10px]">
+                    {o.code}
+                  </Badge>
+                )}
+                <span className="truncate text-sm">{o.label}</span>
               </div>
-              <div className="flex items-center gap-0.5">
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(o)}>
+              <div className="flex shrink-0 items-center gap-0.5">
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(o)}>
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
                 {o.isSystem ? (
-                  <span
-                    className="flex h-8 w-8 items-center justify-center text-muted-foreground/50"
-                    title="Opción del sistema"
-                  >
+                  <span className="flex h-7 w-7 items-center justify-center text-muted-foreground/40">
                     <Lock className="h-3.5 w-3.5" />
                   </span>
                 ) : (
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive"
+                    className="h-7 w-7 text-destructive"
                     onClick={() => remove(o)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -180,27 +210,29 @@ function OptionList({
             <DialogTitle>{editing ? 'Editar opción' : `Nueva opción · ${title}`}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Código</Label>
-              <Input
-                value={code}
-                disabled={!!editing && editing.isSystem}
-                placeholder="Ej: PPT"
-                onChange={(e) => setCode(e.target.value)}
-              />
-              {editing && editing.isSystem ? (
-                <p className="text-xs text-muted-foreground">
-                  Opción del sistema: el código no se puede cambiar.
-                </p>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  Se actualizará en todos los registros que lo usen.
-                </p>
-              )}
-            </div>
+            {codeBased && (
+              <div className="space-y-1.5">
+                <Label>Código</Label>
+                <Input
+                  value={code}
+                  disabled={!!editing && editing.isSystem}
+                  placeholder="Ej: CC"
+                  onChange={(e) => setCode(e.target.value)}
+                />
+                {editing && editing.isSystem ? (
+                  <p className="text-xs text-muted-foreground">
+                    Opción del sistema: el código no se puede cambiar.
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Se actualizará en todos los registros que lo usen.
+                  </p>
+                )}
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label>Nombre visible</Label>
-              <Input value={label} onChange={(e) => setLabel(e.target.value)} />
+              <Input value={label} onChange={(e) => setLabel(e.target.value)} autoFocus />
             </div>
           </div>
           <DialogFooter className="gap-2">

@@ -27,13 +27,12 @@ import { Switch } from '@/components/ui/switch';
 import { useCreateEmployee, useDepartments, usePositions, useUpdateEmployee } from '../employees.api';
 import { useOptions } from '@/features/catalog/catalog.api';
 import { PhotoUpload } from '@/components/shared/photo-upload';
+import { CatalogSelect } from '@/components/shared/catalog-select';
 import { getErrorMessage } from '@/lib/api';
 import { getInitials, toDateInput } from '@/lib/utils';
-import { COLOMBIA, COUNTRIES, DEPARTMENTS } from '@/lib/colombia-geo';
-import { ACCOUNT_TYPES, BANKS } from '@/lib/banks';
+import { COLOMBIA, DEPARTMENTS } from '@/lib/colombia-geo';
 import type { Employee } from '@/types';
 
-const BLOOD_TYPES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 const MARITAL = [
   { value: 'SINGLE', label: 'Soltero(a)' },
   { value: 'MARRIED', label: 'Casado(a)' },
@@ -329,18 +328,11 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                   <Input type="date" {...register('issueDate')} />
                 </Field>
                 <Field label="Grupo sanguíneo">
-                  <Select value={watch('bloodType') || ''} onValueChange={(v) => setValue('bloodType', v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BLOOD_TYPES.map((b) => (
-                        <SelectItem key={b} value={b}>
-                          {b}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CatalogSelect
+                    category="BLOOD_TYPE"
+                    value={watch('bloodType')}
+                    onChange={(v) => setValue('bloodType', v)}
+                  />
                 </Field>
               </div>
 
@@ -393,7 +385,11 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                   </Select>
                 </Field>
                 <Field label="Nacionalidad">
-                  <Input {...register('nationality')} />
+                  <CatalogSelect
+                    category="NATIONALITY"
+                    value={watch('nationality')}
+                    onChange={(v) => setValue('nationality', v)}
+                  />
                 </Field>
               </div>
             </TabsContent>
@@ -441,12 +437,11 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                   </datalist>
                 </Field>
                 <Field label="País">
-                  <Input list="country-suggestions" {...register('country')} />
-                  <datalist id="country-suggestions">
-                    {COUNTRIES.map((c) => (
-                      <option key={c} value={c} />
-                    ))}
-                  </datalist>
+                  <CatalogSelect
+                    category="COUNTRY"
+                    value={watch('country')}
+                    onChange={(v) => setValue('country', v)}
+                  />
                 </Field>
               </div>
               <div className="rounded-lg border border-border p-4">
@@ -518,19 +513,31 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
             <TabsContent value="seguridad" className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <Field label="EPS (Salud)">
-                  <Input {...register('eps')} placeholder="Ej: Sura EPS" />
+                  <CatalogSelect category="EPS" value={watch('eps')} onChange={(v) => setValue('eps', v)} />
                 </Field>
                 <Field label="Fondo de pensión">
-                  <Input {...register('pensionFund')} placeholder="Ej: Porvenir" />
+                  <CatalogSelect
+                    category="PENSION_FUND"
+                    value={watch('pensionFund')}
+                    onChange={(v) => setValue('pensionFund', v)}
+                  />
                 </Field>
                 <Field label="Fondo de cesantías">
-                  <Input {...register('severanceFund')} placeholder="Ej: Porvenir" />
+                  <CatalogSelect
+                    category="SEVERANCE_FUND"
+                    value={watch('severanceFund')}
+                    onChange={(v) => setValue('severanceFund', v)}
+                  />
                 </Field>
                 <Field label="Caja de compensación">
-                  <Input {...register('compensationFund')} placeholder="Ej: Compensar" />
+                  <CatalogSelect
+                    category="COMPENSATION_FUND"
+                    value={watch('compensationFund')}
+                    onChange={(v) => setValue('compensationFund', v)}
+                  />
                 </Field>
                 <Field label="ARL (entidad)">
-                  <Input {...register('arl')} placeholder="Ej: Sura ARL" />
+                  <CatalogSelect category="ARL" value={watch('arl')} onChange={(v) => setValue('arl', v)} />
                 </Field>
                 <Field label="Nivel de riesgo ARL" error={errors.arlRiskClass?.message}>
                   <Select value={String(watch('arlRiskClass'))} onValueChange={(v) => setValue('arlRiskClass', Number(v))}>
@@ -592,30 +599,19 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
             {/* ---------- BANCARIOS ---------- */}
             <TabsContent value="bancarios" className="space-y-4">
               <Field label="Banco / Entidad">
-                <Input list="bank-suggestions" {...register('bankName')} placeholder="Escribe o elige" />
-                <datalist id="bank-suggestions">
-                  {BANKS.map((b) => (
-                    <option key={b} value={b} />
-                  ))}
-                </datalist>
+                <CatalogSelect
+                  category="BANK"
+                  value={watch('bankName')}
+                  onChange={(v) => setValue('bankName', v)}
+                />
               </Field>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Tipo de cuenta">
-                  <Select
-                    value={watch('bankAccountType') || ''}
-                    onValueChange={(v) => setValue('bankAccountType', v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ACCOUNT_TYPES.map((t) => (
-                        <SelectItem key={t} value={t}>
-                          {t}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CatalogSelect
+                    category="ACCOUNT_TYPE"
+                    value={watch('bankAccountType')}
+                    onChange={(v) => setValue('bankAccountType', v)}
+                  />
                 </Field>
                 <Field label="Número de cuenta">
                   <Input {...register('bankAccountNumber')} inputMode="numeric" />
