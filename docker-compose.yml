@@ -1,0 +1,23 @@
+# Base de datos PostgreSQL para desarrollo local.
+# Uso: docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gth-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gth
+      POSTGRES_PASSWORD: gth
+      POSTGRES_DB: gth_hr
+    ports:
+      - '5432:5432'
+    volumes:
+      - gth_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U gth -d gth_hr']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  gth_pgdata:
