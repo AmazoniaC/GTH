@@ -24,7 +24,7 @@ import type { CatalogCategory, CatalogOption } from '@/types';
 
 export function OptionsSection() {
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
+    <div className="grid gap-6 lg:grid-cols-2">
       <OptionList
         category="DOCUMENT_TYPE"
         title="Tipos de documento"
@@ -39,6 +39,11 @@ export function OptionsSection() {
         category="EMPLOYEE_STATUS"
         title="Estados del empleado"
         description="Agrega estados (licencias, etc.). Los del sistema no se eliminan."
+      />
+      <OptionList
+        category="FILE_TYPE"
+        title="Tipos de documento adjunto"
+        description="Contrato, hoja de vida, certificado, examen médico…"
       />
     </div>
   );

@@ -29,6 +29,7 @@ import { useOptions } from '@/features/catalog/catalog.api';
 import { PhotoUpload } from '@/components/shared/photo-upload';
 import { getErrorMessage } from '@/lib/api';
 import { getInitials, toDateInput } from '@/lib/utils';
+import { COLOMBIA, COUNTRIES, DEPARTMENTS } from '@/lib/colombia-geo';
 import type { Employee } from '@/types';
 
 const BLOOD_TYPES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
@@ -400,14 +401,38 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                 <Input {...register('address')} />
               </Field>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                <Field label="Ciudad">
-                  <Input {...register('city')} />
-                </Field>
                 <Field label="Departamento">
-                  <Input {...register('stateProvince')} placeholder="Ej: Cundinamarca" />
+                  <Select
+                    value={watch('stateProvince') || ''}
+                    onValueChange={(v) => setValue('stateProvince', v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DEPARTMENTS.map((d) => (
+                        <SelectItem key={d} value={d}>
+                          {d}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Ciudad / Municipio">
+                  <Input list="city-suggestions" {...register('city')} placeholder="Escribe o elige" />
+                  <datalist id="city-suggestions">
+                    {(COLOMBIA[watch('stateProvince') ?? ''] ?? []).map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
                 </Field>
                 <Field label="País">
-                  <Input {...register('country')} />
+                  <Input list="country-suggestions" {...register('country')} />
+                  <datalist id="country-suggestions">
+                    {COUNTRIES.map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
                 </Field>
               </div>
               <div className="rounded-lg border border-border p-4">

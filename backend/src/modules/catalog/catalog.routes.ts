@@ -28,7 +28,7 @@ const positionSchema = z.object({
 
 const optionSchema = z.object({
   body: z.object({
-    category: z.enum(['DOCUMENT_TYPE', 'CONTRACT_TYPE', 'EMPLOYEE_STATUS']),
+    category: z.enum(['DOCUMENT_TYPE', 'CONTRACT_TYPE', 'EMPLOYEE_STATUS', 'FILE_TYPE']),
     code: z.string().min(1),
     label: z.string().min(1),
   }),
