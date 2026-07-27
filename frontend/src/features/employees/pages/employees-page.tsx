@@ -11,7 +11,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { exportEmployeesCsv, exportEmployeesPdf } from '../export';
+import { ImportDialog } from '../components/import-dialog';
+import { useDepartments, usePositions } from '../employees.api';
+import { usePermissions } from '@/features/auth/use-permissions';
 import { getErrorMessage } from '@/lib/api';
+import { Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -41,8 +45,14 @@ export function EmployeesPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string>('ALL');
+  const [departmentId, setDepartmentId] = useState<string>('ALL');
+  const [positionId, setPositionId] = useState<string>('ALL');
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const { canManageEmployees } = usePermissions();
+  const { data: departments } = useDepartments();
+  const { data: positions } = usePositions();
 
   const runExport = async (kind: 'csv' | 'pdf') => {
     setExporting(true);
@@ -61,6 +71,8 @@ export function EmployeesPage() {
     pageSize: 10,
     search: search || undefined,
     status: status === 'ALL' ? undefined : status,
+    departmentId: departmentId === 'ALL' ? undefined : departmentId,
+    positionId: positionId === 'ALL' ? undefined : positionId,
   });
 
   const meta = data?.meta;
@@ -87,6 +99,11 @@ export function EmployeesPage() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        {canManageEmployees && (
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <Upload className="h-4 w-4" /> Importar
+          </Button>
+        )}
         <Button onClick={() => setFormOpen(true)}>
           <Plus className="h-4 w-4" /> Nuevo empleado
         </Button>
@@ -108,13 +125,51 @@ export function EmployeesPage() {
             />
           </div>
           <Select
+            value={departmentId}
+            onValueChange={(v) => {
+              setDepartmentId(v);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="sm:w-44">
+              <SelectValue placeholder="Departamento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todas las áreas</SelectItem>
+              {departments?.map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={positionId}
+            onValueChange={(v) => {
+              setPositionId(v);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="sm:w-44">
+              <SelectValue placeholder="Cargo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todos los cargos</SelectItem>
+              {positions?.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
             value={status}
             onValueChange={(v) => {
               setStatus(v);
               setPage(1);
             }}
           >
-            <SelectTrigger className="sm:w-52">
+            <SelectTrigger className="sm:w-40">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
@@ -232,6 +287,7 @@ export function EmployeesPage() {
       </Card>
 
       <EmployeeForm open={formOpen} onOpenChange={setFormOpen} />
+      <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
   );
 }

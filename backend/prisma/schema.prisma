@@ -42,6 +42,7 @@ model Organization {
   payrollPeriods PayrollPeriod[]
   payrollConfigs PayrollConfig[]
   catalogOptions CatalogOption[]
+  auditLogs      AuditLog[]
 
   @@map("organizations")
 }
@@ -205,6 +206,8 @@ model Employee {
   departmentId   String?
   positionId     String?
   managerId      String? // Jefe directo (jerarquía)
+  costCenter     String? // Centro de costo (catálogo COST_CENTER)
+  workLocation   String? // Sede / centro de trabajo (catálogo WORK_LOCATION)
   hireDate       DateTime
   terminationDate DateTime?
   status         String   @default("ACTIVE") // Catálogo editable EMPLOYEE_STATUS
@@ -235,6 +238,7 @@ model Employee {
   payslips     Payslip[]
   documents    EmployeeDocument[]
   salaryChanges SalaryChange[]
+  dependents   Dependent[]
 
   @@unique([organizationId, employeeCode])
   @@unique([organizationId, documentNumber])
@@ -267,6 +271,51 @@ model EmployeeDocument {
 
   @@index([employeeId])
   @@map("employee_documents")
+}
+
+// Grupo familiar / beneficiarios del empleado.
+model Dependent {
+  id             String   @id @default(cuid())
+  employeeId     String
+
+  relationship   String // Parentesco (catálogo RELATIONSHIP)
+  firstName      String
+  lastName       String
+  documentType   String?
+  documentNumber String?
+  birthDate      DateTime?
+  gender         Gender?
+  isBeneficiary  Boolean  @default(true) // Beneficiario de prestaciones
+  notes          String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@map("dependents")
+}
+
+// Bitácora de auditoría: registra creaciones, cambios y eliminaciones.
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+
+  userId         String?
+  userName       String?
+  action         String // CREATE | UPDATE | DELETE
+  entity         String // Employee | Contract | SalaryChange | Document | Dependent | User
+  entityId       String?
+  entityLabel    String?
+  changes        Json?
+
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@map("audit_logs")
 }
 
 // Historial de cambios salariales (aumentos, ajustes) para trazabilidad.

@@ -1,6 +1,12 @@
 import { Request, Response } from 'express';
 import { employeeService } from './employee.service';
 import { created, ok } from '../../core/utils/apiResponse';
+import type { Actor } from '../audit/audit.service';
+
+const actorOf = (req: Request): Actor => ({
+  userId: req.auth!.sub,
+  userName: req.auth!.email,
+});
 
 export class EmployeeController {
   list = async (req: Request, res: Response) => {
@@ -25,7 +31,7 @@ export class EmployeeController {
   };
 
   create = async (req: Request, res: Response) => {
-    const employee = await employeeService.create(req.auth!.organizationId, req.body);
+    const employee = await employeeService.create(req.auth!.organizationId, req.body, actorOf(req));
     return created(res, employee);
   };
 
@@ -34,12 +40,17 @@ export class EmployeeController {
       req.params.id,
       req.auth!.organizationId,
       req.body,
+      actorOf(req),
     );
     return ok(res, employee);
   };
 
   remove = async (req: Request, res: Response) => {
-    const result = await employeeService.remove(req.params.id, req.auth!.organizationId);
+    const result = await employeeService.remove(
+      req.params.id,
+      req.auth!.organizationId,
+      actorOf(req),
+    );
     return ok(res, result);
   };
 

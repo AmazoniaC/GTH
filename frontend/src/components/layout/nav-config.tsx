@@ -7,6 +7,7 @@ import {
   UserCog,
   Bell,
   Network,
+  History,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserRole } from '@/types';
@@ -58,6 +59,12 @@ export const navSections: NavSection[] = [
         label: 'Usuarios',
         to: '/users',
         icon: UserCog,
+        roles: ['ADMIN', 'SUPER_ADMIN'],
+      },
+      {
+        label: 'Auditoría',
+        to: '/audit',
+        icon: History,
         roles: ['ADMIN', 'SUPER_ADMIN'],
       },
       { label: 'Configuración', to: '/settings', icon: Settings },

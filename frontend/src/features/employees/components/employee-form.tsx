@@ -75,6 +75,8 @@ const schema = z.object({
   departmentId: z.string().optional(),
   positionId: z.string().optional(),
   managerId: z.string().optional(),
+  costCenter: z.string().optional(),
+  workLocation: z.string().optional(),
   status: z.string().min(1),
   eps: z.string().optional(),
   pensionFund: z.string().optional(),
@@ -129,6 +131,8 @@ const emptyDefaults: FormValues = {
   departmentId: undefined,
   positionId: undefined,
   managerId: undefined,
+  costCenter: '',
+  workLocation: '',
   status: 'ACTIVE',
   eps: '',
   pensionFund: '',
@@ -198,6 +202,8 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
         departmentId: employee.departmentId ?? undefined,
         positionId: employee.positionId ?? undefined,
         managerId: employee.managerId ?? undefined,
+        costCenter: employee.costCenter ?? '',
+        workLocation: employee.workLocation ?? '',
         status: employee.status,
         eps: employee.eps ?? '',
         pensionFund: employee.pensionFund ?? '',
@@ -249,6 +255,8 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
       departmentId: values.departmentId || undefined,
       positionId: values.positionId || undefined,
       managerId: values.managerId || undefined,
+      costCenter: opt(values.costCenter),
+      workLocation: opt(values.workLocation),
       eps: opt(values.eps),
       pensionFund: opt(values.pensionFund),
       severanceFund: opt(values.severanceFund),
@@ -533,6 +541,20 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                         ))}
                     </SelectContent>
                   </Select>
+                </Field>
+                <Field label="Centro de costo">
+                  <CatalogSelect
+                    category="COST_CENTER"
+                    value={watch('costCenter')}
+                    onChange={(v) => setValue('costCenter', v)}
+                  />
+                </Field>
+                <Field label="Sede / Centro de trabajo">
+                  <CatalogSelect
+                    category="WORK_LOCATION"
+                    value={watch('workLocation')}
+                    onChange={(v) => setValue('workLocation', v)}
+                  />
                 </Field>
               </div>
             </TabsContent>

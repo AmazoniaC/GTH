@@ -42,6 +42,8 @@ const employeeBase = {
   departmentId: z.string().optional().nullable(),
   positionId: z.string().optional().nullable(),
   managerId: z.string().optional().nullable(),
+  costCenter: z.string().optional().nullable(),
+  workLocation: z.string().optional().nullable(),
   hireDate: z.coerce.date(),
   status: z.string().min(1).default('ACTIVE'),
   eps: z.string().optional().nullable(),
@@ -88,6 +90,7 @@ export const listEmployeesSchema = z.object({
     search: z.string().optional(),
     status: z.string().optional(),
     departmentId: z.string().optional(),
+    positionId: z.string().optional(),
   }),
 });
 
