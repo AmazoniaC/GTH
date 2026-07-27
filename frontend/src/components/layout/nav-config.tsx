@@ -8,6 +8,7 @@ import {
   Bell,
   Network,
   History,
+  UserCircle,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserRole } from '@/types';
@@ -34,6 +35,7 @@ export const navSections: NavSection[] = [
   {
     title: 'Principal',
     items: [
+      { label: 'Mi Portal', to: '/portal', icon: UserCircle, roles: ['EMPLOYEE'] },
       { label: 'Panel', to: '/dashboard', icon: LayoutDashboard },
       { label: 'Alertas', to: '/alerts', icon: Bell },
     ],

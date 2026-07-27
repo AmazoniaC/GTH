@@ -19,6 +19,7 @@ export interface ManagedUser {
   isActive: boolean;
   lastLoginAt?: string | null;
   createdAt: string;
+  employee?: { id: string; firstName: string; lastName: string; documentNumber: string } | null;
 }
 
 export type EmployeeStatus = 'ACTIVE' | 'ON_LEAVE' | 'SUSPENDED' | 'TERMINATED';
@@ -67,7 +68,43 @@ export type CatalogCategory =
   | 'ACCOUNT_TYPE'
   | 'RELATIONSHIP'
   | 'COST_CENTER'
-  | 'WORK_LOCATION';
+  | 'WORK_LOCATION'
+  | 'EDUCATION_LEVEL';
+
+export interface Education {
+  id: string;
+  employeeId: string;
+  level: string;
+  institution: string;
+  title?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  isCompleted: boolean;
+}
+
+export interface WorkExperience {
+  id: string;
+  employeeId: string;
+  company: string;
+  position: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  isCurrent: boolean;
+  responsibilities?: string | null;
+}
+
+export type CustomFieldType = 'TEXT' | 'NUMBER' | 'DATE' | 'BOOLEAN' | 'SELECT';
+
+export interface CustomFieldDefinition {
+  id: string;
+  key: string;
+  label: string;
+  type: CustomFieldType;
+  options?: string[] | null;
+  section: string;
+  order: number;
+  isActive: boolean;
+}
 
 export interface Dependent {
   id: string;
@@ -217,6 +254,9 @@ export interface Employee {
   managerId?: string | null;
   costCenter?: string | null;
   workLocation?: string | null;
+  customFields?: Record<string, unknown> | null;
+  dataConsent?: boolean;
+  dataConsentAt?: string | null;
   department?: Department | null;
   position?: Position | null;
   manager?: ManagerRef | null;

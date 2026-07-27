@@ -77,12 +77,14 @@ export class EmployeeService {
       throw new ConflictError('Ya existe un empleado con este número de documento.');
     }
 
-    const { contract, employeeCode, departmentId, positionId, managerId, ...rest } = input;
+    const { contract, employeeCode, departmentId, positionId, managerId, customFields, ...rest } =
+      input;
     // El identificador del empleado es su cédula (número de documento).
     const code = employeeCode ?? input.documentNumber;
 
     const data: Prisma.EmployeeCreateInput = {
       ...rest,
+      ...(customFields ? { customFields: customFields as Prisma.InputJsonValue } : {}),
       employeeCode: code,
       organization: { connect: { id: organizationId } },
       ...(departmentId ? { department: { connect: { id: departmentId } } } : {}),
@@ -103,6 +105,7 @@ export class EmployeeService {
       },
     };
 
+    if (data.dataConsent) data.dataConsentAt = new Date();
     const createdEmployee = await this.repo.create(data);
     await auditService.record({
       organizationId,
@@ -118,8 +121,13 @@ export class EmployeeService {
   async update(id: string, organizationId: string, input: UpdateEmployeeInput, actor?: Actor) {
     const before = await this.getById(id, organizationId);
 
-    const { departmentId, positionId, managerId, contract, ...rest } = input;
+    const { departmentId, positionId, managerId, customFields, contract, ...rest } = input;
     const data: Prisma.EmployeeUpdateInput = { ...rest };
+    if (customFields !== undefined && customFields !== null) {
+      data.customFields = customFields as Prisma.InputJsonValue;
+    }
+    // Registra la fecha al otorgar el consentimiento de datos.
+    if (rest.dataConsent === true && !before.dataConsent) data.dataConsentAt = new Date();
 
     if (departmentId !== undefined) {
       data.department = departmentId

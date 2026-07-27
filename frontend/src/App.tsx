@@ -15,6 +15,8 @@ import { UsersPage } from '@/features/users/pages/users-page';
 import { OrgChartPage } from '@/features/organization/org-chart-page';
 import { AlertsPage } from '@/features/alerts/pages/alerts-page';
 import { AuditLogPage } from '@/features/audit/pages/audit-log-page';
+import { PortalPage } from '@/features/portal/portal-page';
+import { useAuthStore } from '@/features/auth/auth.store';
 
 export default function App() {
   return (
@@ -29,7 +31,8 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<HomeRedirect />} />
+        <Route path="/portal" element={<PortalPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/employees" element={<EmployeesPage />} />
@@ -44,7 +47,13 @@ export default function App() {
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<HomeRedirect />} />
     </Routes>
   );
+}
+
+/** Redirige al inicio adecuado según el rol (empleados van a su portal). */
+function HomeRedirect() {
+  const role = useAuthStore((s) => s.user?.role);
+  return <Navigate to={role === 'EMPLOYEE' ? '/portal' : '/dashboard'} replace />;
 }

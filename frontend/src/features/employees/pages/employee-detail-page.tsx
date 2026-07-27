@@ -24,6 +24,16 @@ import { EmployeeForm } from '../components/employee-form';
 import { DocumentsSection } from '../components/documents-section';
 import { ContractsSection } from '../components/contracts-section';
 import { DependentsSection } from '../components/dependents-section';
+import { ResumeSection } from '../components/resume-section';
+import { CustomFieldsCard } from '../components/custom-fields-card';
+import { generateCertificate, generateContract } from '../document-generator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { FileSignature } from 'lucide-react';
 import { usePermissions } from '@/features/auth/use-permissions';
 import { formatCurrency, formatDate, fullName, getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
@@ -128,6 +138,21 @@ export function EmployeeDetailPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <FileSignature className="h-4 w-4" /> Generar
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => generateCertificate(emp)}>
+                  Certificado laboral
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => generateContract(emp)} disabled={!contract}>
+                  Contrato de trabajo
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             {canManageEmployees && (
               <Button variant="outline" onClick={() => setEditOpen(true)}>
                 <Pencil className="h-4 w-4" /> Editar
@@ -249,10 +274,16 @@ export function EmployeeDetailPage() {
             <Row label="Fecha de ingreso" value={formatDate(emp.hireDate)} />
           </CardContent>
         </Card>
+
+        {/* Información adicional y consentimiento */}
+        <CustomFieldsCard employee={emp} />
       </div>
 
       {/* Historial contractual y salarial */}
       <ContractsSection employeeId={emp.id} />
+
+      {/* Hoja de vida */}
+      <ResumeSection employeeId={emp.id} />
 
       {/* Grupo familiar / beneficiarios */}
       <DependentsSection employeeId={emp.id} />

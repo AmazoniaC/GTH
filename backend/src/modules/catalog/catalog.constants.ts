@@ -19,6 +19,7 @@ export const CATALOG_CATEGORY = {
   RELATIONSHIP: 'RELATIONSHIP',
   COST_CENTER: 'COST_CENTER',
   WORK_LOCATION: 'WORK_LOCATION',
+  EDUCATION_LEVEL: 'EDUCATION_LEVEL',
 } as const;
 
 export type CatalogCategory = (typeof CATALOG_CATEGORY)[keyof typeof CATALOG_CATEGORY];
@@ -111,4 +112,8 @@ export const DEFAULT_OPTIONS: Record<CatalogCategory, DefaultOption[]> = {
   ]),
   COST_CENTER: list(['Administración', 'Operaciones', 'Ventas', 'Producción']),
   WORK_LOCATION: list(['Sede principal']),
+  EDUCATION_LEVEL: list([
+    'Primaria', 'Bachiller', 'Técnico', 'Tecnólogo', 'Profesional',
+    'Especialización', 'Maestría', 'Doctorado',
+  ]),
 };

@@ -16,6 +16,7 @@ import { useTheme } from '@/components/theme/theme-provider';
 import { DepartmentsSection } from './sections/departments-section';
 import { PositionsSection } from './sections/positions-section';
 import { OptionsSection } from './sections/options-section';
+import { CustomFieldsSection } from './sections/custom-fields-section';
 import { PayrollConfigForm } from '@/features/payroll/components/payroll-config-form';
 import { getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
@@ -68,6 +69,7 @@ export function SettingsPage() {
           {isAdmin && <TabsTrigger value="departamentos">Departamentos</TabsTrigger>}
           {isAdmin && <TabsTrigger value="cargos">Cargos</TabsTrigger>}
           {isAdmin && <TabsTrigger value="listas">Listas</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="campos">Campos personalizados</TabsTrigger>}
           {isAdmin && <TabsTrigger value="nomina">Parámetros de nómina</TabsTrigger>}
         </TabsList>
 
@@ -156,6 +158,11 @@ export function SettingsPage() {
         {isAdmin && (
           <TabsContent value="listas">
             <OptionsSection />
+          </TabsContent>
+        )}
+        {isAdmin && (
+          <TabsContent value="campos">
+            <CustomFieldsSection />
           </TabsContent>
         )}
         {isAdmin && (
