@@ -1,9 +1,16 @@
 import { createApp } from './app';
 import { env } from './config/env';
 import { prisma } from './config/prisma';
+import { ensurePlatformOwners } from './core/bootstrap/platform-owner';
 
 async function bootstrap() {
   const app = createApp();
+
+  // Aprovisiona las cuentas de dueño de plataforma configuradas por correo.
+  await ensurePlatformOwners().catch((error) => {
+    // eslint-disable-next-line no-console
+    console.error('No se pudieron aprovisionar los dueños de plataforma:', error);
+  });
 
   const server = app.listen(env.port, () => {
     // eslint-disable-next-line no-console

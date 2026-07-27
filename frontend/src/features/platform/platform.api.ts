@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import type { AuthUser } from '@/types';
 
 export interface PlatformSummary {
   organizations: number;
@@ -34,6 +35,48 @@ export function usePlatformOrganizations() {
     queryKey: ['platform', 'organizations'],
     queryFn: async () => {
       const { data } = await api.get<{ data: PlatformOrg[] }>('/platform/organizations');
+      return data.data;
+    },
+  });
+}
+
+/** Activa o desactiva una empresa. */
+export function useToggleOrganization() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const { data } = await api.patch(`/platform/organizations/${id}`, { isActive });
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['platform'] }),
+  });
+}
+
+/** Elimina una empresa por completo. */
+export function useDeleteOrganization() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.delete(`/platform/organizations/${id}`);
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['platform'] }),
+  });
+}
+
+export interface ImpersonateResponse {
+  user: AuthUser;
+  accessToken: string;
+  refreshToken: string;
+}
+
+/** Ingresa como soporte a una empresa (impersonación). */
+export function useImpersonateOrganization() {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post<{ data: ImpersonateResponse }>(
+        `/platform/organizations/${id}/impersonate`,
+      );
       return data.data;
     },
   });

@@ -28,7 +28,14 @@ export const env = {
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean),
+  // Contraseña inicial para las cuentas de dueño de plataforma que se
+  // aprovisionan automáticamente al arrancar (se puede cambiar luego).
+  platformOwnerPassword: process.env.PLATFORM_OWNER_PASSWORD ?? 'Progrexa2026*',
 };
+
+// NIT sentinela de la organización interna del dueño de plataforma. No es
+// una empresa real: se oculta de los listados y conteos globales.
+export const PLATFORM_ORG_NIT = 'PLATFORM-SYSTEM';
 
 /** Indica si un correo tiene rol de dueño de plataforma (super-admin global). */
 export function isPlatformOwner(email?: string | null): boolean {
