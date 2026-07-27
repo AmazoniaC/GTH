@@ -38,7 +38,7 @@ export function LoginPage() {
       const res = await authApi.login(values);
       setAuth(res.user, res.accessToken, res.refreshToken);
       toast.success(`¡Bienvenido/a, ${res.user.firstName}!`);
-      navigate('/dashboard');
+      navigate(res.user.role === 'EMPLOYEE' ? '/portal' : '/dashboard');
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {

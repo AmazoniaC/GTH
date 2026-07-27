@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useCreateUser, useUpdateUser } from '../users.api';
+import { useOrgChart } from '@/features/employees/employees.api';
 import { getErrorMessage } from '@/lib/api';
 import type { ManagedUser, UserRole } from '@/types';
 
@@ -43,6 +44,7 @@ const schema = z.object({
   password: z.string().optional(),
   role: z.enum(['ADMIN', 'HR_MANAGER', 'PAYROLL_MANAGER', 'EMPLOYEE', 'SUPER_ADMIN']),
   isActive: z.boolean(),
+  employeeId: z.string().optional(),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -58,6 +60,7 @@ export function UserForm({
   const isEdit = !!user;
   const createUser = useCreateUser();
   const updateUser = useUpdateUser(user?.id ?? '');
+  const { data: orgPeople } = useOrgChart();
 
   const {
     register,
@@ -82,8 +85,17 @@ export function UserForm({
             password: '',
             role: user.role,
             isActive: user.isActive,
+            employeeId: user.employee?.id ?? '',
           }
-        : { firstName: '', lastName: '', email: '', password: '', role: 'EMPLOYEE', isActive: true },
+        : {
+            firstName: '',
+            lastName: '',
+            email: '',
+            password: '',
+            role: 'EMPLOYEE',
+            isActive: true,
+            employeeId: '',
+          },
     );
   }, [open, user, reset]);
 
@@ -99,6 +111,7 @@ export function UserForm({
           lastName: values.lastName,
           role: values.role,
           isActive: values.isActive,
+          employeeId: values.employeeId || null,
           ...(values.password ? { password: values.password } : {}),
         });
         toast.success('Usuario actualizado');
@@ -109,6 +122,7 @@ export function UserForm({
           email: values.email,
           password: values.password,
           role: values.role,
+          employeeId: values.employeeId || null,
         });
         toast.success('Usuario creado');
       }
@@ -178,6 +192,29 @@ export function UserForm({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Empleado vinculado (autoservicio)</Label>
+            <Select
+              value={watch('employeeId') || 'NONE'}
+              onValueChange={(v) => setValue('employeeId', v === 'NONE' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sin vincular" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="NONE">Sin vincular</SelectItem>
+                {orgPeople?.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.firstName} {p.lastName} · {p.documentNumber}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Vincula la cuenta con su ficha para que vea su información en “Mi Portal”.
+            </p>
           </div>
 
           {isEdit && (

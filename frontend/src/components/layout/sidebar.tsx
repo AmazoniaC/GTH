@@ -11,12 +11,17 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const role = useAuthStore((s) => s.user?.role);
+  const isEmployee = role === 'EMPLOYEE';
+  // El empleado (autoservicio) solo ve su portal y su configuración.
+  const employeeAllowed = new Set(['/portal', '/settings']);
 
-  // Filtra los ítems restringidos por rol y descarta secciones vacías.
   const sections = navSections
     .map((section) => ({
       ...section,
-      items: section.items.filter((item) => !item.roles || (role && item.roles.includes(role))),
+      items: section.items.filter((item) => {
+        if (item.roles) return !!role && item.roles.includes(role);
+        return isEmployee ? employeeAllowed.has(item.to) : true;
+      }),
     }))
     .filter((section) => section.items.length > 0);
 

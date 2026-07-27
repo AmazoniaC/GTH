@@ -8,6 +8,7 @@ export const createUserSchema = z.object({
     email: z.string().email('Correo electrónico inválido.'),
     password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres.'),
     role: z.nativeEnum(UserRole),
+    employeeId: z.string().cuid().optional().nullable(),
   }),
 });
 
@@ -19,6 +20,7 @@ export const updateUserSchema = z.object({
     role: z.nativeEnum(UserRole).optional(),
     isActive: z.boolean().optional(),
     password: z.string().min(6).optional().or(z.literal('')),
+    employeeId: z.string().cuid().optional().nullable(),
   }),
 });
 

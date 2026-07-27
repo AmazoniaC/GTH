@@ -13,6 +13,7 @@ const publicSelect = {
   isActive: true,
   lastLoginAt: true,
   createdAt: true,
+  employee: { select: { id: true, firstName: true, lastName: true, documentNumber: true } },
 } satisfies Prisma.UserSelect;
 
 /**
@@ -33,7 +34,7 @@ export class UserService {
     if (exists) throw new ConflictError('El correo electrónico ya está registrado.');
 
     const password = await hashPassword(input.password);
-    return prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         organizationId,
         email: input.email,
@@ -44,6 +45,10 @@ export class UserService {
       },
       select: publicSelect,
     });
+    if (input.employeeId !== undefined) {
+      await this.linkEmployee(user.id, input.employeeId, organizationId);
+    }
+    return prisma.user.findUnique({ where: { id: user.id }, select: publicSelect });
   }
 
   async update(id: string, organizationId: string, input: UpdateUserInput) {
@@ -54,7 +59,24 @@ export class UserService {
     if (input.role !== undefined) data.role = input.role;
     if (input.isActive !== undefined) data.isActive = input.isActive;
     if (input.password) data.password = await hashPassword(input.password);
-    return prisma.user.update({ where: { id }, data, select: publicSelect });
+    await prisma.user.update({ where: { id }, data });
+    if (input.employeeId !== undefined) {
+      await this.linkEmployee(id, input.employeeId, organizationId);
+    }
+    return prisma.user.findUnique({ where: { id }, select: publicSelect });
+  }
+
+  /** Vincula (o desvincula) un usuario con un empleado (relación 1 a 1). */
+  private async linkEmployee(userId: string, employeeId: string | null, organizationId: string) {
+    // Quita el vínculo previo de este usuario.
+    await prisma.employee.updateMany({ where: { userId }, data: { userId: null } });
+    if (!employeeId) return;
+    const employee = await prisma.employee.findFirst({
+      where: { id: employeeId, organizationId },
+      select: { id: true },
+    });
+    if (!employee) throw new NotFoundError('Empleado');
+    await prisma.employee.update({ where: { id: employeeId }, data: { userId } });
   }
 
   async remove(id: string, organizationId: string, currentUserId: string) {

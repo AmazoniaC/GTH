@@ -43,6 +43,7 @@ model Organization {
   payrollConfigs PayrollConfig[]
   catalogOptions CatalogOption[]
   auditLogs      AuditLog[]
+  customFields   CustomFieldDefinition[]
 
   @@map("organizations")
 }
@@ -225,6 +226,13 @@ model Employee {
   bankAccountType String? // Ahorros / Corriente
   bankAccountNumber String?
 
+  // Campos personalizados (definidos por la empresa) — { clave: valor }
+  customFields   Json?
+
+  // Consentimiento de tratamiento de datos (Ley 1581 / Habeas Data)
+  dataConsent    Boolean  @default(false)
+  dataConsentAt  DateTime?
+
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -239,6 +247,8 @@ model Employee {
   documents    EmployeeDocument[]
   salaryChanges SalaryChange[]
   dependents   Dependent[]
+  educations   Education[]
+  experiences  WorkExperience[]
 
   @@unique([organizationId, employeeCode])
   @@unique([organizationId, documentNumber])
@@ -271,6 +281,65 @@ model EmployeeDocument {
 
   @@index([employeeId])
   @@map("employee_documents")
+}
+
+// Formación académica (hoja de vida).
+model Education {
+  id          String   @id @default(cuid())
+  employeeId  String
+  level       String // Catálogo EDUCATION_LEVEL
+  institution String
+  title       String? // Título / programa
+  startDate   DateTime?
+  endDate     DateTime?
+  isCompleted Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@map("educations")
+}
+
+// Experiencia laboral previa (hoja de vida).
+model WorkExperience {
+  id               String   @id @default(cuid())
+  employeeId       String
+  company          String
+  position         String
+  startDate        DateTime?
+  endDate          DateTime?
+  isCurrent        Boolean  @default(false)
+  responsibilities String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@map("work_experiences")
+}
+
+// Definición de campos personalizados por empresa.
+model CustomFieldDefinition {
+  id             String   @id @default(cuid())
+  organizationId String
+  key            String // Clave estable (slug)
+  label          String
+  type           String // TEXT | NUMBER | DATE | BOOLEAN | SELECT
+  options        Json? // Opciones para SELECT
+  section        String   @default("Adicional")
+  order          Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+  @@map("custom_field_definitions")
 }
 
 // Grupo familiar / beneficiarios del empleado.

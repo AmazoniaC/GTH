@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -32,6 +32,7 @@ import {
   useUpdateEmployee,
 } from '../employees.api';
 import { useOptions } from '@/features/catalog/catalog.api';
+import { useCustomFields } from '@/features/catalog/customfields.api';
 import { PhotoUpload } from '@/components/shared/photo-upload';
 import { CatalogSelect } from '@/components/shared/catalog-select';
 import { getErrorMessage } from '@/lib/api';
@@ -92,6 +93,7 @@ const schema = z.object({
   startDate: z.string().min(1, 'Requerido'),
   isIntegralSalary: z.boolean(),
   transportAllowance: z.boolean(),
+  dataConsent: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -148,6 +150,7 @@ const emptyDefaults: FormValues = {
   startDate: today,
   isIntegralSalary: false,
   transportAllowance: true,
+  dataConsent: false,
 };
 
 export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps) {
@@ -158,6 +161,8 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
   const { data: contractTypes } = useOptions('CONTRACT_TYPE');
   const { data: statuses } = useOptions('EMPLOYEE_STATUS');
   const { data: orgPeople } = useOrgChart();
+  const { data: customDefs } = useCustomFields();
+  const [customValues, setCustomValues] = useState<Record<string, unknown>>({});
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee(employee?.id ?? '');
 
@@ -219,9 +224,12 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
         startDate: toDateInput(contract?.startDate ?? employee.hireDate),
         isIntegralSalary: contract?.isIntegralSalary ?? false,
         transportAllowance: contract?.transportAllowance ?? true,
+        dataConsent: employee.dataConsent ?? false,
       });
+      setCustomValues((employee.customFields as Record<string, unknown>) ?? {});
     } else {
       reset(emptyDefaults);
+      setCustomValues({});
     }
   }, [open, employee, reset]);
 
@@ -266,6 +274,8 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
       bankName: opt(values.bankName),
       bankAccountType: opt(values.bankAccountType),
       bankAccountNumber: opt(values.bankAccountNumber),
+      dataConsent: values.dataConsent,
+      customFields: customValues,
     };
     const contract = {
       type: values.contractType,
@@ -306,13 +316,14 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <Tabs defaultValue="personal">
-            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+            <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
               <TabsTrigger value="personal">Personal</TabsTrigger>
               <TabsTrigger value="contacto">Contacto</TabsTrigger>
               <TabsTrigger value="laboral">Laboral</TabsTrigger>
               <TabsTrigger value="seguridad">Seg. Social</TabsTrigger>
               <TabsTrigger value="contrato">Contrato</TabsTrigger>
               <TabsTrigger value="bancarios">Bancarios</TabsTrigger>
+              <TabsTrigger value="adicional">Adicional</TabsTrigger>
             </TabsList>
 
             {/* ---------- PERSONAL ---------- */}
@@ -667,6 +678,68 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                   <Input {...register('bankAccountNumber')} inputMode="numeric" />
                 </Field>
               </div>
+            </TabsContent>
+
+            {/* ---------- ADICIONAL ---------- */}
+            <TabsContent value="adicional" className="space-y-4">
+              <div className="rounded-lg border border-border p-4">
+                <label className="flex items-start gap-3">
+                  <Switch
+                    checked={watch('dataConsent')}
+                    onCheckedChange={(c) => setValue('dataConsent', c)}
+                  />
+                  <span>
+                    <span className="text-sm font-medium">Autorización de tratamiento de datos</span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      El empleado autoriza el tratamiento de sus datos personales conforme a la Ley
+                      1581 de 2012 (Habeas Data).
+                    </span>
+                  </span>
+                </label>
+              </div>
+
+              {customDefs && customDefs.filter((d) => d.isActive).length > 0 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {customDefs
+                    .filter((d) => d.isActive)
+                    .map((def) => {
+                      const val = customValues[def.key];
+                      const set = (v: unknown) =>
+                        setCustomValues((prev) => ({ ...prev, [def.key]: v }));
+                      return (
+                        <Field key={def.id} label={def.label}>
+                          {def.type === 'BOOLEAN' ? (
+                            <Switch checked={!!val} onCheckedChange={set} />
+                          ) : def.type === 'SELECT' ? (
+                            <Select value={(val as string) ?? ''} onValueChange={set}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Seleccionar" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(def.options ?? []).map((o) => (
+                                  <SelectItem key={o} value={o}>
+                                    {o}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Input
+                              type={def.type === 'NUMBER' ? 'number' : def.type === 'DATE' ? 'date' : 'text'}
+                              value={(val as string) ?? ''}
+                              onChange={(e) => set(e.target.value)}
+                            />
+                          )}
+                        </Field>
+                      );
+                    })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No hay campos personalizados. Puedes crearlos en Configuración → Campos
+                  personalizados.
+                </p>
+              )}
             </TabsContent>
           </Tabs>
 

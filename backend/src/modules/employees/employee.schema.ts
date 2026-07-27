@@ -55,6 +55,8 @@ const employeeBase = {
   bankName: z.string().optional().nullable(),
   bankAccountType: z.string().optional().nullable(),
   bankAccountNumber: z.string().optional().nullable(),
+  customFields: z.record(z.any()).optional().nullable(),
+  dataConsent: z.boolean().optional(),
 };
 
 export const createEmployeeSchema = z.object({
