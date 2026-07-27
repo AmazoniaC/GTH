@@ -8,6 +8,7 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LogoMark } from '@/components/brand/logo';
 import { authApi } from '../auth.api';
 import { useAuthStore } from '../auth.store';
 import { getErrorMessage } from '@/lib/api';
@@ -51,10 +52,8 @@ export function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-secondary/40 p-6">
       <div className="w-full max-w-md">
         <div className="flex items-center gap-3 justify-center mb-8">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-white font-bold text-xl">
-            G
-          </div>
-          <p className="text-xl font-bold">GTH Suite</p>
+          <LogoMark className="h-11 w-11 shrink-0" />
+          <p className="text-xl font-bold">Progrexa</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">

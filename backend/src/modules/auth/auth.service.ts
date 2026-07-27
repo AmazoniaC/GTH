@@ -132,6 +132,12 @@ export class AuthService {
         id: user.organization.id,
         name: user.organization.name,
         nit: user.organization.nit,
+        legalName: user.organization.legalName,
+        legalRepresentative: user.organization.legalRepresentative,
+        address: user.organization.address,
+        city: user.organization.city,
+        phone: user.organization.phone,
+        email: user.organization.email,
       },
     };
   }

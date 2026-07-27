@@ -26,10 +26,12 @@ model Organization {
   name         String
   nit          String   @unique
   legalName    String?
+  legalRepresentative String? // Representante legal / responsable
   address      String?
   city         String?
   phone        String?
   email        String?
+  website      String?
   logoUrl      String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())

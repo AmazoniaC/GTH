@@ -15,6 +15,7 @@ async function main() {
     create: {
       name: 'Innova Talento S.A.S.',
       legalName: 'Innova Talento S.A.S.',
+      legalRepresentative: 'Ana Ramírez',
       nit: '900123456-7',
       city: 'Bogotá D.C.',
       address: 'Calle 100 # 15-20',

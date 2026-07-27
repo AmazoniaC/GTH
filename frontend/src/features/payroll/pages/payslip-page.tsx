@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { usePayslip } from '../payroll.api';
+import { LogoMark } from '@/components/brand/logo';
 import { formatCurrency, getInitials } from '@/lib/utils';
 import type { PayslipItem } from '@/types';
 
@@ -45,10 +46,8 @@ export function PayslipPage() {
           <div className="flex items-start justify-between border-b border-border pb-6">
             <div>
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white font-bold">
-                  G
-                </div>
-                <p className="text-lg font-bold">GTH Suite</p>
+                <LogoMark className="h-9 w-9" />
+                <p className="text-lg font-bold">Progrexa</p>
               </div>
               <p className="text-sm text-muted-foreground mt-2">Desprendible de pago</p>
               <p className="text-sm text-muted-foreground">{slip.period?.name}</p>
