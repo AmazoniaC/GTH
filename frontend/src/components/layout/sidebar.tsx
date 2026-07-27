@@ -12,6 +12,7 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const role = useAuthStore((s) => s.user?.role);
+  const isPlatformOwner = useAuthStore((s) => s.user?.isPlatformOwner);
   const isEmployee = role === 'EMPLOYEE';
   // El empleado (autoservicio) solo ve su portal y su configuración.
   const employeeAllowed = new Set(['/portal', '/settings']);
@@ -20,6 +21,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => {
+        if (item.platformOnly) return !!isPlatformOwner;
         if (item.roles) return !!role && item.roles.includes(role);
         return isEmployee ? employeeAllowed.has(item.to) : true;
       }),

@@ -23,4 +23,15 @@ export const env = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? '7d',
   },
   corsOrigin: (process.env.CORS_ORIGIN ?? 'http://localhost:5173').split(','),
+  // Correos con acceso de dueño de plataforma (ven todas las empresas).
+  platformOwnerEmails: (process.env.PLATFORM_OWNER_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
 };
+
+/** Indica si un correo tiene rol de dueño de plataforma (super-admin global). */
+export function isPlatformOwner(email?: string | null): boolean {
+  if (!email) return false;
+  return env.platformOwnerEmails.includes(email.toLowerCase());
+}

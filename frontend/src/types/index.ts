@@ -8,6 +8,7 @@ export interface AuthUser {
   role: UserRole;
   organizationId: string;
   avatarUrl?: string | null;
+  isPlatformOwner?: boolean;
 }
 
 export interface ManagedUser {
