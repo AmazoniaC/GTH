@@ -30,7 +30,7 @@ export function LoginPage() {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { email: 'admin@innovatalento.co', password: 'Admin123*' },
+    defaultValues: { email: '', password: '' },
   });
 
   const onSubmit = async (values: FormValues) => {
@@ -111,11 +111,6 @@ export function LoginPage() {
               Ingresar
             </Button>
           </form>
-
-          <div className="rounded-lg border border-dashed border-border bg-muted/40 p-3 text-center text-xs text-muted-foreground">
-            Demo: <span className="font-medium text-foreground">admin@innovatalento.co</span> /{' '}
-            <span className="font-medium text-foreground">Admin123*</span>
-          </div>
 
           <p className="text-center text-sm text-muted-foreground">
             ¿No tienes cuenta?{' '}
