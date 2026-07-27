@@ -6,12 +6,17 @@ import type { Employee } from '@/types';
 interface Org {
   name: string;
   nit: string;
+  legalRepresentative: string;
 }
 
 async function getOrg(): Promise<Org> {
   const { data } = await api.get('/auth/me');
   const org = data.data.organization;
-  return { name: org?.name ?? 'La Empresa', nit: org?.nit ?? '' };
+  return {
+    name: org?.name ?? 'La Empresa',
+    nit: org?.nit ?? '',
+    legalRepresentative: org?.legalRepresentative ?? '',
+  };
 }
 
 function print(title: string, bodyHtml: string) {
@@ -62,7 +67,7 @@ export async function generateCertificate(emp: Employee) {
     ${salary ? `, devengando un salario mensual de <b>${salary}</b>` : ''}.</p>
     <p>La presente certificación se expide a solicitud del(la) interesado(a), a los ${todayLong()}.</p>
     <div class="sign">
-      <div class="line">Firma autorizada<br/>Recursos Humanos — ${org.name}</div>
+      <div class="line">${org.legalRepresentative || 'Firma autorizada'}<br/>${org.legalRepresentative ? 'Representante legal' : 'Recursos Humanos'} — ${org.name}</div>
     </div>`;
   print('Certificado Laboral', body);
 }
@@ -95,7 +100,7 @@ export async function generateContract(emp: Employee) {
     obligaciones inherentes a su cargo, conforme al reglamento interno de trabajo.</p>
     <p>Para constancia se firma en ${emp.city ?? '_______'}, a los ${todayLong()}.</p>
     <div class="sign" style="display:flex;justify-content:space-between">
-      <div class="line">EL EMPLEADOR<br/>${org.name}</div>
+      <div class="line">EL EMPLEADOR<br/>${org.legalRepresentative || org.name}${org.legalRepresentative ? `<br/>${org.name}` : ''}</div>
       <div class="line">EL TRABAJADOR<br/>${fullName(emp)}</div>
     </div>`;
   print('Contrato de Trabajo', body);

@@ -8,6 +8,7 @@ import { Loader2, ShieldCheck, TrendingUp, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LogoMark } from '@/components/brand/logo';
 import { authApi } from '../auth.api';
 import { useAuthStore } from '../auth.store';
 import { getErrorMessage } from '@/lib/api';
@@ -52,11 +53,9 @@ export function LoginPage() {
       <div className="relative hidden lg:flex flex-col justify-between bg-sidebar text-sidebar-foreground p-12 overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,theme(colors.blue.500),transparent_55%)]" />
         <div className="relative flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sidebar-accent text-white font-bold text-xl shadow-lg">
-            G
-          </div>
+          <LogoMark className="h-11 w-11 shrink-0" />
           <div>
-            <p className="text-xl font-bold">GTH Suite</p>
+            <p className="text-xl font-bold">Progrexa</p>
             <p className="text-xs uppercase tracking-widest text-sidebar-muted">Gestión de Talento Humano</p>
           </div>
         </div>
@@ -76,17 +75,15 @@ export function LoginPage() {
           </div>
         </div>
 
-        <p className="relative text-xs text-sidebar-muted">© 2026 GTH Suite · Todos los derechos reservados</p>
+        <p className="relative text-xs text-sidebar-muted">© 2026 Progrexa · Todos los derechos reservados</p>
       </div>
 
       {/* Formulario */}
       <div className="flex items-center justify-center p-6 sm:p-12 bg-background">
         <div className="w-full max-w-sm space-y-8">
           <div className="lg:hidden flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-white font-bold text-xl">
-              G
-            </div>
-            <p className="text-xl font-bold">GTH Suite</p>
+            <LogoMark className="h-11 w-11 shrink-0" />
+            <p className="text-xl font-bold">Progrexa</p>
           </div>
 
           <div>

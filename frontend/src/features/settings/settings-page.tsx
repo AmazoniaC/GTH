@@ -17,6 +17,7 @@ import { DepartmentsSection } from './sections/departments-section';
 import { PositionsSection } from './sections/positions-section';
 import { OptionsSection } from './sections/options-section';
 import { CustomFieldsSection } from './sections/custom-fields-section';
+import { CompanySection } from './sections/company-section';
 import { PayrollConfigForm } from '@/features/payroll/components/payroll-config-form';
 import { getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
@@ -66,6 +67,7 @@ export function SettingsPage() {
       <Tabs defaultValue="perfil">
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="perfil">Perfil</TabsTrigger>
+          {isAdmin && <TabsTrigger value="empresa">Empresa</TabsTrigger>}
           {isAdmin && <TabsTrigger value="departamentos">Departamentos</TabsTrigger>}
           {isAdmin && <TabsTrigger value="cargos">Cargos</TabsTrigger>}
           {isAdmin && <TabsTrigger value="listas">Listas</TabsTrigger>}
@@ -145,6 +147,11 @@ export function SettingsPage() {
           </div>
         </TabsContent>
 
+        {isAdmin && (
+          <TabsContent value="empresa">
+            <CompanySection />
+          </TabsContent>
+        )}
         {isAdmin && (
           <TabsContent value="departamentos">
             <DepartmentsSection />

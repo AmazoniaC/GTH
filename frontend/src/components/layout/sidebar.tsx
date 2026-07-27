@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { navSections } from './nav-config';
 import { useAuthStore } from '@/features/auth/auth.store';
+import { LogoMark } from '@/components/brand/logo';
 
 interface SidebarProps {
   open: boolean;
@@ -44,11 +45,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex h-16 items-center justify-between px-5 border-b border-sidebar-border">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-accent text-white font-bold text-lg shadow-lg">
-              G
-            </div>
+            <LogoMark className="h-9 w-9 shrink-0" />
             <div className="leading-tight">
-              <p className="font-bold tracking-tight">GTH</p>
+              <p className="font-extrabold tracking-tight">Progrexa</p>
               <p className="text-[10px] uppercase tracking-widest text-sidebar-muted">
                 Talento Humano
               </p>
@@ -98,7 +97,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         {/* Pie */}
         <div className="border-t border-sidebar-border p-4">
           <div className="rounded-lg bg-sidebar-border/50 p-3">
-            <p className="text-xs font-medium text-sidebar-foreground">GTH Suite</p>
+            <p className="text-xs font-medium text-sidebar-foreground">Progrexa</p>
             <p className="text-[11px] text-sidebar-muted mt-0.5">v1.0 · Colombia 🇨🇴</p>
           </div>
         </div>

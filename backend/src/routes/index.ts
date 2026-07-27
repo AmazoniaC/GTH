@@ -14,6 +14,7 @@ import { importRoutes } from '../modules/import/import.routes';
 import { resumeRoutes } from '../modules/resume/resume.routes';
 import { customFieldRoutes } from '../modules/customfields/customfield.routes';
 import { selfServiceRoutes } from '../modules/selfservice/selfservice.routes';
+import { organizationRoutes } from '../modules/organization/organization.routes';
 
 /**
  * Registro central de módulos. Para añadir un nuevo módulo en el futuro
@@ -38,6 +39,7 @@ router.use('/audit', auditRoutes);
 router.use('/import', importRoutes);
 router.use('/custom-fields', customFieldRoutes);
 router.use('/me', selfServiceRoutes);
+router.use('/organization', organizationRoutes);
 // Rutas con paths absolutos propios (empleados/:id/sub-recursos).
 router.use('/', contractRoutes);
 router.use('/', dependentRoutes);
