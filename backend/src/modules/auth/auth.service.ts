@@ -8,6 +8,7 @@ import {
   verifyRefreshToken,
 } from '../../core/utils/jwt';
 import { AppError, ConflictError, UnauthorizedError } from '../../core/errors/AppError';
+import { isPlatformOwner } from '../../config/env';
 import type { LoginInput, RegisterInput } from './auth.schema';
 
 function buildTokens(payload: JwtPayload) {
@@ -34,6 +35,7 @@ function toPublicUser(user: {
     role: user.role,
     organizationId: user.organizationId,
     avatarUrl: user.avatarUrl,
+    isPlatformOwner: isPlatformOwner(user.email),
   };
 }
 

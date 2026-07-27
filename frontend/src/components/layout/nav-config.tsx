@@ -9,6 +9,7 @@ import {
   Network,
   History,
   UserCircle,
+  Globe,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserRole } from '@/types';
@@ -20,6 +21,8 @@ export interface NavItem {
   end?: boolean;
   /** Si se define, el ítem solo se muestra a estos roles. */
   roles?: UserRole[];
+  /** Si es true, solo lo ve el dueño de plataforma. */
+  platformOnly?: boolean;
 }
 
 export interface NavSection {
@@ -57,6 +60,7 @@ export const navSections: NavSection[] = [
   {
     title: 'Sistema',
     items: [
+      { label: 'Plataforma', to: '/platform', icon: Globe, platformOnly: true },
       {
         label: 'Usuarios',
         to: '/users',

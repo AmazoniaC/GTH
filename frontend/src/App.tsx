@@ -16,6 +16,7 @@ import { OrgChartPage } from '@/features/organization/org-chart-page';
 import { AlertsPage } from '@/features/alerts/pages/alerts-page';
 import { AuditLogPage } from '@/features/audit/pages/audit-log-page';
 import { PortalPage } from '@/features/portal/portal-page';
+import { PlatformPage } from '@/features/platform/platform-page';
 import { useAuthStore } from '@/features/auth/auth.store';
 
 export default function App() {
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/payroll/periods/:id" element={<PayrollPeriodPage />} />
         <Route path="/payroll/payslips/:id" element={<PayslipPage />} />
         <Route path="/users" element={<UsersPage />} />
+        <Route path="/platform" element={<PlatformPage />} />
         <Route path="/audit" element={<AuditLogPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
