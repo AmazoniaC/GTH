@@ -64,7 +64,36 @@ export type CatalogCategory =
   | 'COMPENSATION_FUND'
   | 'ARL'
   | 'BANK'
-  | 'ACCOUNT_TYPE';
+  | 'ACCOUNT_TYPE'
+  | 'RELATIONSHIP'
+  | 'COST_CENTER'
+  | 'WORK_LOCATION';
+
+export interface Dependent {
+  id: string;
+  employeeId: string;
+  relationship: string;
+  firstName: string;
+  lastName: string;
+  documentType?: string | null;
+  documentNumber?: string | null;
+  birthDate?: string | null;
+  gender?: Gender | null;
+  isBeneficiary: boolean;
+  notes?: string | null;
+}
+
+export interface AuditLog {
+  id: string;
+  userId?: string | null;
+  userName?: string | null;
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  entity: string;
+  entityId?: string | null;
+  entityLabel?: string | null;
+  changes?: Record<string, { from: unknown; to: unknown }> | null;
+  createdAt: string;
+}
 
 export interface EmployeeDocument {
   id: string;
@@ -186,6 +215,8 @@ export interface Employee {
   departmentId?: string | null;
   positionId?: string | null;
   managerId?: string | null;
+  costCenter?: string | null;
+  workLocation?: string | null;
   department?: Department | null;
   position?: Position | null;
   manager?: ManagerRef | null;

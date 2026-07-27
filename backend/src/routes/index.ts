@@ -8,6 +8,9 @@ import { dashboardRoutes } from '../modules/dashboard/dashboard.routes';
 import { documentRoutes } from '../modules/documents/document.routes';
 import { contractRoutes } from '../modules/contracts/contract.routes';
 import { alertsRoutes } from '../modules/alerts/alerts.routes';
+import { dependentRoutes } from '../modules/dependents/dependent.routes';
+import { auditRoutes } from '../modules/audit/audit.routes';
+import { importRoutes } from '../modules/import/import.routes';
 
 /**
  * Registro central de módulos. Para añadir un nuevo módulo en el futuro
@@ -28,7 +31,10 @@ router.use('/catalog', catalogRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/documents', documentRoutes);
 router.use('/alerts', alertsRoutes);
-// Rutas de contratos e historial salarial (usan rutas absolutas propias).
+router.use('/audit', auditRoutes);
+router.use('/import', importRoutes);
+// Rutas con paths absolutos propios (empleados/:id/sub-recursos).
 router.use('/', contractRoutes);
+router.use('/', dependentRoutes);
 
 export const apiRouter = router;

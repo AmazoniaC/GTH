@@ -1,11 +1,20 @@
 import { Prisma } from '@prisma/client';
 import { employeeRepository, EmployeeRepository } from './employee.repository';
 import { ConflictError, NotFoundError } from '../../core/errors/AppError';
+import { auditService, Actor } from '../audit/audit.service';
 import type {
   CreateEmployeeInput,
   ListEmployeesQuery,
   UpdateEmployeeInput,
 } from './employee.schema';
+
+const AUDIT_FIELDS = [
+  'firstName', 'middleName', 'lastName', 'secondLastName', 'documentType', 'documentNumber',
+  'email', 'phone', 'mobile', 'status', 'departmentId', 'positionId', 'managerId',
+  'costCenter', 'workLocation', 'eps', 'pensionFund', 'severanceFund', 'compensationFund',
+  'arl', 'arlRiskClass', 'bankName', 'bankAccountType', 'bankAccountNumber', 'city',
+  'stateProvince', 'address', 'nationality', 'maritalStatus',
+];
 
 /**
  * Servicio de Empleados. Contiene la lógica de negocio y orquesta el
@@ -15,11 +24,12 @@ export class EmployeeService {
   constructor(private readonly repo: EmployeeRepository = employeeRepository) {}
 
   async list(organizationId: string, query: ListEmployeesQuery) {
-    const { page, pageSize, search, status, departmentId } = query;
+    const { page, pageSize, search, status, departmentId, positionId } = query;
 
     const where: Prisma.EmployeeWhereInput = {};
     if (status) where.status = status;
     if (departmentId) where.departmentId = departmentId;
+    if (positionId) where.positionId = positionId;
     if (search) {
       where.OR = [
         { firstName: { contains: search, mode: 'insensitive' } },
@@ -61,7 +71,7 @@ export class EmployeeService {
     return employee;
   }
 
-  async create(organizationId: string, input: CreateEmployeeInput) {
+  async create(organizationId: string, input: CreateEmployeeInput, actor?: Actor) {
     const existing = await this.repo.findByDocument(input.documentNumber, organizationId);
     if (existing) {
       throw new ConflictError('Ya existe un empleado con este número de documento.');
@@ -93,11 +103,20 @@ export class EmployeeService {
       },
     };
 
-    return this.repo.create(data);
+    const createdEmployee = await this.repo.create(data);
+    await auditService.record({
+      organizationId,
+      actor,
+      action: 'CREATE',
+      entity: 'Employee',
+      entityId: createdEmployee.id,
+      entityLabel: `${createdEmployee.firstName} ${createdEmployee.lastName}`,
+    });
+    return createdEmployee;
   }
 
-  async update(id: string, organizationId: string, input: UpdateEmployeeInput) {
-    await this.getById(id, organizationId);
+  async update(id: string, organizationId: string, input: UpdateEmployeeInput, actor?: Actor) {
+    const before = await this.getById(id, organizationId);
 
     const { departmentId, positionId, managerId, contract, ...rest } = input;
     const data: Prisma.EmployeeUpdateInput = { ...rest };
@@ -152,12 +171,37 @@ export class EmployeeService {
       }
     }
 
+    const changes = auditService.diff(
+      before as unknown as Record<string, unknown>,
+      input as unknown as Record<string, unknown>,
+      AUDIT_FIELDS,
+    );
+    if (changes || contract) {
+      await auditService.record({
+        organizationId,
+        actor,
+        action: 'UPDATE',
+        entity: 'Employee',
+        entityId: id,
+        entityLabel: `${before.firstName} ${before.lastName}`,
+        changes,
+      });
+    }
+
     return this.repo.findById(id, organizationId);
   }
 
-  async remove(id: string, organizationId: string) {
-    await this.getById(id, organizationId);
+  async remove(id: string, organizationId: string, actor?: Actor) {
+    const employee = await this.getById(id, organizationId);
     await this.repo.delete(id);
+    await auditService.record({
+      organizationId,
+      actor,
+      action: 'DELETE',
+      entity: 'Employee',
+      entityId: id,
+      entityLabel: `${employee.firstName} ${employee.lastName}`,
+    });
     return { id };
   }
 

@@ -23,6 +23,7 @@ import { useDeleteEmployee, useEmployeeByDocument } from '../employees.api';
 import { EmployeeForm } from '../components/employee-form';
 import { DocumentsSection } from '../components/documents-section';
 import { ContractsSection } from '../components/contracts-section';
+import { DependentsSection } from '../components/dependents-section';
 import { usePermissions } from '@/features/auth/use-permissions';
 import { formatCurrency, formatDate, fullName, getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
@@ -111,6 +112,16 @@ export function EmployeeDetailPage() {
                   <span className="flex items-center gap-1">
                     <UserRound className="h-3.5 w-3.5" /> Jefe: {emp.manager.firstName}{' '}
                     {emp.manager.lastName}
+                  </span>
+                )}
+                {emp.costCenter && (
+                  <span className="flex items-center gap-1">
+                    <CreditCard className="h-3.5 w-3.5" /> {emp.costCenter}
+                  </span>
+                )}
+                {emp.workLocation && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" /> {emp.workLocation}
                   </span>
                 )}
               </div>
@@ -242,6 +253,9 @@ export function EmployeeDetailPage() {
 
       {/* Historial contractual y salarial */}
       <ContractsSection employeeId={emp.id} />
+
+      {/* Grupo familiar / beneficiarios */}
+      <DependentsSection employeeId={emp.id} />
 
       {/* Documentos adjuntos */}
       <DocumentsSection employeeId={emp.id} />

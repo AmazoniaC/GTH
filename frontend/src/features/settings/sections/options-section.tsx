@@ -48,11 +48,22 @@ const GROUPS: { heading: string; lists: ListDef[] }[] = [
     ],
   },
   {
+    heading: 'Organización',
+    lists: [
+      { category: 'COST_CENTER', title: 'Centros de costo' },
+      { category: 'WORK_LOCATION', title: 'Sedes / centros de trabajo' },
+    ],
+  },
+  {
     heading: 'Contrato y documentos',
     lists: [
       { category: 'CONTRACT_TYPE', title: 'Tipos de contrato' },
       { category: 'FILE_TYPE', title: 'Tipos de documento adjunto' },
     ],
+  },
+  {
+    heading: 'Grupo familiar',
+    lists: [{ category: 'RELATIONSHIP', title: 'Parentescos' }],
   },
   {
     heading: 'Seguridad social',

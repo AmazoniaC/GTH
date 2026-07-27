@@ -24,6 +24,7 @@ interface EmployeeFilters {
   search?: string;
   status?: string;
   departmentId?: string;
+  positionId?: string;
 }
 
 export function useEmployees(filters: EmployeeFilters) {

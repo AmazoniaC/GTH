@@ -14,6 +14,7 @@ import { SettingsPage } from '@/features/settings/settings-page';
 import { UsersPage } from '@/features/users/pages/users-page';
 import { OrgChartPage } from '@/features/organization/org-chart-page';
 import { AlertsPage } from '@/features/alerts/pages/alerts-page';
+import { AuditLogPage } from '@/features/audit/pages/audit-log-page';
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/payroll/periods/:id" element={<PayrollPeriodPage />} />
         <Route path="/payroll/payslips/:id" element={<PayslipPage />} />
         <Route path="/users" element={<UsersPage />} />
+        <Route path="/audit" element={<AuditLogPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 
