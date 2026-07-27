@@ -10,6 +10,23 @@ export interface ImportResult {
   errors: { row: number; documentNumber?: string; message: string }[];
 }
 
+/**
+ * Parsea una fecha en varios formatos comunes (ISO y colombianos), ya que
+ * Excel suele reformatear las fechas al guardar (ej: 15/01/2026).
+ */
+function parseDate(value?: string): Date | null {
+  if (!value || !value.trim()) return null;
+  const t = value.trim();
+  // ISO: YYYY-MM-DD
+  let m = t.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  // Colombiano: DD/MM/YYYY o DD-MM-YYYY
+  m = t.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+  if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  const d = new Date(t);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 /** Importación masiva de empleados desde filas (CSV/Excel). */
 export class ImportService {
   async importEmployees(
@@ -79,7 +96,7 @@ export class ImportService {
       try {
         const departmentId = await resolveDepartment(r.department);
         const positionId = await resolvePosition(r.position);
-        const hireDate = r.hireDate ? new Date(r.hireDate) : new Date();
+        const hireDate = parseDate(r.hireDate) ?? new Date();
 
         await prisma.employee.create({
           data: {
