@@ -25,6 +25,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => {
+        // Ítems visibles al dueño de plataforma y, además, a ciertos roles de
+        // empresa (ej: el manual de uso lo ven el super admin y los admins).
+        if (item.platformOnly && item.roles) {
+          if (isPlatformOwner) return true;
+          if (ownerOnly) return false;
+          return !!role && item.roles.includes(role);
+        }
         if (item.platformOnly) return !!isPlatformOwner;
         // El dueño de plataforma solo ve el panel de plataforma.
         if (ownerOnly) return false;
