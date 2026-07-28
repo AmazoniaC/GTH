@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { AuthUser } from '@/types';
+import type { AppModule, AuthUser } from '@/types';
+
+/** Módulos disponibles para asignar a una empresa. */
+export const AVAILABLE_MODULES: { key: AppModule; label: string; description: string }[] = [
+  { key: 'EMPLOYEES', label: 'Gestión de Empleados', description: 'Empleados y organigrama' },
+  { key: 'PAYROLL', label: 'Nómina', description: 'Liquidación y simulador' },
+];
 
 export interface PlatformSummary {
   organizations: number;
@@ -16,8 +22,29 @@ export interface PlatformOrg {
   city?: string | null;
   email?: string | null;
   isActive: boolean;
+  modules: AppModule[];
+  maxEmployees: number | null;
   createdAt: string;
   _count: { users: number; employees: number };
+}
+
+export interface CreateOrgInput {
+  organizationName: string;
+  nit: string;
+  adminFirstName: string;
+  adminLastName: string;
+  adminEmail: string;
+  adminPassword: string;
+  modules: AppModule[];
+  maxEmployees: number | null;
+}
+
+export interface UpdateOrgInput {
+  id: string;
+  name?: string;
+  isActive?: boolean;
+  modules?: AppModule[];
+  maxEmployees?: number | null;
 }
 
 export function usePlatformSummary() {
@@ -37,6 +64,30 @@ export function usePlatformOrganizations() {
       const { data } = await api.get<{ data: PlatformOrg[] }>('/platform/organizations');
       return data.data;
     },
+  });
+}
+
+/** Crea una nueva empresa con su administrador. */
+export function useCreateOrganization() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: CreateOrgInput) => {
+      const { data } = await api.post('/platform/organizations', input);
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['platform'] }),
+  });
+}
+
+/** Actualiza la configuración de una empresa (estado, módulos, límite). */
+export function useUpdateOrganization() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...body }: UpdateOrgInput) => {
+      const { data } = await api.patch(`/platform/organizations/${id}`, body);
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['platform'] }),
   });
 }
 

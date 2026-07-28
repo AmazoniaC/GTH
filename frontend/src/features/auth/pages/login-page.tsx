@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -39,7 +39,8 @@ export function LoginPage() {
       const res = await authApi.login(values);
       setAuth(res.user, res.accessToken, res.refreshToken);
       toast.success(`¡Bienvenido/a, ${res.user.firstName}!`);
-      navigate(res.user.role === 'EMPLOYEE' ? '/portal' : '/dashboard');
+      if (res.user.isPlatformOwner) navigate('/platform');
+      else navigate(res.user.role === 'EMPLOYEE' ? '/portal' : '/dashboard');
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -112,11 +113,8 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground">
-            ¿No tienes cuenta?{' '}
-            <Link to="/register" className="font-semibold text-primary hover:underline">
-              Regístrate
-            </Link>
+          <p className="text-center text-xs text-muted-foreground">
+            El acceso a Progrexa lo gestiona el administrador de la plataforma.
           </p>
         </div>
       </div>

@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LifeBuoy, LogOut } from 'lucide-react';
 import { Sidebar } from './sidebar';
 import { Topbar } from './topbar';
 import { authApi } from '@/features/auth/auth.api';
 import { useAuthStore } from '@/features/auth/auth.store';
+import type { AppModule } from '@/types';
 
 export function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const setUser = useAuthStore((s) => s.setUser);
+  const user = useAuthStore((s) => s.user);
   const impersonation = useAuthStore((s) => s.impersonation);
   const exitImpersonation = useAuthStore((s) => s.exitImpersonation);
 
-  // Refresca el usuario (rol, flag de plataforma, etc.) al entrar.
+  // Refresca el usuario (rol, flag de plataforma, módulos, etc.) al entrar.
   useEffect(() => {
     authApi
       .me()
@@ -27,6 +30,7 @@ export function MainLayout() {
           organizationId: me.organizationId,
           avatarUrl: me.avatarUrl,
           isPlatformOwner: me.isPlatformOwner,
+          modules: (me.organization as { modules?: AppModule[] } | undefined)?.modules,
         }),
       )
       .catch(() => {});
@@ -37,6 +41,16 @@ export function MainLayout() {
     exitImpersonation();
     navigate('/platform');
   };
+
+  // El dueño de plataforma (fuera de modo soporte) solo gestiona empresas.
+  const ownerOnly = !!user?.isPlatformOwner && !impersonation;
+  if (ownerOnly && location.pathname !== '/platform') {
+    return <Navigate to="/platform" replace />;
+  }
+  // Nadie más puede entrar al panel de plataforma.
+  if (!ownerOnly && location.pathname === '/platform') {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

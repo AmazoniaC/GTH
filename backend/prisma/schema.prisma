@@ -34,6 +34,12 @@ model Organization {
   website      String?
   logoUrl      String?
   isActive     Boolean  @default(true)
+
+  // Configuración asignada por el dueño de la plataforma (super admin):
+  // qué módulos tiene activos la empresa y cuántos empleados puede registrar.
+  modules      String[] @default(["EMPLOYEES", "PAYROLL"]) // Ver config/modules.ts
+  maxEmployees Int? // Límite de empleados (null = sin límite)
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

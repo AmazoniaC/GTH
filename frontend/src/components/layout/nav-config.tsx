@@ -12,7 +12,7 @@ import {
   Globe,
   type LucideIcon,
 } from 'lucide-react';
-import type { UserRole } from '@/types';
+import type { AppModule, UserRole } from '@/types';
 
 export interface NavItem {
   label: string;
@@ -23,6 +23,8 @@ export interface NavItem {
   roles?: UserRole[];
   /** Si es true, solo lo ve el dueño de plataforma. */
   platformOnly?: boolean;
+  /** Si se define, el ítem requiere que la empresa tenga este módulo activo. */
+  module?: AppModule;
 }
 
 export interface NavSection {
@@ -46,15 +48,15 @@ export const navSections: NavSection[] = [
   {
     title: 'Talento Humano',
     items: [
-      { label: 'Empleados', to: '/employees', icon: Users, end: true },
-      { label: 'Organigrama', to: '/organization', icon: Network },
+      { label: 'Empleados', to: '/employees', icon: Users, end: true, module: 'EMPLOYEES' },
+      { label: 'Organigrama', to: '/organization', icon: Network, module: 'EMPLOYEES' },
     ],
   },
   {
     title: 'Nómina',
     items: [
-      { label: 'Nóminas', to: '/payroll', icon: Wallet, end: true },
-      { label: 'Simulador', to: '/payroll/simulator', icon: Calculator },
+      { label: 'Nóminas', to: '/payroll', icon: Wallet, end: true, module: 'PAYROLL' },
+      { label: 'Simulador', to: '/payroll/simulator', icon: Calculator, module: 'PAYROLL' },
     ],
   },
   {
