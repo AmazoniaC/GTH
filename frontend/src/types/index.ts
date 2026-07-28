@@ -62,6 +62,7 @@ export type CatalogCategory =
   | 'CONTRACT_TYPE'
   | 'EMPLOYEE_STATUS'
   | 'FILE_TYPE'
+  | 'ABSENCE_TYPE'
   | 'BLOOD_TYPE'
   | 'NATIONALITY'
   | 'COUNTRY'
@@ -124,6 +125,48 @@ export interface Dependent {
   gender?: Gender | null;
   isBeneficiary: boolean;
   notes?: string | null;
+}
+
+export type AbsenceStatus =
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'CANCELLED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED';
+
+export interface Absence {
+  id: string;
+  employeeId: string;
+  type: string; // Código del catálogo ABSENCE_TYPE
+  status: AbsenceStatus;
+  startDate: string;
+  endDate: string;
+  days: string;
+  entity?: string | null;
+  supportNumber?: string | null;
+  diagnosis?: string | null;
+  reason?: string | null;
+  notes?: string | null;
+  documentUrl?: string | null;
+  affectsPayroll: boolean;
+  createdAt: string;
+  employee?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    documentNumber: string;
+    photoUrl?: string | null;
+  };
+}
+
+export interface VacationBalance {
+  employeeId: string;
+  hireDate: string;
+  accrued: number;
+  adjustments: number;
+  taken: number;
+  available: number;
+  adjustmentHistory: { id: string; days: number; reason?: string | null; effectiveDate: string }[];
 }
 
 export interface AuditLog {

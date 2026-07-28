@@ -1,6 +1,8 @@
-import { Prisma, PayrollPeriodType } from '@prisma/client';
+import { Prisma, PayrollPeriodType, AbsenceStatus } from '@prisma/client';
+import { prisma } from '../../config/prisma';
 import { payrollRepository, PayrollRepository } from './payroll.repository';
 import { calculatePayroll, PayrollConfigValues } from './payroll.calculator';
+import { computeAbsenceNovelties } from './absence-novelties';
 import { AppError, ConflictError, NotFoundError } from '../../core/errors/AppError';
 import type { CreatePeriodInput, SimulateInput, UpsertConfigInput } from './payroll.schema';
 
@@ -155,18 +157,48 @@ export class PayrollService {
     const startDate = new Date(input.year, input.month - 1, 1);
     const endDate = new Date(input.year, input.month, 0);
 
+    // Novedades por ausencias del período (vacaciones, incapacidades, etc.).
+    // Solo cuentan las aprobadas, en disfrute o finalizadas que se solapan
+    // con el mes liquidado.
+    const absences = await prisma.absence.findMany({
+      where: {
+        organizationId,
+        status: { in: [AbsenceStatus.APPROVED, AbsenceStatus.IN_PROGRESS, AbsenceStatus.COMPLETED] },
+        startDate: { lte: endDate },
+        endDate: { gte: startDate },
+      },
+      select: { employeeId: true, type: true, startDate: true, endDate: true },
+    });
+    const absencesByEmployee = new Map<string, typeof absences>();
+    for (const a of absences) {
+      const list = absencesByEmployee.get(a.employeeId) ?? [];
+      list.push(a);
+      absencesByEmployee.set(a.employeeId, list);
+    }
+
     // Precalcula todo antes de tocar la BD.
     const computed = eligible.map((emp) => {
       const contract = emp.contracts[0];
+      const baseSalary = num(contract.baseSalary);
+      const empAbsences = absencesByEmployee.get(emp.id) ?? [];
+      const novelties = computeAbsenceNovelties(
+        empAbsences,
+        baseSalary,
+        config.minimumWage,
+        startDate,
+        endDate,
+        input.workedDays,
+      );
       const result = calculatePayroll({
-        baseSalary: num(contract.baseSalary),
-        workedDays: input.workedDays,
+        baseSalary,
+        workedDays: novelties.paidDays,
         hasTransportAllowance: contract.transportAllowance,
         isIntegralSalary: contract.isIntegralSalary,
         arlRiskClass: emp.arlRiskClass,
         config,
+        additionalEarnings: novelties.additionalEarnings,
       });
-      return { employeeId: emp.id, baseSalary: num(contract.baseSalary), result };
+      return { employeeId: emp.id, baseSalary, workedDays: novelties.paidDays, result };
     });
 
     const totals = computed.reduce(
@@ -197,7 +229,7 @@ export class PayrollService {
         computed.map((c) => ({
           periodId,
           employeeId: c.employeeId,
-          workedDays: input.workedDays,
+          workedDays: c.workedDays,
           baseSalary: new Prisma.Decimal(c.baseSalary),
           totalEarnings: new Prisma.Decimal(c.result.totalEarnings),
           totalDeductions: new Prisma.Decimal(c.result.totalDeductions),

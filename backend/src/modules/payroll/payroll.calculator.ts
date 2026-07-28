@@ -16,13 +16,25 @@ export interface PayrollConfigValues {
   vacationRate: number;
 }
 
+/** Quién financia un devengado adicional (afecta el costo del empleador). */
+export type EarningFunder = 'EMPLOYER' | 'EPS' | 'ARL';
+
+export interface AdditionalEarning {
+  code: string;
+  concept: string;
+  amount: number;
+  funder: EarningFunder;
+}
+
 export interface PayrollCalcInput {
   baseSalary: number; // salario mensual pactado
-  workedDays: number; // días trabajados en el periodo (base 30)
+  workedDays: number; // días efectivamente pagados como salario normal (base 30)
   hasTransportAllowance: boolean;
   isIntegralSalary: boolean;
   arlRiskClass: number; // 1..5
   config: PayrollConfigValues;
+  // Devengados adicionales por novedades (incapacidades, licencias, etc.).
+  additionalEarnings?: AdditionalEarning[];
 }
 
 export type ItemType = 'EARNING' | 'DEDUCTION' | 'EMPLOYER_COST';
@@ -102,9 +114,18 @@ export function calculatePayroll(input: PayrollCalcInput): PayrollCalcResult {
     : round(provisionBase * config.serviceBonusRate);
   const vacation = input.isIntegralSalary ? 0 : round(salary * config.vacationRate);
 
+  const extraEarnings = input.additionalEarnings ?? [];
+  const extraEarningItems: CalcItem[] = extraEarnings.map((e) => ({
+    type: 'EARNING' as ItemType,
+    code: e.code,
+    concept: e.concept,
+    amount: e.amount,
+  }));
+
   const items: CalcItem[] = [
     earning(CONCEPT.SALARY, salary),
     ...(transport > 0 ? [earning(CONCEPT.TRANSPORT, transport)] : []),
+    ...extraEarningItems,
     deduction(CONCEPT.HEALTH_EMPLOYEE, healthEmployee),
     deduction(CONCEPT.PENSION_EMPLOYEE, pensionEmployee),
     ...(solidarityFund > 0 ? [deduction(CONCEPT.SOLIDARITY_FUND, solidarityFund)] : []),
@@ -126,14 +147,20 @@ export function calculatePayroll(input: PayrollCalcInput): PayrollCalcResult {
   const totalDeductions = sum(items, 'DEDUCTION');
   const totalEmployerContributions = sum(items, 'EMPLOYER_COST');
 
+  // Devengados financiados por terceros (EPS/ARL) no son costo del empleador.
+  const thirdPartyEarnings = extraEarnings
+    .filter((e) => e.funder !== 'EMPLOYER')
+    .reduce((acc, e) => acc + e.amount, 0);
+  const employerFundedEarnings = totalEarnings - thirdPartyEarnings;
+
   return {
     items,
     ibc,
     totalEarnings,
     totalDeductions,
     netPay: totalEarnings - totalDeductions,
-    // Costo total para la empresa = neto pagado al empleado + aportes/provisiones patronales.
-    employerCost: totalEarnings + totalEmployerContributions,
+    // Costo para la empresa = devengados que paga el empleador + aportes/provisiones.
+    employerCost: employerFundedEarnings + totalEmployerContributions,
   };
 }
 

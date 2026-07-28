@@ -52,6 +52,8 @@ model Organization {
   catalogOptions CatalogOption[]
   auditLogs      AuditLog[]
   customFields   CustomFieldDefinition[]
+  absences       Absence[]
+  vacationAdjustments VacationAdjustment[]
 
   @@map("organizations")
 }
@@ -257,6 +259,8 @@ model Employee {
   dependents   Dependent[]
   educations   Education[]
   experiences  WorkExperience[]
+  absences     Absence[]
+  vacationAdjustments VacationAdjustment[]
 
   @@unique([organizationId, employeeCode])
   @@unique([organizationId, documentNumber])
@@ -372,6 +376,74 @@ model Dependent {
 
   @@index([employeeId])
   @@map("dependents")
+}
+
+// ==================================================================
+// MÓDULO: VACACIONES Y AUSENCIAS
+// ==================================================================
+
+enum AbsenceStatus {
+  APPROVED // Aprobada
+  REJECTED // Rechazada
+  CANCELLED // Cancelada
+  IN_PROGRESS // En disfrute
+  COMPLETED // Disfrutada / finalizada
+}
+
+// Ausencias del empleado: vacaciones, incapacidades, licencias y permisos.
+// El "type" es un código del catálogo editable ABSENCE_TYPE; las reglas de
+// nómina y de conteo de días se derivan del código (config/absence-rules.ts).
+model Absence {
+  id             String   @id @default(cuid())
+  organizationId String
+  employeeId     String
+
+  type           String // Código del catálogo ABSENCE_TYPE
+  status         AbsenceStatus @default(APPROVED)
+  startDate      DateTime
+  endDate        DateTime
+  days           Decimal  @db.Decimal(6, 2) // Días calculados según la regla del tipo
+
+  // Datos de soporte (incapacidades/licencias)
+  entity         String? // EPS / ARL / entidad que expide el soporte
+  supportNumber  String? // Número de la incapacidad/licencia
+  diagnosis      String? // Diagnóstico o motivo clínico
+  reason         String? // Motivo (permisos, licencias)
+  notes          String?
+  documentUrl    String? // Soporte adjunto (data URL base64)
+
+  // Reflejo en nómina (denormalizado para reportes y trazabilidad)
+  affectsPayroll Boolean  @default(false)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([employeeId])
+  @@index([startDate, endDate])
+  @@map("absences")
+}
+
+// Ajustes manuales al saldo de vacaciones (RRHH). Positivo = suma días,
+// negativo = descuenta. Complementa la causación automática (1.25 días/mes).
+model VacationAdjustment {
+  id             String   @id @default(cuid())
+  organizationId String
+  employeeId     String
+
+  days           Decimal  @db.Decimal(6, 2) // + o -
+  reason         String?
+  effectiveDate  DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@map("vacation_adjustments")
 }
 
 // Bitácora de auditoría: registra creaciones, cambios y eliminaciones.

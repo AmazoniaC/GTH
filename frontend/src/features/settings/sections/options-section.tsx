@@ -28,6 +28,7 @@ const CODE_BASED = new Set<CatalogCategory>([
   'CONTRACT_TYPE',
   'EMPLOYEE_STATUS',
   'FILE_TYPE',
+  'ABSENCE_TYPE',
 ]);
 
 interface ListDef {
@@ -64,6 +65,16 @@ const GROUPS: { heading: string; lists: ListDef[] }[] = [
   {
     heading: 'Grupo familiar',
     lists: [{ category: 'RELATIONSHIP', title: 'Parentescos' }],
+  },
+  {
+    heading: 'Vacaciones y ausencias',
+    lists: [
+      {
+        category: 'ABSENCE_TYPE',
+        title: 'Tipos de ausencia',
+        description: 'Los del sistema están ligados a las reglas de nómina.',
+      },
+    ],
   },
   {
     heading: 'Seguridad social',
