@@ -10,6 +10,7 @@ import {
   History,
   UserCircle,
   Globe,
+  CalendarDays,
   type LucideIcon,
 } from 'lucide-react';
 import type { AppModule, UserRole } from '@/types';
@@ -49,6 +50,7 @@ export const navSections: NavSection[] = [
     title: 'Talento Humano',
     items: [
       { label: 'Empleados', to: '/employees', icon: Users, end: true, module: 'EMPLOYEES' },
+      { label: 'Ausencias', to: '/absences', icon: CalendarDays, module: 'EMPLOYEES' },
       { label: 'Organigrama', to: '/organization', icon: Network, module: 'EMPLOYEES' },
     ],
   },

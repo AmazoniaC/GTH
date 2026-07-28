@@ -1,3 +1,5 @@
+import { ABSENCE_TYPE_DEFAULTS } from '../../config/absence-rules';
+
 /** Categorías de opciones configurables. */
 export const CATALOG_CATEGORY = {
   // Basadas en código (el valor guardado es el código; hay lógica asociada)
@@ -5,6 +7,7 @@ export const CATALOG_CATEGORY = {
   CONTRACT_TYPE: 'CONTRACT_TYPE',
   EMPLOYEE_STATUS: 'EMPLOYEE_STATUS',
   FILE_TYPE: 'FILE_TYPE',
+  ABSENCE_TYPE: 'ABSENCE_TYPE',
   // Basadas en etiqueta (listas de valores libres editables)
   BLOOD_TYPE: 'BLOOD_TYPE',
   NATIONALITY: 'NATIONALITY',
@@ -70,6 +73,9 @@ export const DEFAULT_OPTIONS: Record<CatalogCategory, DefaultOption[]> = {
     { code: 'MEDICAL_EXAM', label: 'Examen médico' },
     { code: 'OTHER', label: 'Otro' },
   ],
+  // Los tipos de ausencia con código de sistema están ligados a las reglas
+  // de nómina (config/absence-rules.ts): solo se pueden renombrar.
+  ABSENCE_TYPE: ABSENCE_TYPE_DEFAULTS,
 
   // ---- Listas de valores libres (código = etiqueta) ----
   BLOOD_TYPE: list(['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']),

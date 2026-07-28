@@ -16,6 +16,7 @@ import { AlertsPage } from '@/features/alerts/pages/alerts-page';
 import { AuditLogPage } from '@/features/audit/pages/audit-log-page';
 import { PortalPage } from '@/features/portal/portal-page';
 import { PlatformPage } from '@/features/platform/platform-page';
+import { AbsencesPage } from '@/features/absences/pages/absences-page';
 import { useAuthStore } from '@/features/auth/auth.store';
 
 export default function App() {
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/employees" element={<EmployeesPage />} />
+        <Route path="/absences" element={<AbsencesPage />} />
         <Route path="/organization" element={<OrgChartPage />} />
         <Route path="/employees/:documentNumber" element={<EmployeeDetailPage />} />
         <Route path="/payroll" element={<PayrollPage />} />
