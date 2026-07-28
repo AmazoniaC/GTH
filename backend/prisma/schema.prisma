@@ -54,6 +54,7 @@ model Organization {
   customFields   CustomFieldDefinition[]
   absences       Absence[]
   vacationAdjustments VacationAdjustment[]
+  documentTemplates DocumentTemplate[]
 
   @@map("organizations")
 }
@@ -444,6 +445,33 @@ model VacationAdjustment {
 
   @@index([employeeId])
   @@map("vacation_adjustments")
+}
+
+// ==================================================================
+// MÓDULO: DOCUMENTOS Y CERTIFICADOS
+// ==================================================================
+
+// Plantillas editables de documentos (certificado laboral, contrato, paz y
+// salvo, cartas). El cuerpo admite variables {{...}} que se reemplazan con
+// datos del empleado, su contrato y la empresa al generar el documento.
+model DocumentTemplate {
+  id             String   @id @default(cuid())
+  organizationId String
+
+  key            String // Categoría/plantilla (LABOR_CERTIFICATE, CONTRACT, ...)
+  name           String
+  body           String // Texto con variables {{empleado.nombre}}, etc.
+  isSystem       Boolean  @default(false) // Plantillas base provistas por defecto
+  isActive       Boolean  @default(true)
+  order          Int      @default(0)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("document_templates")
 }
 
 // Bitácora de auditoría: registra creaciones, cambios y eliminaciones.

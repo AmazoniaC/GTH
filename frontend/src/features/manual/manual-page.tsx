@@ -145,7 +145,31 @@ export function ManualPage() {
           />
         </Section>
 
-        <Section id="nomina" title="6. Nómina">
+        <Section id="documentos" title="6. Documentos y certificados">
+          <p>
+            En <b>Documentos</b> generas certificados laborales, contratos, paz y salvo y cartas a
+            partir de plantillas, con el membrete de tu empresa y espacio para la firma del
+            representante legal.
+          </p>
+          <SubTitle>Generar un documento</SubTitle>
+          <Steps
+            items={[
+              'Entra a “Documentos” → pestaña “Generar”.',
+              'Elige la plantilla (por ejemplo, Certificado laboral con o sin salario).',
+              'Selecciona uno o varios empleados (puedes buscar y usar “Seleccionar todos” para generación masiva).',
+              'Pulsa “Generar”: se abre el documento listo para imprimir o guardar como PDF.',
+            ]}
+          />
+          <SubTitle>Plantillas editables</SubTitle>
+          <p>
+            En la pestaña <b>Plantillas</b> editas el texto de cada documento e insertas variables
+            como <code>{'{{empleado.nombreCompleto}}'}</code>, <code>{'{{empleado.cargo}}'}</code> o{' '}
+            <code>{'{{contrato.salario}}'}</code>, que se reemplazan con los datos reales al generar.
+            Puedes crear tus propias plantillas; las del sistema se pueden editar pero no eliminar.
+          </p>
+        </Section>
+
+        <Section id="nomina" title="7. Nómina">
           <SubTitle>Parámetros de nómina</SubTitle>
           <p>
             Antes de liquidar, revisa los parámetros del año (salario mínimo, auxilio de transporte,
@@ -168,14 +192,14 @@ export function ManualPage() {
           </p>
         </Section>
 
-        <Section id="organigrama" title="7. Organigrama">
+        <Section id="organigrama" title="8. Organigrama">
           <p>
             Visualiza la estructura jerárquica de la empresa a partir del “jefe directo” asignado a
             cada empleado. Se actualiza automáticamente cuando cambias esa relación.
           </p>
         </Section>
 
-        <Section id="alertas" title="8. Alertas">
+        <Section id="alertas" title="9. Alertas">
           <p>
             El módulo <b>Alertas</b> te avisa de eventos importantes: contratos por vencer, fin de
             período de prueba, documentos por caducar y cumpleaños. Ayuda a no dejar pasar fechas
@@ -183,7 +207,7 @@ export function ManualPage() {
           </p>
         </Section>
 
-        <Section id="auditoria" title="9. Auditoría">
+        <Section id="auditoria" title="10. Auditoría">
           <p>
             La <b>Auditoría</b> registra quién creó, modificó o eliminó información (empleados,
             contratos, ausencias, etc.), con el detalle de los cambios. Es la trazabilidad de la
@@ -191,7 +215,7 @@ export function ManualPage() {
           </p>
         </Section>
 
-        <Section id="config" title="10. Configuración">
+        <Section id="config" title="11. Configuración">
           <Bullets
             items={[
               'Datos de la empresa: nombre, NIT, representante legal, dirección, etc.',
@@ -206,7 +230,7 @@ export function ManualPage() {
           </Note>
         </Section>
 
-        <Section id="portal" title="11. Portal del empleado (autoservicio)">
+        <Section id="portal" title="12. Portal del empleado (autoservicio)">
           <p>
             Los usuarios con rol <b>Empleado</b> ingresan a su <b>Portal</b>, donde consultan sus
             datos personales, sus desprendibles de nómina y sus ausencias, sin acceso al resto de la
@@ -214,7 +238,7 @@ export function ManualPage() {
           </p>
         </Section>
 
-        <Section id="plataforma" title="12. Panel de Plataforma (administrador de la plataforma)">
+        <Section id="plataforma" title="13. Panel de Plataforma (administrador de la plataforma)">
           <p>
             El administrador de la plataforma (super admin) gestiona todas las empresas desde el
             panel <b>Plataforma</b>:
@@ -235,7 +259,7 @@ export function ManualPage() {
           </Note>
         </Section>
 
-        <Section id="cumplimiento" title="13. Cumplimiento y datos (Colombia)">
+        <Section id="cumplimiento" title="14. Cumplimiento y datos (Colombia)">
           <Bullets
             items={[
               'Habeas Data (Ley 1581 de 2012): se registra el consentimiento de tratamiento de datos de cada empleado.',
