@@ -36,6 +36,16 @@ export class ImportService {
   ): Promise<ImportResult> {
     const result: ImportResult = { total: rows.length, created: 0, skipped: 0, errors: [] };
 
+    // Respeta el límite de empleados del plan (asignado por la plataforma).
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { maxEmployees: true },
+    });
+    let remaining =
+      org?.maxEmployees == null
+        ? Infinity
+        : Math.max(0, org.maxEmployees - (await prisma.employee.count({ where: { organizationId } })));
+
     // Precarga de catálogos para resolver por nombre (crea los que falten).
     const departments = new Map<string, string>(
       (await prisma.department.findMany({ where: { organizationId } })).map((d) => [
@@ -93,6 +103,15 @@ export class ImportService {
         continue;
       }
 
+      if (remaining <= 0) {
+        result.errors.push({
+          row: i + 2,
+          documentNumber: r.documentNumber,
+          message: 'Se alcanzó el límite de empleados del plan. Contacta al administrador de la plataforma.',
+        });
+        continue;
+      }
+
       try {
         const departmentId = await resolveDepartment(r.department);
         const positionId = await resolvePosition(r.position);
@@ -130,6 +149,7 @@ export class ImportService {
           },
         });
         result.created += 1;
+        remaining -= 1;
       } catch (error) {
         result.errors.push({
           row: i + 2,

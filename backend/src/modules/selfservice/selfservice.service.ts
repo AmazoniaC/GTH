@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError, NotFoundError } from '../../core/errors/AppError';
+import { absenceService } from '../absences/absence.service';
 
 const detailInclude = {
   department: true,
@@ -55,6 +56,21 @@ export class SelfServiceService {
       include: { period: { select: { name: true, year: true, month: true } } },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  /** Ausencias del propio empleado (portal de autoservicio). */
+  async getAbsences(userId: string) {
+    const emp = await this.myEmployee(userId);
+    return prisma.absence.findMany({
+      where: { employeeId: emp.id },
+      orderBy: { startDate: 'desc' },
+    });
+  }
+
+  /** Saldo de vacaciones del propio empleado. */
+  async getVacationBalance(userId: string) {
+    const emp = await this.myEmployee(userId);
+    return absenceService.vacationBalance(emp.id, emp.organizationId);
   }
 
   async getDocumentContent(userId: string, documentId: string) {

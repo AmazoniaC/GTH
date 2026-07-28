@@ -37,6 +37,19 @@ export const env = {
 // una empresa real: se oculta de los listados y conteos globales.
 export const PLATFORM_ORG_NIT = 'PLATFORM-SYSTEM';
 
+// Guardas de seguridad para producción: no arrancar con secretos por defecto.
+if (env.isProduction) {
+  const insecure: string[] = [];
+  if (env.jwt.accessSecret === 'dev-access-secret-change-me') insecure.push('JWT_ACCESS_SECRET');
+  if (env.jwt.refreshSecret === 'dev-refresh-secret-change-me') insecure.push('JWT_REFRESH_SECRET');
+  if (env.platformOwnerPassword === 'Progrexa2026*') insecure.push('PLATFORM_OWNER_PASSWORD');
+  if (insecure.length) {
+    throw new Error(
+      `Configuración insegura en producción: define valores propios para ${insecure.join(', ')}.`,
+    );
+  }
+}
+
 /** Indica si un correo tiene rol de dueño de plataforma (super-admin global). */
 export function isPlatformOwner(email?: string | null): boolean {
   if (!email) return false;

@@ -13,11 +13,22 @@ router.get(
   asyncHandler(async (req, res) => {
     const organizationId = req.auth!.organizationId;
 
-    const [total, active, onLeave, terminated, departments, byDepartment, lastPeriod] =
+    const now = new Date();
+    const [total, active, onLeaveGroups, terminated, departments, byDepartment, lastPeriod] =
       await Promise.all([
         prisma.employee.count({ where: { organizationId } }),
         prisma.employee.count({ where: { organizationId, status: 'ACTIVE' } }),
-        prisma.employee.count({ where: { organizationId, status: 'ON_LEAVE' } }),
+        // "En ausencia" se deriva de las ausencias vigentes hoy (no del estado
+        // almacenado), integrando el módulo de Vacaciones y Ausencias.
+        prisma.absence.groupBy({
+          by: ['employeeId'],
+          where: {
+            organizationId,
+            status: { in: ['APPROVED', 'IN_PROGRESS'] },
+            startDate: { lte: now },
+            endDate: { gte: now },
+          },
+        }),
         prisma.employee.count({ where: { organizationId, status: 'TERMINATED' } }),
         prisma.department.count({ where: { organizationId } }),
         prisma.employee.groupBy({
@@ -50,7 +61,7 @@ router.get(
     });
 
     return ok(res, {
-      employees: { total, active, onLeave, terminated },
+      employees: { total, active, onLeave: onLeaveGroups.length, terminated },
       departments,
       lastPayroll: lastPeriod
         ? {

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { Employee, EmployeeDocument, Payslip } from '@/types';
+import type { Absence, Employee, EmployeeDocument, Payslip, VacationBalance } from '@/types';
 
 export function useMyProfile() {
   return useQuery({
@@ -29,6 +29,28 @@ export function useMyPayslips() {
     queryKey: ['portal', 'payslips'],
     queryFn: async () => {
       const { data } = await api.get<{ data: Payslip[] }>('/me/payslips');
+      return data.data;
+    },
+    retry: false,
+  });
+}
+
+export function useMyAbsences() {
+  return useQuery({
+    queryKey: ['portal', 'absences'],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: Absence[] }>('/me/absences');
+      return data.data;
+    },
+    retry: false,
+  });
+}
+
+export function useMyVacationBalance() {
+  return useQuery({
+    queryKey: ['portal', 'vacation-balance'],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: VacationBalance }>('/me/vacation-balance');
       return data.data;
     },
     retry: false,

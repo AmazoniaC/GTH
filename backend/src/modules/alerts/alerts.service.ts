@@ -118,8 +118,8 @@ export class AlertsService {
       });
     }
 
-    const month = now.getMonth();
-    const today = now.getDate();
+    const month = now.getUTCMonth();
+    const today = now.getUTCDate();
     for (const e of employees) {
       const bd = e.birthDate!;
       if (bd.getUTCMonth() === month && bd.getUTCDate() >= today) {
