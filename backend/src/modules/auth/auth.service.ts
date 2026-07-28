@@ -140,6 +140,8 @@ export class AuthService {
         city: user.organization.city,
         phone: user.organization.phone,
         email: user.organization.email,
+        modules: user.organization.modules,
+        maxEmployees: user.organization.maxEmployees,
       },
     };
   }

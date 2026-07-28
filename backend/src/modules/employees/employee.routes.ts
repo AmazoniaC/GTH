@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { employeeController } from './employee.controller';
 import { authenticate, authorize } from '../../core/middlewares/auth.middleware';
+import { requireModule } from '../../core/middlewares/module.middleware';
 import { validate } from '../../core/middlewares/validate.middleware';
 import { asyncHandler } from '../../core/utils/asyncHandler';
 import {
@@ -14,6 +15,7 @@ import { UserRole } from '@prisma/client';
 const router = Router();
 
 router.use(authenticate);
+router.use(requireModule('EMPLOYEES'));
 
 const managers = [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.SUPER_ADMIN];
 

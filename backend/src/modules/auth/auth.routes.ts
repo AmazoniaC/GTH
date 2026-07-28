@@ -7,7 +7,10 @@ import { loginSchema, registerSchema, refreshSchema } from './auth.schema';
 
 const router = Router();
 
-router.post('/register', validate(registerSchema), asyncHandler(authController.register));
+// El auto-registro público está deshabilitado: las empresas las crea el
+// dueño de la plataforma desde el panel de Plataforma. Se mantiene el
+// esquema por compatibilidad, pero la ruta ya no se expone.
+void registerSchema;
 router.post('/login', validate(loginSchema), asyncHandler(authController.login));
 router.post('/refresh', validate(refreshSchema), asyncHandler(authController.refresh));
 router.get('/me', authenticate, asyncHandler(authController.me));

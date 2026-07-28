@@ -5,8 +5,10 @@ import { isPlatformOwner, PLATFORM_ORG_NIT } from '../../config/env';
 import { authenticate } from '../../core/middlewares/auth.middleware';
 import { asyncHandler } from '../../core/utils/asyncHandler';
 import { ok } from '../../core/utils/apiResponse';
-import { AppError, ForbiddenError } from '../../core/errors/AppError';
+import { AppError, ConflictError, ForbiddenError } from '../../core/errors/AppError';
 import { signAccessToken, signRefreshToken } from '../../core/utils/jwt';
+import { hashPassword } from '../../core/utils/password';
+import { DEFAULT_MODULES, sanitizeModules } from '../../config/modules';
 
 const router = Router();
 router.use(authenticate);
@@ -55,11 +57,83 @@ router.get(
         city: true,
         email: true,
         isActive: true,
+        modules: true,
+        maxEmployees: true,
         createdAt: true,
         _count: { select: { users: true, employees: true } },
       },
     });
     return ok(res, orgs);
+  }),
+);
+
+/** Crea una nueva empresa junto con su usuario administrador. */
+router.post(
+  '/organizations',
+  asyncHandler(async (req, res) => {
+    const {
+      organizationName,
+      nit,
+      adminFirstName,
+      adminLastName,
+      adminEmail,
+      adminPassword,
+      maxEmployees,
+      modules,
+    } = req.body ?? {};
+
+    if (!organizationName || !nit || !adminEmail || !adminPassword) {
+      throw new AppError('Faltan datos obligatorios de la empresa o del administrador.', 400);
+    }
+    if (String(adminPassword).length < 6) {
+      throw new AppError('La contraseña del administrador debe tener al menos 6 caracteres.', 400);
+    }
+
+    const email = String(adminEmail).trim().toLowerCase();
+    if (await prisma.user.findUnique({ where: { email } })) {
+      throw new ConflictError('El correo del administrador ya está registrado.');
+    }
+    if (await prisma.organization.findUnique({ where: { nit: String(nit).trim() } })) {
+      throw new ConflictError('El NIT ya está registrado.');
+    }
+
+    const selectedModules = Array.isArray(modules) ? sanitizeModules(modules) : DEFAULT_MODULES;
+    const limit =
+      maxEmployees === null || maxEmployees === undefined || maxEmployees === ''
+        ? null
+        : Math.max(0, Number(maxEmployees)) || null;
+    const passwordHash = await hashPassword(String(adminPassword));
+
+    const org = await prisma.organization.create({
+      data: {
+        name: String(organizationName).trim(),
+        nit: String(nit).trim(),
+        modules: selectedModules,
+        maxEmployees: limit,
+        users: {
+          create: {
+            email,
+            password: passwordHash,
+            firstName: String(adminFirstName ?? 'Administrador').trim(),
+            lastName: String(adminLastName ?? '').trim(),
+            role: UserRole.ADMIN,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        nit: true,
+        city: true,
+        email: true,
+        isActive: true,
+        modules: true,
+        maxEmployees: true,
+        createdAt: true,
+        _count: { select: { users: true, employees: true } },
+      },
+    });
+    return ok(res, org, undefined, 201);
   }),
 );
 
@@ -72,17 +146,45 @@ async function findRealOrg(id: string) {
   return org;
 }
 
-/** Activa/desactiva una empresa (bloquea o habilita sus accesos). */
+/**
+ * Actualiza la configuración de una empresa: estado (activa/inactiva),
+ * nombre, módulos activos y límite de empleados. Solo se tocan los campos
+ * enviados en el cuerpo.
+ */
 router.patch(
   '/organizations/:id',
   asyncHandler(async (req, res) => {
     await findRealOrg(req.params.id);
-    const isActive = Boolean(req.body?.isActive);
+    const body = req.body ?? {};
+    const data: Record<string, unknown> = {};
+
+    if (body.isActive !== undefined) data.isActive = Boolean(body.isActive);
+    if (typeof body.name === 'string' && body.name.trim()) data.name = body.name.trim();
+    if (Array.isArray(body.modules)) data.modules = sanitizeModules(body.modules);
+    if (body.maxEmployees !== undefined) {
+      data.maxEmployees =
+        body.maxEmployees === null || body.maxEmployees === ''
+          ? null
+          : Math.max(0, Number(body.maxEmployees)) || null;
+    }
+
     const org = await prisma.organization.update({
       where: { id: req.params.id },
-      data: { isActive },
+      data,
+      select: {
+        id: true,
+        name: true,
+        nit: true,
+        city: true,
+        email: true,
+        isActive: true,
+        modules: true,
+        maxEmployees: true,
+        createdAt: true,
+        _count: { select: { users: true, employees: true } },
+      },
     });
-    return ok(res, { id: org.id, isActive: org.isActive });
+    return ok(res, org);
   }),
 );
 

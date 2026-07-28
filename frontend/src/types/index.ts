@@ -1,5 +1,8 @@
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'HR_MANAGER' | 'PAYROLL_MANAGER' | 'EMPLOYEE';
 
+/** Claves de los módulos que una empresa puede tener activos. */
+export type AppModule = 'EMPLOYEES' | 'PAYROLL';
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -9,6 +12,8 @@ export interface AuthUser {
   organizationId: string;
   avatarUrl?: string | null;
   isPlatformOwner?: boolean;
+  /** Módulos activos de la empresa del usuario. */
+  modules?: AppModule[];
 }
 
 export interface ManagedUser {

@@ -10,6 +10,8 @@ import {
   Ban,
   CheckCircle2,
   Trash2,
+  Plus,
+  Settings2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
@@ -47,11 +49,15 @@ import {
   useToggleOrganization,
   useDeleteOrganization,
   useImpersonateOrganization,
+  AVAILABLE_MODULES,
   type PlatformOrg,
 } from './platform.api';
+import { CompanyDialog } from './company-dialog';
 import { useAuthStore } from '@/features/auth/auth.store';
 import { formatDate, formatNumber } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
+
+const MODULE_LABELS = Object.fromEntries(AVAILABLE_MODULES.map((m) => [m.key, m.label]));
 
 export function PlatformPage() {
   const navigate = useNavigate();
@@ -63,6 +69,8 @@ export function PlatformPage() {
   const startImpersonation = useAuthStore((s) => s.impersonate);
 
   const [toDelete, setToDelete] = useState<PlatformOrg | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [toConfigure, setToConfigure] = useState<PlatformOrg | null>(null);
 
   const handleImpersonate = (org: PlatformOrg) => {
     impersonate.mutate(org.id, {
@@ -101,8 +109,13 @@ export function PlatformPage() {
     <div>
       <PageHeader
         title="Plataforma"
-        description="Vista global de todas las empresas registradas en Progrexa."
-      />
+        description="Gestiona todas las empresas registradas en Progrexa."
+      >
+        <Button onClick={() => setCreateOpen(true)}>
+          <Plus className="h-4 w-4" />
+          Nueva empresa
+        </Button>
+      </PageHeader>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {isLoading ? (
@@ -126,9 +139,9 @@ export function PlatformPage() {
             <TableRow>
               <TableHead>Empresa</TableHead>
               <TableHead>NIT</TableHead>
-              <TableHead>Ciudad</TableHead>
-              <TableHead>Usuarios</TableHead>
+              <TableHead>Módulos</TableHead>
               <TableHead>Empleados</TableHead>
+              <TableHead>Usuarios</TableHead>
               <TableHead>Registrada</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
@@ -142,9 +155,25 @@ export function PlatformPage() {
                   {o.email && <p className="text-xs text-muted-foreground">{o.email}</p>}
                 </TableCell>
                 <TableCell className="text-muted-foreground">{o.nit}</TableCell>
-                <TableCell className="text-muted-foreground">{o.city ?? '—'}</TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {o.modules.length === 0 && (
+                      <span className="text-xs text-muted-foreground">Ninguno</span>
+                    )}
+                    {o.modules.map((m) => (
+                      <Badge key={m} variant="secondary" className="text-[10px]">
+                        {MODULE_LABELS[m] ?? m}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {o._count.employees}
+                  {o.maxEmployees != null && (
+                    <span className="text-muted-foreground"> / {o.maxEmployees}</span>
+                  )}
+                </TableCell>
                 <TableCell>{o._count.users}</TableCell>
-                <TableCell>{o._count.employees}</TableCell>
                 <TableCell className="text-muted-foreground">{formatDate(o.createdAt)}</TableCell>
                 <TableCell>
                   <Badge variant={o.isActive ? 'success' : 'destructive'}>
@@ -160,6 +189,10 @@ export function PlatformPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52">
+                      <DropdownMenuItem onClick={() => setToConfigure(o)}>
+                        <Settings2 className="mr-2 h-4 w-4" />
+                        Configurar
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleImpersonate(o)}>
                         <LogIn className="mr-2 h-4 w-4" />
                         Entrar como soporte
@@ -222,6 +255,16 @@ export function PlatformPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Crear empresa */}
+      <CompanyDialog open={createOpen} onOpenChange={setCreateOpen} />
+
+      {/* Configurar empresa */}
+      <CompanyDialog
+        open={!!toConfigure}
+        onOpenChange={(open) => !open && setToConfigure(null)}
+        org={toConfigure}
+      />
     </div>
   );
 }

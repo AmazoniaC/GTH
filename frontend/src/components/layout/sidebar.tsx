@@ -13,7 +13,11 @@ interface SidebarProps {
 export function Sidebar({ open, onClose }: SidebarProps) {
   const role = useAuthStore((s) => s.user?.role);
   const isPlatformOwner = useAuthStore((s) => s.user?.isPlatformOwner);
+  const impersonating = useAuthStore((s) => s.impersonation);
+  const modules = useAuthStore((s) => s.user?.modules);
   const isEmployee = role === 'EMPLOYEE';
+  // El dueño de plataforma (sin estar en modo soporte) solo gestiona empresas.
+  const ownerOnly = !!isPlatformOwner && !impersonating;
   // El empleado (autoservicio) solo ve su portal y su configuración.
   const employeeAllowed = new Set(['/portal', '/settings']);
 
@@ -22,6 +26,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       ...section,
       items: section.items.filter((item) => {
         if (item.platformOnly) return !!isPlatformOwner;
+        // El dueño de plataforma solo ve el panel de plataforma.
+        if (ownerOnly) return false;
+        // Módulos deshabilitados para la empresa no se muestran.
+        if (item.module && !(modules ?? []).includes(item.module)) return false;
         if (item.roles) return !!role && item.roles.includes(role);
         return isEmployee ? employeeAllowed.has(item.to) : true;
       }),

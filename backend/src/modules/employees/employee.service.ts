@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
+import { prisma } from '../../config/prisma';
 import { employeeRepository, EmployeeRepository } from './employee.repository';
-import { ConflictError, NotFoundError } from '../../core/errors/AppError';
+import { AppError, ConflictError, NotFoundError } from '../../core/errors/AppError';
 import { auditService, Actor } from '../audit/audit.service';
 import type {
   CreateEmployeeInput,
@@ -75,6 +76,21 @@ export class EmployeeService {
     const existing = await this.repo.findByDocument(input.documentNumber, organizationId);
     if (existing) {
       throw new ConflictError('Ya existe un empleado con este número de documento.');
+    }
+
+    // Respeta el límite de empleados asignado por el dueño de la plataforma.
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { maxEmployees: true },
+    });
+    if (org?.maxEmployees != null) {
+      const current = await prisma.employee.count({ where: { organizationId } });
+      if (current >= org.maxEmployees) {
+        throw new AppError(
+          `Alcanzaste el límite de empleados de tu plan (${org.maxEmployees}). Contacta al administrador de la plataforma para ampliarlo.`,
+          409,
+        );
+      }
     }
 
     const { contract, employeeCode, departmentId, positionId, managerId, customFields, ...rest } =

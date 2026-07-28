@@ -2,7 +2,6 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/main-layout';
 import { ProtectedRoute } from '@/features/auth/protected-route';
 import { LoginPage } from '@/features/auth/pages/login-page';
-import { RegisterPage } from '@/features/auth/pages/register-page';
 import { DashboardPage } from '@/features/dashboard/dashboard-page';
 import { EmployeesPage } from '@/features/employees/pages/employees-page';
 import { EmployeeDetailPage } from '@/features/employees/pages/employee-detail-page';
@@ -23,7 +22,6 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
 
       <Route
         element={
@@ -54,8 +52,12 @@ export default function App() {
   );
 }
 
-/** Redirige al inicio adecuado según el rol (empleados van a su portal). */
+/** Redirige al inicio adecuado según el rol. */
 function HomeRedirect() {
   const role = useAuthStore((s) => s.user?.role);
+  const isPlatformOwner = useAuthStore((s) => s.user?.isPlatformOwner);
+  const impersonation = useAuthStore((s) => s.impersonation);
+  // El dueño de plataforma (fuera de modo soporte) va al panel de plataforma.
+  if (isPlatformOwner && !impersonation) return <Navigate to="/platform" replace />;
   return <Navigate to={role === 'EMPLOYEE' ? '/portal' : '/dashboard'} replace />;
 }
