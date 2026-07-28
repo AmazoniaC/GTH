@@ -42,9 +42,11 @@ export function MainLayout() {
     navigate('/platform');
   };
 
-  // El dueño de plataforma (fuera de modo soporte) solo gestiona empresas.
+  // El dueño de plataforma (fuera de modo soporte) solo gestiona empresas
+  // y consulta el manual de uso.
+  const ownerAllowed = ['/platform', '/manual'];
   const ownerOnly = !!user?.isPlatformOwner && !impersonation;
-  if (ownerOnly && location.pathname !== '/platform') {
+  if (ownerOnly && !ownerAllowed.includes(location.pathname)) {
     return <Navigate to="/platform" replace />;
   }
   // Nadie más puede entrar al panel de plataforma.
