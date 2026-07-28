@@ -1,8 +1,15 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { hashPassword } from '../../core/utils/password';
 import { AppError, ConflictError, NotFoundError } from '../../core/errors/AppError';
 import type { CreateUserInput, UpdateProfileInput, UpdateUserInput } from './user.schema';
+
+/** El rol SUPER_ADMIN está reservado para la plataforma, no para las empresas. */
+function assertAssignableRole(role?: UserRole) {
+  if (role === UserRole.SUPER_ADMIN) {
+    throw new AppError('El rol de super administrador está reservado a la plataforma.', 403);
+  }
+}
 
 const publicSelect = {
   id: true,
@@ -30,6 +37,7 @@ export class UserService {
   }
 
   async create(organizationId: string, input: CreateUserInput) {
+    assertAssignableRole(input.role);
     const exists = await prisma.user.findUnique({ where: { email: input.email } });
     if (exists) throw new ConflictError('El correo electrónico ya está registrado.');
 
@@ -52,6 +60,7 @@ export class UserService {
   }
 
   async update(id: string, organizationId: string, input: UpdateUserInput) {
+    assertAssignableRole(input.role);
     await this.ensure(id, organizationId);
     const data: Prisma.UserUpdateInput = {};
     if (input.firstName !== undefined) data.firstName = input.firstName;
