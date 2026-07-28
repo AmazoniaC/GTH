@@ -36,5 +36,11 @@ router.get('/documents/:id/download', asyncHandler(async (req, res) =>
 router.get('/payslips', asyncHandler(async (req, res) =>
   ok(res, await selfServiceService.getPayslips(req.auth!.sub)),
 ));
+router.get('/absences', asyncHandler(async (req, res) =>
+  ok(res, await selfServiceService.getAbsences(req.auth!.sub)),
+));
+router.get('/vacation-balance', asyncHandler(async (req, res) =>
+  ok(res, await selfServiceService.getVacationBalance(req.auth!.sub)),
+));
 
 export const selfServiceRoutes = router;

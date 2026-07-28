@@ -39,6 +39,31 @@ export class AbsenceService {
       : countCalendarDays(start, end);
   }
 
+  /** Evita solapamientos con otras ausencias vigentes del mismo empleado. */
+  private async assertNoOverlap(
+    employeeId: string,
+    start: Date,
+    end: Date,
+    excludeId?: string,
+  ) {
+    const overlap = await prisma.absence.findFirst({
+      where: {
+        employeeId,
+        id: excludeId ? { not: excludeId } : undefined,
+        status: { in: EFFECTIVE_STATUSES },
+        startDate: { lte: end },
+        endDate: { gte: start },
+      },
+      select: { id: true, startDate: true, endDate: true },
+    });
+    if (overlap) {
+      throw new AppError(
+        'El empleado ya tiene una ausencia registrada que se cruza con esas fechas.',
+        409,
+      );
+    }
+  }
+
   private async ensureEmployee(employeeId: string, organizationId: string) {
     const employee = await prisma.employee.findFirst({
       where: { id: employeeId, organizationId },
@@ -81,12 +106,17 @@ export class AbsenceService {
       throw new AppError('El rango de fechas no genera días de ausencia.', 422);
     }
 
+    const status = input.status ?? AbsenceStatus.APPROVED;
+    if (EFFECTIVE_STATUSES.includes(status)) {
+      await this.assertNoOverlap(input.employeeId, input.startDate, input.endDate);
+    }
+
     const created = await prisma.absence.create({
       data: {
         organizationId,
         employeeId: input.employeeId,
         type: input.type,
-        status: input.status ?? AbsenceStatus.APPROVED,
+        status,
         startDate: input.startDate,
         endDate: input.endDate,
         days: new Prisma.Decimal(days),
@@ -118,6 +148,15 @@ export class AbsenceService {
     const type = input.type ?? current.type;
     const startDate = input.startDate ?? current.startDate;
     const endDate = input.endDate ?? current.endDate;
+    const status = input.status ?? current.status;
+
+    // Revalida el solapamiento si cambian fechas o pasa a un estado vigente.
+    if (
+      EFFECTIVE_STATUSES.includes(status) &&
+      (input.startDate !== undefined || input.endDate !== undefined || input.status !== undefined)
+    ) {
+      await this.assertNoOverlap(current.employeeId, startDate, endDate, id);
+    }
 
     const data: Prisma.AbsenceUpdateInput = {
       ...(input.type !== undefined ? { type: input.type } : {}),

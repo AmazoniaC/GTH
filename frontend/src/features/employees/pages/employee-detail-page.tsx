@@ -25,6 +25,7 @@ import { DocumentsSection } from '../components/documents-section';
 import { ContractsSection } from '../components/contracts-section';
 import { DependentsSection } from '../components/dependents-section';
 import { ResumeSection } from '../components/resume-section';
+import { AbsencesSection } from '@/features/absences/absences-section';
 import { CustomFieldsCard } from '../components/custom-fields-card';
 import { generateCertificate, generateContract } from '../document-generator';
 import {
@@ -281,6 +282,9 @@ export function EmployeeDetailPage() {
 
       {/* Historial contractual y salarial */}
       <ContractsSection employeeId={emp.id} />
+
+      {/* Vacaciones y ausencias */}
+      <AbsencesSection employeeId={emp.id} />
 
       {/* Hoja de vida */}
       <ResumeSection employeeId={emp.id} />

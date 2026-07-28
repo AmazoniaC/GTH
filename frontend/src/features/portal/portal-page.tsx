@@ -10,6 +10,8 @@ import {
   Phone,
   Receipt,
   UserRound,
+  Plane,
+  CalendarDays,
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,11 +31,15 @@ import {
 import { EmployeeStatusBadge } from '@/components/shared/status-badges';
 import {
   downloadMyDocument,
+  useMyAbsences,
   useMyDocuments,
   useMyPayslips,
   useMyProfile,
+  useMyVacationBalance,
   useUpdateMyContact,
 } from './portal.api';
+import { useOptions } from '@/features/catalog/catalog.api';
+import { STATUS_META } from '@/features/absences/absence-meta';
 import { useAuthStore } from '@/features/auth/auth.store';
 import { formatCurrency, formatDate, fullName, getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
@@ -44,7 +50,11 @@ export function PortalPage() {
   const { data: emp, isLoading, isError } = useMyProfile();
   const { data: documents } = useMyDocuments();
   const { data: payslips } = useMyPayslips();
+  const { data: absences } = useMyAbsences();
+  const { data: vacationBalance } = useMyVacationBalance();
+  const { data: absenceTypes } = useOptions('ABSENCE_TYPE');
   const updateContact = useUpdateMyContact();
+  const typeLabel = Object.fromEntries((absenceTypes ?? []).map((t) => [t.code, t.label]));
 
   const [editOpen, setEditOpen] = useState(false);
   const [form, setForm] = useState({ email: '', phone: '', mobile: '', address: '', city: '' });
@@ -186,6 +196,59 @@ export function PortalPage() {
         </Card>
       </div>
 
+      {/* Vacaciones y ausencias */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Plane className="h-4 w-4 text-primary" /> Mis vacaciones
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {vacationBalance ? (
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <BalanceStat label="Disponibles" value={vacationBalance.available} highlight />
+                <BalanceStat label="Causadas" value={vacationBalance.accrued} />
+                <BalanceStat label="Tomadas" value={vacationBalance.taken} />
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Sin información de saldo.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <CalendarDays className="h-4 w-4 text-primary" /> Mis ausencias
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {absences && absences.length > 0 ? (
+              absences.slice(0, 6).map((a) => {
+                const st = STATUS_META[a.status];
+                return (
+                  <div
+                    key={a.id}
+                    className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{typeLabel[a.type] ?? a.type}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(a.startDate)} → {formatDate(a.endDate)} · {Number(a.days)} día(s)
+                      </p>
+                    </div>
+                    <Badge variant={st.variant as never}>{st.label}</Badge>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-sm text-muted-foreground">No tienes ausencias registradas.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Desprendibles */}
       <Card>
         <CardHeader>
@@ -250,6 +313,23 @@ export function PortalPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function BalanceStat({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  highlight?: boolean;
+}) {
+  return (
+    <div className={`rounded-lg border p-3 ${highlight ? 'border-primary/40 bg-primary/5' : 'border-border/60'}`}>
+      <p className={`text-2xl font-bold ${highlight ? 'text-primary' : ''}`}>{value}</p>
+      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
     </div>
   );
 }
