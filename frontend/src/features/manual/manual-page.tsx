@@ -4,8 +4,8 @@ import { Card } from '@/components/ui/card';
 import { LogoMark } from '@/components/brand/logo';
 
 /**
- * Manual de usuario de Progrexa (visible para el dueño de la plataforma).
- * Explica el uso completo de la aplicación para compartirlo con las empresas.
+ * Manual de usuario de Progrexa. Visible para el dueño de la plataforma y para
+ * los administradores de cada empresa. Explica el uso completo de la app.
  * Usa `window.print()` para exportarlo a PDF/imprimirlo.
  */
 export function ManualPage() {
@@ -15,7 +15,7 @@ export function ManualPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Manual de uso</h1>
           <p className="text-sm text-muted-foreground">
-            Guía completa de Progrexa para compartir con las empresas.
+            Guía completa del uso de Progrexa.
           </p>
         </div>
         <Button variant="outline" onClick={() => window.print()}>

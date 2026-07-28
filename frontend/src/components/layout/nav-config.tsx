@@ -66,7 +66,14 @@ export const navSections: NavSection[] = [
     title: 'Sistema',
     items: [
       { label: 'Plataforma', to: '/platform', icon: Globe, platformOnly: true },
-      { label: 'Manual de uso', to: '/manual', icon: BookOpen, platformOnly: true },
+      // Visible al dueño de plataforma y a los administradores de cada empresa.
+      {
+        label: 'Manual de uso',
+        to: '/manual',
+        icon: BookOpen,
+        platformOnly: true,
+        roles: ['ADMIN'],
+      },
       {
         label: 'Usuarios',
         to: '/users',

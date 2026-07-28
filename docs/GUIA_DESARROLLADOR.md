@@ -346,7 +346,8 @@ super admin → `/platform`, resto → `/dashboard`).
   empresas, soporte). `company-dialog.tsx` crea/configura empresas.
 - `features/absences/` — módulo de ausencias (lista, formulario, saldos).
   `absence-meta.ts` es el espejo de las reglas para pistas de UI.
-- `features/manual/` — manual de uso in-app (para el super admin).
+- `features/manual/` — manual de uso in-app (visible al super admin y a los
+  administradores de cada empresa; ruta `/manual`).
 - `features/settings/sections/options-section.tsx` — edición de catálogos.
 
 ### 8.6 UI
