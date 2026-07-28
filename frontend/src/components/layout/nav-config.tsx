@@ -11,6 +11,7 @@ import {
   UserCircle,
   Globe,
   CalendarDays,
+  BookOpen,
   type LucideIcon,
 } from 'lucide-react';
 import type { AppModule, UserRole } from '@/types';
@@ -65,6 +66,7 @@ export const navSections: NavSection[] = [
     title: 'Sistema',
     items: [
       { label: 'Plataforma', to: '/platform', icon: Globe, platformOnly: true },
+      { label: 'Manual de uso', to: '/manual', icon: BookOpen, platformOnly: true },
       {
         label: 'Usuarios',
         to: '/users',
