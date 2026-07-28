@@ -12,6 +12,7 @@ import {
   Globe,
   CalendarDays,
   BookOpen,
+  FileText,
   type LucideIcon,
 } from 'lucide-react';
 import type { AppModule, UserRole } from '@/types';
@@ -52,6 +53,7 @@ export const navSections: NavSection[] = [
     items: [
       { label: 'Empleados', to: '/employees', icon: Users, end: true, module: 'EMPLOYEES' },
       { label: 'Ausencias', to: '/absences', icon: CalendarDays, module: 'EMPLOYEES' },
+      { label: 'Documentos', to: '/documents', icon: FileText, module: 'EMPLOYEES' },
       { label: 'Organigrama', to: '/organization', icon: Network, module: 'EMPLOYEES' },
     ],
   },

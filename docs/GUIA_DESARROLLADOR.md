@@ -245,6 +245,17 @@ listados y conteos.
 ### 5.19 `absences`
 Módulo de Vacaciones y Ausencias. Ver sección 7.
 
+### 5.20 `certificates`
+Documentos y certificados. Plantillas editables por empresa
+(`DocumentTemplate`) con variables `{{grupo.campo}}`. `certificate.constants.ts`
+define las plantillas por defecto (certificado laboral con/sin salario,
+contrato, paz y salvo, carta), la lista de variables y el resolvedor de
+contexto (empleado + contrato + empresa). Endpoints bajo `/documents-gen`:
+`GET /variables`, CRUD de `/templates` y `POST /render` (resuelve las variables
+por empleado y devuelve el contenido + datos de la empresa para el membrete).
+El PDF se produce en el cliente (ventana imprimible con membrete y firma).
+Protegido por `requireModule('EMPLOYEES')` y rol RRHH/Admin.
+
 ---
 
 ## 6. Motor de nómina
@@ -348,6 +359,9 @@ super admin → `/platform`, resto → `/dashboard`).
   `absence-meta.ts` es el espejo de las reglas para pistas de UI.
 - `features/manual/` — manual de uso in-app (visible al super admin y a los
   administradores de cada empresa; ruta `/manual`).
+- `features/documents-gen/` — generación de documentos y certificados
+  (plantillas con variables + impresión con membrete/firma vía
+  `print-documents.ts`).
 - `features/settings/sections/options-section.tsx` — edición de catálogos.
 
 ### 8.6 UI

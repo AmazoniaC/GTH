@@ -18,6 +18,7 @@ import { PortalPage } from '@/features/portal/portal-page';
 import { PlatformPage } from '@/features/platform/platform-page';
 import { AbsencesPage } from '@/features/absences/pages/absences-page';
 import { ManualPage } from '@/features/manual/manual-page';
+import { DocumentsPage } from '@/features/documents-gen/pages/documents-page';
 import { useAuthStore } from '@/features/auth/auth.store';
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/employees" element={<EmployeesPage />} />
         <Route path="/absences" element={<AbsencesPage />} />
+        <Route path="/documents" element={<DocumentsPage />} />
         <Route path="/organization" element={<OrgChartPage />} />
         <Route path="/employees/:documentNumber" element={<EmployeeDetailPage />} />
         <Route path="/payroll" element={<PayrollPage />} />
