@@ -115,6 +115,23 @@ export class EmployeeRepository {
     });
   }
 
+  /** Lista liviana de todos los empleados (para selectores), sin paginar. */
+  selectList(organizationId: string) {
+    return prisma.employee.findMany({
+      where: { organizationId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        documentNumber: true,
+        photoUrl: true,
+        status: true,
+        position: { select: { title: true } },
+      },
+      orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
+    });
+  }
+
   exportAll(organizationId: string) {
     return prisma.employee.findMany({
       where: { organizationId },

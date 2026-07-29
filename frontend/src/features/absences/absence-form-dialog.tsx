@@ -21,7 +21,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { useOptions } from '@/features/catalog/catalog.api';
-import { useEmployees } from '@/features/employees/employees.api';
+import { useEmployeeOptions } from '@/features/employees/employees.api';
 import { useCreateAbsence, useUpdateAbsence, useVacationBalance } from './absence.api';
 import { metaFor, STATUS_META, STATUS_OPTIONS } from './absence-meta';
 import { previewAbsenceDays } from '@/lib/colombia-dates';
@@ -52,7 +52,7 @@ const emptyForm = {
 
 export function AbsenceFormDialog({ open, onOpenChange, absence, defaultEmployeeId }: Props) {
   const isEdit = !!absence;
-  const { data: employeesPage } = useEmployees({ page: 1, pageSize: 500 });
+  const { data: employees } = useEmployeeOptions();
   const { data: types } = useOptions('ABSENCE_TYPE');
   const createAbsence = useCreateAbsence();
   const updateAbsence = useUpdateAbsence();
@@ -151,7 +151,7 @@ export function AbsenceFormDialog({ open, onOpenChange, absence, defaultEmployee
                   <SelectValue placeholder="Seleccionar empleado" />
                 </SelectTrigger>
                 <SelectContent>
-                  {employeesPage?.data.map((e) => (
+                  {employees?.map((e) => (
                     <SelectItem key={e.id} value={e.id}>
                       {e.firstName} {e.lastName} · {e.documentNumber}
                     </SelectItem>

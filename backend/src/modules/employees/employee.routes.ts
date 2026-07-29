@@ -20,6 +20,7 @@ router.use(requireModule('EMPLOYEES'));
 const managers = [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.SUPER_ADMIN];
 
 router.get('/', validate(listEmployeesSchema), asyncHandler(employeeController.list));
+router.get('/select', asyncHandler(employeeController.selectList));
 router.get('/org-chart', asyncHandler(employeeController.orgChart));
 router.get('/export', asyncHandler(employeeController.exportAll));
 router.get('/by-document/:documentNumber', asyncHandler(employeeController.getByDocument));

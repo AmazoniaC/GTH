@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useEmployees } from '@/features/employees/employees.api';
+import { useEmployeeOptions } from '@/features/employees/employees.api';
 import {
   useCreateTemplate,
   useDeleteTemplate,
@@ -63,14 +63,13 @@ export function DocumentsPage() {
 
 function GenerateTab() {
   const { data: templates } = useDocumentTemplates();
-  const { data: employeesPage } = useEmployees({ page: 1, pageSize: 500 });
+  const { data: employees = [] } = useEmployeeOptions();
   const render = useRenderDocuments();
 
   const [templateId, setTemplateId] = useState('');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const employees = employeesPage?.data ?? [];
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return employees;

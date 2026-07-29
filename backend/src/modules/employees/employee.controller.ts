@@ -59,6 +59,11 @@ export class EmployeeController {
     return ok(res, data);
   };
 
+  selectList = async (req: Request, res: Response) => {
+    const data = await employeeService.selectList(req.auth!.organizationId);
+    return ok(res, data);
+  };
+
   exportAll = async (req: Request, res: Response) => {
     const data = await employeeService.exportAll(req.auth!.organizationId);
     return ok(res, data);

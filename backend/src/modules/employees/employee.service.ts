@@ -229,6 +229,10 @@ export class EmployeeService {
     return { id };
   }
 
+  selectList(organizationId: string) {
+    return this.repo.selectList(organizationId);
+  }
+
   orgChart(organizationId: string) {
     return this.repo.orgChart(organizationId);
   }
