@@ -38,7 +38,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useOptions } from '@/features/catalog/catalog.api';
-import { useEmployees } from '@/features/employees/employees.api';
+import { useEmployeeOptions } from '@/features/employees/employees.api';
 import {
   useAbsences,
   useDeleteAbsence,
@@ -289,7 +289,7 @@ function AbsenceList() {
 }
 
 function VacationBalances() {
-  const { data: employeesPage } = useEmployees({ page: 1, pageSize: 500 });
+  const { data: employees } = useEmployeeOptions();
   const [employeeId, setEmployeeId] = useState('');
   const { data: balance } = useVacationBalance(employeeId || undefined);
   const addAdjustment = useAddVacationAdjustment();
@@ -324,7 +324,7 @@ function VacationBalances() {
             <SelectValue placeholder="Selecciona un empleado para ver su saldo" />
           </SelectTrigger>
           <SelectContent>
-            {employeesPage?.data.map((e) => (
+            {employees?.map((e) => (
               <SelectItem key={e.id} value={e.id}>
                 {e.firstName} {e.lastName} · {e.documentNumber}
               </SelectItem>

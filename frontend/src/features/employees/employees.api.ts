@@ -12,6 +12,28 @@ export function useOrgChart() {
   });
 }
 
+/** Empleado en formato liviano para selectores (sin paginación). */
+export interface EmployeeOption {
+  id: string;
+  firstName: string;
+  lastName: string;
+  documentNumber: string;
+  photoUrl?: string | null;
+  status: string;
+  position?: { title: string } | null;
+}
+
+/** Lista completa de empleados para selectores (registro de ausencias, etc.). */
+export function useEmployeeOptions() {
+  return useQuery({
+    queryKey: ['employees', 'select'],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: EmployeeOption[] }>('/employees/select');
+      return data.data;
+    },
+  });
+}
+
 /** Devuelve todos los empleados de la organización (para exportar). */
 export async function fetchAllEmployees(): Promise<Employee[]> {
   const { data } = await api.get<{ data: Employee[] }>('/employees/export');
