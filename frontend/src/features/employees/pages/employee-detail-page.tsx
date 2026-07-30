@@ -26,6 +26,7 @@ import { ContractsSection } from '../components/contracts-section';
 import { DependentsSection } from '../components/dependents-section';
 import { ResumeSection } from '../components/resume-section';
 import { AbsencesSection } from '@/features/absences/absences-section';
+import { PortalAccessSection } from '../components/portal-access-section';
 import { CustomFieldsCard } from '../components/custom-fields-card';
 import { generateCertificate, generateContract } from '../document-generator';
 import {
@@ -282,6 +283,13 @@ export function EmployeeDetailPage() {
 
       {/* Historial contractual y salarial */}
       <ContractsSection employeeId={emp.id} />
+
+      {/* Acceso al portal de autoservicio */}
+      <PortalAccessSection
+        employeeId={emp.id}
+        documentNumber={emp.documentNumber}
+        hasEmail={!!emp.email}
+      />
 
       {/* Vacaciones y ausencias */}
       <AbsencesSection employeeId={emp.id} />

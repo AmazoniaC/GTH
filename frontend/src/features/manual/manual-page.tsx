@@ -100,8 +100,13 @@ export function ManualPage() {
               'Grupo familiar / beneficiarios.',
               'Historial de contratos y de cambios salariales.',
               'Consentimiento de tratamiento de datos (Habeas Data, Ley 1581).',
+              'Acceso al portal: crea la cuenta de autoservicio del empleado (contraseña inicial = número de documento) y puedes activarla o inhabilitarla en cualquier momento.',
             ]}
           />
+          <Note>
+            Para dar acceso a varios a la vez, usa el botón “Accesos al portal” en la lista de
+            empleados (creación masiva). Solo aplica a empleados con correo registrado.
+          </Note>
           <SubTitle>Importar empleados masivamente</SubTitle>
           <Steps
             items={[

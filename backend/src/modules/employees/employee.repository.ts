@@ -124,9 +124,11 @@ export class EmployeeRepository {
         firstName: true,
         lastName: true,
         documentNumber: true,
+        email: true,
         photoUrl: true,
         status: true,
         position: { select: { title: true } },
+        user: { select: { id: true, isActive: true } },
       },
       orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
     });
