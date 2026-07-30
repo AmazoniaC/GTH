@@ -119,3 +119,36 @@
     @apply bg-card/80 backdrop-blur-lg;
   }
 }
+
+/* Impresión: libera las restricciones de scroll del layout para que el
+   contenido (manual, desprendible, etc.) fluya en varias páginas. */
+@media print {
+  /* Fuerza una paleta clara y legible al imprimir, incluso en modo oscuro. */
+  :root,
+  .dark {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 40%;
+    --border: 214 32% 88%;
+    --sidebar: 222 47% 11%;
+  }
+
+  html,
+  body,
+  #root {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  /* Evita cortar tarjetas/tablas a la mitad entre páginas cuando es posible. */
+  table {
+    break-inside: auto;
+  }
+  tr {
+    break-inside: avoid;
+  }
+}
