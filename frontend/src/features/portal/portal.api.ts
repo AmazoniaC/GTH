@@ -57,6 +57,75 @@ export function useMyVacationBalance() {
   });
 }
 
+export function useRequestAbsence() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: {
+      type: string;
+      startDate: string;
+      endDate: string;
+      reason?: string;
+      notes?: string;
+    }) => {
+      const { data } = await api.post('/me/absence-requests', payload);
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['portal'] }),
+  });
+}
+
+export function useCancelMyRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/me/absence-requests/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['portal'] }),
+  });
+}
+
+export function useIsManager() {
+  return useQuery({
+    queryKey: ['portal', 'is-manager'],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: { isManager: boolean } }>('/me/is-manager');
+      return data.data.isManager;
+    },
+    retry: false,
+  });
+}
+
+export function useTeamApprovals(enabled: boolean) {
+  return useQuery({
+    queryKey: ['portal', 'team-approvals'],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: Absence[] }>('/me/team/approvals');
+      return data.data;
+    },
+    enabled,
+    retry: false,
+  });
+}
+
+export function useReviewTeamRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      decision,
+      note,
+    }: {
+      id: string;
+      decision: 'APPROVE' | 'REJECT';
+      note?: string;
+    }) => {
+      const { data } = await api.patch(`/me/team/approvals/${id}/review`, { decision, note });
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['portal'] }),
+  });
+}
+
 export function useUpdateMyContact() {
   const qc = useQueryClient();
   return useMutation({

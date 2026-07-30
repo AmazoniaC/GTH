@@ -1,6 +1,6 @@
 import { Prisma, AbsenceStatus } from '@prisma/client';
 import { prisma } from '../../config/prisma';
-import { AppError, NotFoundError } from '../../core/errors/AppError';
+import { AppError, ForbiddenError, NotFoundError } from '../../core/errors/AppError';
 import { auditService, Actor } from '../audit/audit.service';
 import {
   countBusinessDays,
@@ -21,6 +21,10 @@ const EFFECTIVE_STATUSES: AbsenceStatus[] = [
   AbsenceStatus.IN_PROGRESS,
   AbsenceStatus.COMPLETED,
 ];
+
+// Estados que bloquean una nueva solicitud sobre las mismas fechas (incluye
+// las pendientes, para evitar solicitudes duplicadas).
+const BLOCKING_STATUSES: AbsenceStatus[] = [...EFFECTIVE_STATUSES, AbsenceStatus.PENDING];
 
 const employeeSelect = {
   select: { id: true, firstName: true, lastName: true, documentNumber: true, photoUrl: true },
@@ -269,6 +273,165 @@ export class AbsenceService {
       entityLabel: `${employee.firstName} ${employee.lastName} · ${input.days > 0 ? '+' : ''}${input.days} días`,
     });
     return this.vacationBalance(input.employeeId, organizationId);
+  }
+
+  // ============================ Solicitudes ==============================
+
+  private async employeeByUser(userId: string, organizationId: string) {
+    const employee = await prisma.employee.findFirst({
+      where: { userId, organizationId },
+      select: { id: true, firstName: true, lastName: true },
+    });
+    if (!employee) {
+      throw new AppError('Tu usuario no está vinculado a un empleado.', 404);
+    }
+    return employee;
+  }
+
+  /** Un empleado solicita una ausencia (queda PENDIENTE de aprobación). */
+  async createRequest(
+    organizationId: string,
+    userId: string,
+    input: { type: string; startDate: Date; endDate: Date; reason?: string | null; notes?: string | null },
+  ) {
+    const employee = await this.employeeByUser(userId, organizationId);
+    const days = this.computeDays(input.type, input.startDate, input.endDate);
+    if (days <= 0) throw new AppError('El rango de fechas no genera días de ausencia.', 422);
+
+    // Evita solicitudes que se crucen con otras vigentes o pendientes.
+    const overlap = await prisma.absence.findFirst({
+      where: {
+        employeeId: employee.id,
+        status: { in: BLOCKING_STATUSES },
+        startDate: { lte: input.endDate },
+        endDate: { gte: input.startDate },
+      },
+      select: { id: true },
+    });
+    if (overlap) {
+      throw new AppError('Ya tienes una ausencia o solicitud que se cruza con esas fechas.', 409);
+    }
+
+    const created = await prisma.absence.create({
+      data: {
+        organizationId,
+        employeeId: employee.id,
+        type: input.type,
+        status: AbsenceStatus.PENDING,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        days: new Prisma.Decimal(days),
+        reason: input.reason ?? null,
+        notes: input.notes ?? null,
+        affectsPayroll: absenceAffectsPayroll(input.type),
+        requestedByUserId: userId,
+      },
+      include: { employee: employeeSelect },
+    });
+    await auditService.record({
+      organizationId,
+      actor: { userId, userName: `${employee.firstName} ${employee.lastName}` },
+      action: 'CREATE',
+      entity: 'AbsenceRequest',
+      entityId: created.id,
+      entityLabel: `${employee.firstName} ${employee.lastName} · ${getAbsenceRule(input.type).label}`,
+    });
+    return created;
+  }
+
+  /** El empleado cancela su propia solicitud pendiente. */
+  async cancelRequest(id: string, organizationId: string, userId: string) {
+    const absence = await this.getById(id, organizationId);
+    if (absence.requestedByUserId !== userId) {
+      throw new ForbiddenError('Solo puedes cancelar tus propias solicitudes.');
+    }
+    if (absence.status !== AbsenceStatus.PENDING) {
+      throw new AppError('Solo se pueden cancelar solicitudes pendientes.', 409);
+    }
+    return prisma.absence.update({
+      where: { id },
+      data: { status: AbsenceStatus.CANCELLED },
+      include: { employee: employeeSelect },
+    });
+  }
+
+  /**
+   * Lista las solicitudes pendientes que un usuario puede aprobar.
+   * `all` = true para RRHH/Admin (todas); en caso contrario, solo las del
+   * equipo a cargo del usuario (jefe directo).
+   */
+  async listApprovals(organizationId: string, reviewerUserId: string, all: boolean) {
+    const where: Prisma.AbsenceWhereInput = { organizationId, status: AbsenceStatus.PENDING };
+    if (!all) {
+      const reviewer = await prisma.employee.findFirst({
+        where: { userId: reviewerUserId, organizationId },
+        select: { id: true },
+      });
+      if (!reviewer) return [];
+      where.employee = { managerId: reviewer.id };
+    }
+    return prisma.absence.findMany({
+      where,
+      include: { employee: employeeSelect },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  /** Aprueba o rechaza una solicitud pendiente. */
+  async review(
+    id: string,
+    organizationId: string,
+    opts: { reviewerUserId: string; canApproveAll: boolean; decision: 'APPROVE' | 'REJECT'; note?: string | null },
+  ) {
+    const absence = await prisma.absence.findFirst({
+      where: { id, organizationId },
+      include: { employee: { select: { managerId: true, firstName: true, lastName: true } } },
+    });
+    if (!absence) throw new NotFoundError('Solicitud');
+    if (absence.status !== AbsenceStatus.PENDING) {
+      throw new AppError('La solicitud ya fue procesada.', 409);
+    }
+
+    // Autorización: RRHH/Admin o el jefe directo del solicitante.
+    if (!opts.canApproveAll) {
+      const reviewer = await prisma.employee.findFirst({
+        where: { userId: opts.reviewerUserId, organizationId },
+        select: { id: true },
+      });
+      if (!reviewer || absence.employee.managerId !== reviewer.id) {
+        throw new ForbiddenError('No puedes aprobar solicitudes de este empleado.');
+      }
+    }
+
+    const approve = opts.decision === 'APPROVE';
+    if (approve) {
+      await this.assertNoOverlap(absence.employeeId, absence.startDate, absence.endDate, id);
+    }
+
+    const updated = await prisma.absence.update({
+      where: { id },
+      data: {
+        status: approve ? AbsenceStatus.APPROVED : AbsenceStatus.REJECTED,
+        reviewedByUserId: opts.reviewerUserId,
+        reviewedAt: new Date(),
+        reviewNote: opts.note ?? null,
+      },
+      include: { employee: employeeSelect },
+    });
+    await auditService.record({
+      organizationId,
+      actor: { userId: opts.reviewerUserId, userName: opts.reviewerUserId },
+      action: 'UPDATE',
+      entity: 'AbsenceRequest',
+      entityId: id,
+      entityLabel: `${absence.employee.firstName} ${absence.employee.lastName} · ${approve ? 'Aprobada' : 'Rechazada'}`,
+    });
+    return updated;
+  }
+
+  /** Cuenta las solicitudes pendientes (para insignias en la UI). */
+  async pendingCount(organizationId: string) {
+    return prisma.absence.count({ where: { organizationId, status: AbsenceStatus.PENDING } });
   }
 
   /** Resumen para tableros: días por grupo en un rango, y por estado. */

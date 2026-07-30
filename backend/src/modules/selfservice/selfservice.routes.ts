@@ -4,7 +4,8 @@ import { selfServiceService } from './selfservice.service';
 import { authenticate } from '../../core/middlewares/auth.middleware';
 import { validate } from '../../core/middlewares/validate.middleware';
 import { asyncHandler } from '../../core/utils/asyncHandler';
-import { ok } from '../../core/utils/apiResponse';
+import { ok, created } from '../../core/utils/apiResponse';
+import { createRequestSchema, reviewSchema } from '../absences/absence.schema';
 
 const router = Router();
 router.use(authenticate);
@@ -41,6 +42,45 @@ router.get('/absences', asyncHandler(async (req, res) =>
 ));
 router.get('/vacation-balance', asyncHandler(async (req, res) =>
   ok(res, await selfServiceService.getVacationBalance(req.auth!.sub)),
+));
+
+// Solicitudes de ausencia (autoservicio del empleado).
+router.post(
+  '/absence-requests',
+  validate(createRequestSchema),
+  asyncHandler(async (req, res) =>
+    created(
+      res,
+      await selfServiceService.requestAbsence(req.auth!.sub, req.auth!.organizationId, req.body),
+    ),
+  ),
+);
+router.delete('/absence-requests/:id', asyncHandler(async (req, res) =>
+  ok(res, await selfServiceService.cancelAbsenceRequest(req.auth!.sub, req.auth!.organizationId, req.params.id)),
+));
+
+// Aprobaciones del jefe directo (equipo a cargo).
+router.get('/team/approvals', asyncHandler(async (req, res) =>
+  ok(res, await selfServiceService.teamApprovals(req.auth!.sub, req.auth!.organizationId)),
+));
+router.patch(
+  '/team/approvals/:id/review',
+  validate(reviewSchema),
+  asyncHandler(async (req, res) =>
+    ok(
+      res,
+      await selfServiceService.reviewTeamRequest(
+        req.auth!.sub,
+        req.auth!.organizationId,
+        req.params.id,
+        req.body.decision,
+        req.body.note,
+      ),
+    ),
+  ),
+);
+router.get('/is-manager', asyncHandler(async (req, res) =>
+  ok(res, { isManager: await selfServiceService.isManager(req.auth!.sub) }),
 ));
 
 export const selfServiceRoutes = router;

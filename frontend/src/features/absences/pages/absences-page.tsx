@@ -45,6 +45,9 @@ import {
   useUpdateAbsence,
   useVacationBalance,
   useAddVacationAdjustment,
+  useAbsenceApprovals,
+  useReviewAbsence,
+  usePendingCount,
 } from '../absence.api';
 import { AbsenceFormDialog } from '../absence-form-dialog';
 import { GROUP_LABEL, STATUS_META, STATUS_OPTIONS, metaFor } from '../absence-meta';
@@ -54,6 +57,7 @@ import type { Absence, AbsenceStatus } from '@/types';
 
 export function AbsencesPage() {
   const [tab, setTab] = useState('list');
+  const { data: pending } = usePendingCount();
   return (
     <div>
       <PageHeader
@@ -63,16 +67,115 @@ export function AbsencesPage() {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="list">Ausencias</TabsTrigger>
+          <TabsTrigger value="approvals">
+            Solicitudes
+            {!!pending && (
+              <span className="ml-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
+                {pending}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="balances">Saldos de vacaciones</TabsTrigger>
         </TabsList>
         <TabsContent value="list">
           <AbsenceList />
+        </TabsContent>
+        <TabsContent value="approvals">
+          <ApprovalsTab />
         </TabsContent>
         <TabsContent value="balances">
           <VacationBalances />
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function ApprovalsTab() {
+  const { data: types } = useOptions('ABSENCE_TYPE');
+  const { data: approvals, isLoading } = useAbsenceApprovals();
+  const review = useReviewAbsence();
+  const typeLabel = useMemo(
+    () => Object.fromEntries((types ?? []).map((t) => [t.code, t.label])),
+    [types],
+  );
+
+  const decide = (id: string, decision: 'APPROVE' | 'REJECT') => {
+    let note: string | undefined;
+    if (decision === 'REJECT') {
+      note = window.prompt('Motivo del rechazo (opcional):') ?? undefined;
+    }
+    review.mutate(
+      { id, decision, note },
+      {
+        onSuccess: () => toast.success(decision === 'APPROVE' ? 'Solicitud aprobada.' : 'Solicitud rechazada.'),
+        onError: (e) => toast.error(getErrorMessage(e)),
+      },
+    );
+  };
+
+  return (
+    <Card className="mt-4">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Empleado</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead>Periodo</TableHead>
+            <TableHead>Días</TableHead>
+            <TableHead>Motivo</TableHead>
+            <TableHead className="text-right">Decisión</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {approvals?.map((a) => (
+            <TableRow key={a.id}>
+              <TableCell>
+                <p className="font-medium">
+                  {a.employee?.firstName} {a.employee?.lastName}
+                </p>
+                <p className="text-xs text-muted-foreground">{a.employee?.documentNumber}</p>
+              </TableCell>
+              <TableCell className="text-sm">{typeLabel[a.type] ?? a.type}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">
+                {formatDate(a.startDate)} → {formatDate(a.endDate)}
+              </TableCell>
+              <TableCell>{Number(a.days)}</TableCell>
+              <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+                {a.reason || '—'}
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  <Button
+                    size="sm"
+                    variant="success"
+                    onClick={() => decide(a.id, 'APPROVE')}
+                    disabled={review.isPending}
+                  >
+                    Aprobar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => decide(a.id, 'REJECT')}
+                    disabled={review.isPending}
+                  >
+                    Rechazar
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+          {!isLoading && approvals?.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                No hay solicitudes pendientes.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </Card>
   );
 }
 

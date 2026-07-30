@@ -39,6 +39,7 @@ export const GROUP_LABEL: Record<AbsenceGroup, string> = {
 };
 
 export const STATUS_META: Record<AbsenceStatus, { label: string; variant: string }> = {
+  PENDING: { label: 'Pendiente', variant: 'default' },
   APPROVED: { label: 'Aprobada', variant: 'success' },
   IN_PROGRESS: { label: 'En disfrute', variant: 'default' },
   COMPLETED: { label: 'Disfrutada', variant: 'secondary' },
@@ -47,6 +48,7 @@ export const STATUS_META: Record<AbsenceStatus, { label: string; variant: string
 };
 
 export const STATUS_OPTIONS: AbsenceStatus[] = [
+  'PENDING',
   'APPROVED',
   'IN_PROGRESS',
   'COMPLETED',

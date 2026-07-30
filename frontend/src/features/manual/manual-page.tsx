@@ -236,6 +236,15 @@ export function ManualPage() {
             datos personales, sus desprendibles de nómina y sus ausencias, sin acceso al resto de la
             plataforma.
           </p>
+          <SubTitle>Solicitudes y aprobaciones</SubTitle>
+          <Bullets
+            items={[
+              'El empleado solicita vacaciones o permisos con el botón “Solicitar”; la solicitud queda pendiente y puede cancelarla mientras no se apruebe.',
+              'El jefe directo ve “Solicitudes de mi equipo” en su portal y puede aprobar o rechazar.',
+              'RRHH/Admin también aprueba o rechaza desde Ausencias → pestaña “Solicitudes”.',
+              'Al aprobarse, la solicitud se convierte en una ausencia efectiva (afecta saldo y nómina).',
+            ]}
+          />
         </Section>
 
         <Section id="plataforma" title="13. Panel de Plataforma (administrador de la plataforma)">

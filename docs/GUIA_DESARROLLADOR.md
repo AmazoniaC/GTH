@@ -322,6 +322,20 @@ hábiles/mes** desde el ingreso, más ajustes manuales, menos vacaciones tomadas
 `/absences/adjustments`. Protegido por `requireModule('EMPLOYEES')` y rol de
 RRHH/Admin.
 
+### 7.6 Solicitudes y aprobaciones (autoservicio)
+El estado `PENDING` del enum `AbsenceStatus` modela las solicitudes. Flujo:
+- El empleado solicita desde su portal (`POST /me/absence-requests`), puede
+  cancelar la pendiente (`DELETE /me/absence-requests/:id`) y, si es jefe, ver
+  y resolver las de su equipo (`GET /me/team/approvals`,
+  `PATCH /me/team/approvals/:id/review`).
+- RRHH/Admin resuelve todas desde `GET /absences/approvals` y
+  `PATCH /absences/:id/review` (más `GET /absences/pending-count` para la
+  insignia).
+- `absence.service.review` autoriza (RRHH/Admin o jefe directo del solicitante),
+  revalida solapamiento al aprobar y registra al aprobador. Los estados
+  `PENDING`/`REJECTED`/`CANCELLED` no cuentan en saldo ni en nómina (solo los
+  de `EFFECTIVE_STATUSES`).
+
 ---
 
 ## 8. Frontend por partes

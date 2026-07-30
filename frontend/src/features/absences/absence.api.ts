@@ -79,6 +79,48 @@ export function useDeleteAbsence() {
   });
 }
 
+/** Solicitudes pendientes de aprobación (RRHH/Admin: toda la empresa). */
+export function useAbsenceApprovals() {
+  return useQuery({
+    queryKey: ['absences', 'approvals'],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: Absence[] }>('/absences/approvals');
+      return data.data;
+    },
+  });
+}
+
+/** Conteo de solicitudes pendientes (para insignias). */
+export function usePendingCount() {
+  return useQuery({
+    queryKey: ['absences', 'pending-count'],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: { pending: number } }>('/absences/pending-count');
+      return data.data.pending;
+    },
+  });
+}
+
+/** Aprueba o rechaza una solicitud (RRHH/Admin). */
+export function useReviewAbsence() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      decision,
+      note,
+    }: {
+      id: string;
+      decision: 'APPROVE' | 'REJECT';
+      note?: string;
+    }) => {
+      const { data } = await api.patch(`/absences/${id}/review`, { decision, note });
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['absences'] }),
+  });
+}
+
 export function useAddVacationAdjustment() {
   const qc = useQueryClient();
   return useMutation({

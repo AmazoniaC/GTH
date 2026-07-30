@@ -128,6 +128,7 @@ export interface Dependent {
 }
 
 export type AbsenceStatus =
+  | 'PENDING'
   | 'APPROVED'
   | 'REJECTED'
   | 'CANCELLED'

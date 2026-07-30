@@ -384,6 +384,7 @@ model Dependent {
 // ==================================================================
 
 enum AbsenceStatus {
+  PENDING // Solicitada (pendiente de aprobación)
   APPROVED // Aprobada
   REJECTED // Rechazada
   CANCELLED // Cancelada
@@ -415,6 +416,12 @@ model Absence {
 
   // Reflejo en nómina (denormalizado para reportes y trazabilidad)
   affectsPayroll Boolean  @default(false)
+
+  // Flujo de solicitud/aprobación (autoservicio)
+  requestedByUserId String? // Usuario que creó la solicitud (empleado)
+  reviewedByUserId  String? // Usuario que aprobó/rechazó (jefe o RRHH)
+  reviewedAt        DateTime?
+  reviewNote        String? // Comentario del aprobador (motivo del rechazo, etc.)
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

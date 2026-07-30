@@ -11,6 +11,7 @@ import {
   createAdjustmentSchema,
   idParamSchema,
   listAbsencesSchema,
+  reviewSchema,
   updateAbsenceSchema,
 } from './absence.schema';
 
@@ -22,6 +23,16 @@ router.use(requireModule('EMPLOYEES'));
 const managers = [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.SUPER_ADMIN];
 
 router.get('/', validate(listAbsencesSchema), asyncHandler(absenceController.list));
+
+// Aprobaciones (RRHH/Admin): solicitudes pendientes de toda la empresa.
+router.get('/approvals', authorize(...managers), asyncHandler(absenceController.approvals));
+router.get('/pending-count', authorize(...managers), asyncHandler(absenceController.pendingCount));
+router.patch(
+  '/:id/review',
+  authorize(...managers),
+  validate(reviewSchema),
+  asyncHandler(absenceController.review),
+);
 
 router.get(
   '/employees/:employeeId/balance',
