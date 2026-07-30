@@ -23,6 +23,24 @@ router.get('/', validate(listEmployeesSchema), asyncHandler(employeeController.l
 router.get('/select', asyncHandler(employeeController.selectList));
 router.get('/org-chart', asyncHandler(employeeController.orgChart));
 router.get('/export', asyncHandler(employeeController.exportAll));
+
+// Acceso al portal del empleado (crea/gestiona su cuenta de inicio de sesión).
+router.post(
+  '/portal-access/bulk',
+  authorize(...managers),
+  asyncHandler(employeeController.bulkPortalAccess),
+);
+router.get('/:id/portal-access', asyncHandler(employeeController.getPortalAccess));
+router.post(
+  '/:id/portal-access',
+  authorize(...managers),
+  asyncHandler(employeeController.createPortalAccess),
+);
+router.patch(
+  '/:id/portal-access',
+  authorize(...managers),
+  asyncHandler(employeeController.setPortalActive),
+);
 router.get('/by-document/:documentNumber', asyncHandler(employeeController.getByDocument));
 router.get('/:id', validate(idParamSchema), asyncHandler(employeeController.getById));
 router.post(

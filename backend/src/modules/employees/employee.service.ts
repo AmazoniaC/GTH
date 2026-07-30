@@ -1,8 +1,9 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { employeeRepository, EmployeeRepository } from './employee.repository';
 import { AppError, ConflictError, NotFoundError } from '../../core/errors/AppError';
 import { auditService, Actor } from '../audit/audit.service';
+import { hashPassword } from '../../core/utils/password';
 import type {
   CreateEmployeeInput,
   ListEmployeesQuery,
@@ -231,6 +232,136 @@ export class EmployeeService {
 
   selectList(organizationId: string) {
     return this.repo.selectList(organizationId);
+  }
+
+  // ===================== Acceso al portal del empleado =====================
+
+  /** Estado de acceso al portal de un empleado. */
+  async getPortalAccess(employeeId: string, organizationId: string) {
+    const emp = await prisma.employee.findFirst({
+      where: { id: employeeId, organizationId },
+      select: { email: true, userId: true, user: { select: { email: true, isActive: true } } },
+    });
+    if (!emp) throw new NotFoundError('Empleado');
+    return {
+      hasAccess: !!emp.userId,
+      email: emp.user?.email ?? emp.email ?? null,
+      isActive: emp.user?.isActive ?? false,
+    };
+  }
+
+  /**
+   * Crea la cuenta de acceso al portal (rol Empleado) para un empleado.
+   * La contraseña inicial es el número de documento. Requiere correo.
+   */
+  private async provisionAccess(emp: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    documentNumber: string;
+    userId: string | null;
+  }, organizationId: string) {
+    if (emp.userId) throw new ConflictError('El empleado ya tiene acceso al portal.');
+    if (!emp.email?.trim()) {
+      throw new AppError('El empleado no tiene correo; agrégalo para crear su acceso.', 422);
+    }
+    const email = emp.email.trim().toLowerCase();
+    const taken = await prisma.user.findUnique({ where: { email } });
+    if (taken) throw new ConflictError('Ya existe un usuario con ese correo.');
+
+    const password = await hashPassword(emp.documentNumber);
+    const user = await prisma.user.create({
+      data: {
+        organizationId,
+        email,
+        password,
+        firstName: emp.firstName,
+        lastName: emp.lastName,
+        role: UserRole.EMPLOYEE,
+      },
+    });
+    await prisma.employee.update({ where: { id: emp.id }, data: { userId: user.id } });
+    return user;
+  }
+
+  async createPortalAccess(employeeId: string, organizationId: string, actor?: Actor) {
+    const emp = await prisma.employee.findFirst({
+      where: { id: employeeId, organizationId },
+      select: { id: true, firstName: true, lastName: true, email: true, documentNumber: true, userId: true },
+    });
+    if (!emp) throw new NotFoundError('Empleado');
+    const user = await this.provisionAccess(emp, organizationId);
+    await auditService.record({
+      organizationId,
+      actor,
+      action: 'CREATE',
+      entity: 'User',
+      entityId: user.id,
+      entityLabel: `Acceso al portal · ${emp.firstName} ${emp.lastName}`,
+    });
+    return { hasAccess: true, email: user.email, isActive: user.isActive };
+  }
+
+  /** Activa o inhabilita el acceso al portal (bloquea el inicio de sesión). */
+  async setPortalActive(employeeId: string, organizationId: string, isActive: boolean, actor?: Actor) {
+    const emp = await prisma.employee.findFirst({
+      where: { id: employeeId, organizationId },
+      select: { userId: true, firstName: true, lastName: true },
+    });
+    if (!emp) throw new NotFoundError('Empleado');
+    if (!emp.userId) throw new AppError('El empleado no tiene acceso al portal.', 422);
+    const user = await prisma.user.update({ where: { id: emp.userId }, data: { isActive } });
+    await auditService.record({
+      organizationId,
+      actor,
+      action: 'UPDATE',
+      entity: 'User',
+      entityId: user.id,
+      entityLabel: `Portal ${isActive ? 'activado' : 'inhabilitado'} · ${emp.firstName} ${emp.lastName}`,
+    });
+    return { hasAccess: true, email: user.email, isActive: user.isActive };
+  }
+
+  /** Crea accesos al portal para varios empleados a la vez. */
+  async bulkPortalAccess(organizationId: string, employeeIds: string[], actor?: Actor) {
+    const result = {
+      created: 0,
+      skipped: 0,
+      errors: [] as { name?: string; documentNumber?: string; message: string }[],
+    };
+    for (const id of employeeIds) {
+      const emp = await prisma.employee.findFirst({
+        where: { id, organizationId },
+        select: { id: true, firstName: true, lastName: true, email: true, documentNumber: true, userId: true },
+      });
+      if (!emp) {
+        result.errors.push({ message: 'Empleado no encontrado.' });
+        continue;
+      }
+      if (emp.userId) {
+        result.skipped += 1;
+        continue;
+      }
+      try {
+        await this.provisionAccess(emp, organizationId);
+        result.created += 1;
+      } catch (e) {
+        result.errors.push({
+          name: `${emp.firstName} ${emp.lastName}`,
+          documentNumber: emp.documentNumber,
+          message: e instanceof AppError ? e.message : 'No se pudo crear el acceso.',
+        });
+      }
+    }
+    await auditService.record({
+      organizationId,
+      actor,
+      action: 'CREATE',
+      entity: 'User',
+      entityLabel: `Accesos al portal (masivo): ${result.created} creados, ${result.skipped} omitidos`,
+    });
+    return result;
   }
 
   orgChart(organizationId: string) {

@@ -18,9 +18,77 @@ export interface EmployeeOption {
   firstName: string;
   lastName: string;
   documentNumber: string;
+  email?: string | null;
   photoUrl?: string | null;
   status: string;
   position?: { title: string } | null;
+  user?: { id: string; isActive: boolean } | null;
+}
+
+export interface PortalAccess {
+  hasAccess: boolean;
+  email: string | null;
+  isActive: boolean;
+}
+
+/** Estado de acceso al portal de un empleado. */
+export function usePortalAccess(employeeId: string) {
+  return useQuery({
+    queryKey: ['portal-access', employeeId],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: PortalAccess }>(`/employees/${employeeId}/portal-access`);
+      return data.data;
+    },
+    enabled: !!employeeId,
+  });
+}
+
+/** Crea el acceso al portal (contraseña = número de documento). */
+export function useCreatePortalAccess(employeeId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post(`/employees/${employeeId}/portal-access`);
+      return data.data as PortalAccess;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['portal-access', employeeId] });
+      qc.invalidateQueries({ queryKey: ['employees'] });
+    },
+  });
+}
+
+/** Activa o inhabilita el acceso al portal. */
+export function useSetPortalActive(employeeId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (isActive: boolean) => {
+      const { data } = await api.patch(`/employees/${employeeId}/portal-access`, { isActive });
+      return data.data as PortalAccess;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['portal-access', employeeId] });
+      qc.invalidateQueries({ queryKey: ['employees'] });
+    },
+  });
+}
+
+export interface BulkPortalResult {
+  created: number;
+  skipped: number;
+  errors: { name?: string; documentNumber?: string; message: string }[];
+}
+
+/** Crea accesos al portal para varios empleados. */
+export function useBulkPortalAccess() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (employeeIds: string[]) => {
+      const { data } = await api.post('/employees/portal-access/bulk', { employeeIds });
+      return data.data as BulkPortalResult;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['employees'] }),
+  });
 }
 
 /** Lista completa de empleados para selectores (registro de ausencias, etc.). */

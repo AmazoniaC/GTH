@@ -64,6 +64,35 @@ export class EmployeeController {
     return ok(res, data);
   };
 
+  getPortalAccess = async (req: Request, res: Response) => {
+    const data = await employeeService.getPortalAccess(req.params.id, req.auth!.organizationId);
+    return ok(res, data);
+  };
+
+  createPortalAccess = async (req: Request, res: Response) => {
+    const actor = { userId: req.auth!.sub, userName: req.auth!.email };
+    const data = await employeeService.createPortalAccess(req.params.id, req.auth!.organizationId, actor);
+    return ok(res, data);
+  };
+
+  setPortalActive = async (req: Request, res: Response) => {
+    const actor = { userId: req.auth!.sub, userName: req.auth!.email };
+    const data = await employeeService.setPortalActive(
+      req.params.id,
+      req.auth!.organizationId,
+      Boolean(req.body?.isActive),
+      actor,
+    );
+    return ok(res, data);
+  };
+
+  bulkPortalAccess = async (req: Request, res: Response) => {
+    const actor = { userId: req.auth!.sub, userName: req.auth!.email };
+    const ids: string[] = Array.isArray(req.body?.employeeIds) ? req.body.employeeIds : [];
+    const data = await employeeService.bulkPortalAccess(req.auth!.organizationId, ids, actor);
+    return ok(res, data);
+  };
+
   exportAll = async (req: Request, res: Response) => {
     const data = await employeeService.exportAll(req.auth!.organizationId);
     return ok(res, data);

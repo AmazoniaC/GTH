@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, FileSpreadsheet, FileText, Loader2, Plus, Search, Users } from 'lucide-react';
+import { Download, FileSpreadsheet, FileText, KeyRound, Loader2, Plus, Search, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { exportEmployeesCsv, exportEmployeesPdf } from '../export';
 import { ImportDialog } from '../components/import-dialog';
+import { BulkPortalDialog } from '../components/bulk-portal-dialog';
 import { useDepartments, usePositions } from '../employees.api';
 import { usePermissions } from '@/features/auth/use-permissions';
 import { getErrorMessage } from '@/lib/api';
@@ -49,6 +50,7 @@ export function EmployeesPage() {
   const [positionId, setPositionId] = useState<string>('ALL');
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [bulkPortalOpen, setBulkPortalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const { canManageEmployees } = usePermissions();
   const { data: departments } = useDepartments();
@@ -102,6 +104,11 @@ export function EmployeesPage() {
         {canManageEmployees && (
           <Button variant="outline" onClick={() => setImportOpen(true)}>
             <Upload className="h-4 w-4" /> Importar
+          </Button>
+        )}
+        {canManageEmployees && (
+          <Button variant="outline" onClick={() => setBulkPortalOpen(true)}>
+            <KeyRound className="h-4 w-4" /> Accesos al portal
           </Button>
         )}
         <Button onClick={() => setFormOpen(true)}>
@@ -288,6 +295,7 @@ export function EmployeesPage() {
 
       <EmployeeForm open={formOpen} onOpenChange={setFormOpen} />
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
+      <BulkPortalDialog open={bulkPortalOpen} onOpenChange={setBulkPortalOpen} />
     </div>
   );
 }

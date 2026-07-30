@@ -187,6 +187,13 @@ Núcleo del talento humano. `employee.service.create` valida documento único y
 el **límite de empleados** de la empresa. Registra auditoría. Identificador
 visible = número de documento (cédula).
 
+**Acceso al portal**: `GET/POST/PATCH /employees/:id/portal-access` y
+`POST /employees/portal-access/bulk` crean/gestionan la cuenta de autoservicio
+del empleado (rol `EMPLOYEE`, enlazada por `Employee.userId`, contraseña
+inicial = número de documento). El toggle `isActive` del usuario habilita o
+bloquea el inicio de sesión (el login ya rechaza usuarios inactivos).
+`GET /employees/select` incluye el estado de acceso para la creación masiva.
+
 ### 5.5 `payroll`
 Motor de nómina colombiano. Ver sección 6.
 
