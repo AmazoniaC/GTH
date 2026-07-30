@@ -55,12 +55,12 @@ export function MainLayout() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-background print:block print:h-auto print:overflow-visible">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden print:overflow-visible">
         {impersonation && (
-          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-500 px-4 py-2 text-center text-sm font-medium text-amber-950">
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-500 px-4 py-2 text-center text-sm font-medium text-amber-950 print:hidden">
             <span className="inline-flex items-center gap-1.5">
               <LifeBuoy className="h-4 w-4" />
               Modo soporte: estás dentro de <strong>{impersonation.organizationName}</strong>
@@ -74,9 +74,11 @@ export function MainLayout() {
             </button>
           </div>
         )}
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8 animate-fade-in">
+        <div className="print:hidden">
+          <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        </div>
+        <main className="flex-1 overflow-y-auto print:overflow-visible print:h-auto">
+          <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-8 animate-fade-in print:max-w-none print:p-0">
             <Outlet />
           </div>
         </main>
