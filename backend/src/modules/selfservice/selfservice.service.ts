@@ -73,6 +73,47 @@ export class SelfServiceService {
     return absenceService.vacationBalance(emp.id, emp.organizationId);
   }
 
+  /** El empleado solicita una ausencia (queda pendiente de aprobación). */
+  requestAbsence(
+    userId: string,
+    organizationId: string,
+    input: { type: string; startDate: Date; endDate: Date; reason?: string | null; notes?: string | null },
+  ) {
+    return absenceService.createRequest(organizationId, userId, input);
+  }
+
+  cancelAbsenceRequest(userId: string, organizationId: string, id: string) {
+    return absenceService.cancelRequest(id, organizationId, userId);
+  }
+
+  /** Solicitudes pendientes del equipo a cargo (si el empleado es jefe). */
+  teamApprovals(userId: string, organizationId: string) {
+    return absenceService.listApprovals(organizationId, userId, false);
+  }
+
+  reviewTeamRequest(
+    userId: string,
+    organizationId: string,
+    id: string,
+    decision: 'APPROVE' | 'REJECT',
+    note?: string | null,
+  ) {
+    return absenceService.review(id, organizationId, {
+      reviewerUserId: userId,
+      canApproveAll: false,
+      decision,
+      note,
+    });
+  }
+
+  /** Indica si el empleado tiene personas a cargo (para mostrar aprobaciones). */
+  async isManager(userId: string) {
+    const emp = await prisma.employee.findFirst({ where: { userId }, select: { id: true } });
+    if (!emp) return false;
+    const reports = await prisma.employee.count({ where: { managerId: emp.id } });
+    return reports > 0;
+  }
+
   async getDocumentContent(userId: string, documentId: string) {
     const emp = await this.myEmployee(userId);
     const doc = await prisma.employeeDocument.findFirst({

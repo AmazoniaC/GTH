@@ -37,7 +37,12 @@ import {
   useMyProfile,
   useMyVacationBalance,
   useUpdateMyContact,
+  useCancelMyRequest,
+  useIsManager,
+  useTeamApprovals,
+  useReviewTeamRequest,
 } from './portal.api';
+import { AbsenceRequestDialog } from './absence-request-dialog';
 import { useOptions } from '@/features/catalog/catalog.api';
 import { STATUS_META } from '@/features/absences/absence-meta';
 import { useAuthStore } from '@/features/auth/auth.store';
@@ -54,7 +59,12 @@ export function PortalPage() {
   const { data: vacationBalance } = useMyVacationBalance();
   const { data: absenceTypes } = useOptions('ABSENCE_TYPE');
   const updateContact = useUpdateMyContact();
+  const cancelRequest = useCancelMyRequest();
+  const { data: isManager } = useIsManager();
+  const { data: teamApprovals } = useTeamApprovals(!!isManager);
+  const reviewTeam = useReviewTeamRequest();
   const typeLabel = Object.fromEntries((absenceTypes ?? []).map((t) => [t.code, t.label]));
+  const [requestOpen, setRequestOpen] = useState(false);
 
   const [editOpen, setEditOpen] = useState(false);
   const [form, setForm] = useState({ email: '', phone: '', mobile: '', address: '', city: '' });
@@ -218,10 +228,13 @@ export function PortalPage() {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="flex items-center gap-2 text-base">
               <CalendarDays className="h-4 w-4 text-primary" /> Mis ausencias
             </CardTitle>
+            <Button size="sm" onClick={() => setRequestOpen(true)}>
+              Solicitar
+            </Button>
           </CardHeader>
           <CardContent className="space-y-2">
             {absences && absences.length > 0 ? (
@@ -238,7 +251,24 @@ export function PortalPage() {
                         {formatDate(a.startDate)} → {formatDate(a.endDate)} · {Number(a.days)} día(s)
                       </p>
                     </div>
-                    <Badge variant={st.variant as never}>{st.label}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={st.variant as never}>{st.label}</Badge>
+                      {a.status === 'PENDING' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-xs text-destructive"
+                          onClick={() =>
+                            cancelRequest.mutate(a.id, {
+                              onSuccess: () => toast.success('Solicitud cancelada.'),
+                              onError: (e) => toast.error(getErrorMessage(e)),
+                            })
+                          }
+                        >
+                          Cancelar
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 );
               })
@@ -248,6 +278,75 @@ export function PortalPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Aprobaciones del equipo (si el empleado es jefe) */}
+      {isManager && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <CalendarDays className="h-4 w-4 text-primary" /> Solicitudes de mi equipo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {teamApprovals && teamApprovals.length > 0 ? (
+              teamApprovals.map((a) => (
+                <div
+                  key={a.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 px-3 py-2"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {a.employee?.firstName} {a.employee?.lastName}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {typeLabel[a.type] ?? a.type} · {formatDate(a.startDate)} → {formatDate(a.endDate)} ·{' '}
+                      {Number(a.days)} día(s)
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="success"
+                      disabled={reviewTeam.isPending}
+                      onClick={() =>
+                        reviewTeam.mutate(
+                          { id: a.id, decision: 'APPROVE' },
+                          {
+                            onSuccess: () => toast.success('Solicitud aprobada.'),
+                            onError: (e) => toast.error(getErrorMessage(e)),
+                          },
+                        )
+                      }
+                    >
+                      Aprobar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={reviewTeam.isPending}
+                      onClick={() =>
+                        reviewTeam.mutate(
+                          { id: a.id, decision: 'REJECT', note: window.prompt('Motivo (opcional):') ?? undefined },
+                          {
+                            onSuccess: () => toast.success('Solicitud rechazada.'),
+                            onError: (e) => toast.error(getErrorMessage(e)),
+                          },
+                        )
+                      }
+                    >
+                      Rechazar
+                    </Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No hay solicitudes pendientes de tu equipo.</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <AbsenceRequestDialog open={requestOpen} onOpenChange={setRequestOpen} />
 
       {/* Desprendibles */}
       <Card>

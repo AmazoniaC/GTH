@@ -62,6 +62,31 @@ export const createAdjustmentSchema = z.object({
   }),
 });
 
+export const reviewSchema = z.object({
+  params: z.object({ id: z.string().cuid() }),
+  body: z.object({
+    decision: z.enum(['APPROVE', 'REJECT']),
+    note: z.string().optional().nullable(),
+  }),
+});
+
+export const createRequestSchema = z.object({
+  body: z
+    .object({
+      type: z.string().min(1, 'El tipo es obligatorio.'),
+      startDate: z.coerce.date(),
+      endDate: z.coerce.date(),
+      reason: z.string().optional().nullable(),
+      notes: z.string().optional().nullable(),
+    })
+    .refine((v) => v.endDate >= v.startDate, {
+      message: 'La fecha de fin no puede ser anterior a la de inicio.',
+      path: ['endDate'],
+    }),
+});
+
+export type ReviewInput = z.infer<typeof reviewSchema>['body'];
+export type CreateRequestInput = z.infer<typeof createRequestSchema>['body'];
 export type CreateAbsenceInput = z.infer<typeof createAbsenceSchema>['body'];
 export type UpdateAbsenceInput = z.infer<typeof updateAbsenceSchema>['body'];
 export type ListAbsencesQuery = z.infer<typeof listAbsencesSchema>['query'];

@@ -27,6 +27,23 @@ export class AbsenceController {
 
   addAdjustment = async (req: Request, res: Response) =>
     created(res, await absenceService.addAdjustment(orgOf(req), req.body, actorOf(req)));
+
+  approvals = async (req: Request, res: Response) =>
+    ok(res, await absenceService.listApprovals(orgOf(req), req.auth!.sub, true));
+
+  pendingCount = async (req: Request, res: Response) =>
+    ok(res, { pending: await absenceService.pendingCount(orgOf(req)) });
+
+  review = async (req: Request, res: Response) =>
+    ok(
+      res,
+      await absenceService.review(req.params.id, orgOf(req), {
+        reviewerUserId: req.auth!.sub,
+        canApproveAll: true,
+        decision: req.body.decision,
+        note: req.body.note,
+      }),
+    );
 }
 
 export const absenceController = new AbsenceController();
