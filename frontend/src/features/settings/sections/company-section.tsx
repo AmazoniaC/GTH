@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LogoUpload } from '@/components/shared/logo-upload';
 import { useOrganization, useUpdateOrganization } from '../organization.api';
 import { getErrorMessage } from '@/lib/api';
 
@@ -66,6 +67,20 @@ export function CompanySection() {
           <p className="text-sm text-muted-foreground">Cargando...</p>
         ) : (
           <>
+            <div className="space-y-2">
+              <Label>Logo de la empresa</Label>
+              <LogoUpload
+                value={org?.logoUrl}
+                onChange={async (logoUrl) => {
+                  try {
+                    await update.mutateAsync({ logoUrl });
+                    toast.success(logoUrl ? 'Logo actualizado' : 'Logo eliminado');
+                  } catch (e) {
+                    toast.error(getErrorMessage(e));
+                  }
+                }}
+              />
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>Nombre comercial</Label>

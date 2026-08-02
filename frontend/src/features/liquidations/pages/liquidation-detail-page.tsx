@@ -3,6 +3,7 @@ import { ArrowLeft, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Letterhead, DocumentFooter } from '@/components/shared/document-letterhead';
 import { useLiquidation, useTerminationReasons } from '../liquidations.api';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
@@ -35,13 +36,10 @@ export function LiquidationDetailPage() {
 
       <Card className="p-8 print:border-0 print:shadow-none">
         {/* Membrete */}
-        <div className="border-b border-border pb-4 text-center">
-          <p className="text-lg font-bold">{org.legalName || org.name}</p>
-          <p className="text-sm text-muted-foreground">NIT {org.nit}</p>
-          <h1 className="mt-4 text-base font-bold uppercase tracking-wide">
-            Liquidación definitiva de contrato
-          </h1>
-        </div>
+        <Letterhead org={org} />
+        <h1 className="mb-2 text-center text-base font-bold uppercase tracking-wide">
+          Liquidación definitiva de contrato
+        </h1>
 
         {/* Datos del empleado */}
         <div className="grid grid-cols-2 gap-2 py-4 text-sm">
@@ -98,6 +96,8 @@ export function LiquidationDetailPage() {
         <p className="mt-8 text-center text-xs text-muted-foreground">
           Generado el {formatDate(liq.createdAt)} · {org.city ?? ''}
         </p>
+
+        <DocumentFooter org={org} />
       </Card>
     </div>
   );

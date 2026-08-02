@@ -25,7 +25,9 @@ export function printDocuments(result: RenderResult): void {
   const win = window.open('', '_blank', 'width=900,height=700');
   if (!win) return;
 
-  const headerParts = [
+  const footerParts = [
+    company.legalName || company.name,
+    `NIT ${company.nit}`,
     company.address,
     company.city,
     company.phone ? `Tel: ${company.phone}` : '',
@@ -35,8 +37,16 @@ export function printDocuments(result: RenderResult): void {
     .map((s) => escapeHtml(String(s)))
     .join(' · ');
 
+  const headerMeta = [
+    [company.address, company.city].filter(Boolean).join(', '),
+    [company.phone ? `Tel: ${company.phone}` : '', company.email].filter(Boolean).join(' · '),
+  ]
+    .filter(Boolean)
+    .map((s) => `<div class="meta">${escapeHtml(String(s))}</div>`)
+    .join('');
+
   const logo = company.logoUrl
-    ? `<img src="${company.logoUrl}" alt="" style="max-height:64px;max-width:180px;object-fit:contain;margin-bottom:8px" />`
+    ? `<img class="logo" src="${company.logoUrl}" alt="" />`
     : '';
 
   const pages = documents
@@ -45,9 +55,11 @@ export function printDocuments(result: RenderResult): void {
       <section class="page" ${i > 0 ? 'style="page-break-before:always"' : ''}>
         <header class="letterhead">
           ${logo}
-          <div class="company">${escapeHtml(company.legalName || company.name)}</div>
-          <div class="meta">NIT ${escapeHtml(company.nit)}</div>
-          ${headerParts ? `<div class="meta">${headerParts}</div>` : ''}
+          <div class="company-block">
+            <div class="company">${escapeHtml(company.legalName || company.name)}</div>
+            <div class="meta">NIT ${escapeHtml(company.nit)}</div>
+            ${headerMeta}
+          </div>
         </header>
         <h1 class="title">${escapeHtml(doc.title)}</h1>
         <div class="body">${bodyToHtml(doc.body)}</div>
@@ -57,6 +69,7 @@ export function printDocuments(result: RenderResult): void {
           <div class="rep-sub">Representante Legal</div>
           <div class="rep-sub">${escapeHtml(company.name)}</div>
         </div>
+        <footer class="doc-footer">${footerParts}</footer>
       </section>`,
     )
     .join('');
@@ -68,19 +81,21 @@ export function printDocuments(result: RenderResult): void {
 <title>${escapeHtml(documents[0]?.title ?? 'Documento')}</title>
 <style>
   * { box-sizing: border-box; }
+  @page { size: letter; margin: 1.8cm 2cm; }
   body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; margin: 0; }
-  .page { padding: 48px 56px; min-height: 100vh; display: flex; flex-direction: column; }
-  .letterhead { text-align: center; border-bottom: 2px solid #1f3a5f; padding-bottom: 12px; margin-bottom: 32px; }
-  .letterhead .company { font-size: 18px; font-weight: bold; color: #1f3a5f; letter-spacing: .5px; }
-  .letterhead .meta { font-size: 12px; color: #555; margin-top: 2px; }
-  .title { text-align: center; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 28px; }
-  .body { font-size: 14px; line-height: 1.9; text-align: justify; flex: 1; }
+  .page { display: flex; flex-direction: column; min-height: 24cm; }
+  .letterhead { display: flex; align-items: center; gap: 16px; border-bottom: 2px solid #1f3a5f; padding-bottom: 12px; margin-bottom: 28px; }
+  .letterhead .logo { height: 58px; max-width: 170px; object-fit: contain; }
+  .letterhead .company { font-size: 17px; font-weight: bold; color: #1f3a5f; letter-spacing: .3px; }
+  .letterhead .meta { font-size: 11px; color: #555; margin-top: 2px; }
+  .title { text-align: center; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 26px; }
+  .body { font-size: 13.5px; line-height: 1.9; text-align: justify; flex: 1; }
   .body p { margin: 0 0 14px; }
-  .signature { margin-top: 64px; }
+  .signature { margin-top: 56px; }
   .signature .line { width: 260px; border-top: 1px solid #1a1a1a; margin-bottom: 6px; }
-  .signature .rep { font-weight: bold; font-size: 14px; }
-  .signature .rep-sub { font-size: 12px; color: #444; }
-  @media print { .page { min-height: auto; } }
+  .signature .rep { font-weight: bold; font-size: 13.5px; }
+  .signature .rep-sub { font-size: 11.5px; color: #444; }
+  .doc-footer { margin-top: 28px; border-top: 1px solid #ccc; padding-top: 8px; text-align: center; font-size: 10px; color: #777; }
 </style>
 </head>
 <body>${pages}</body>

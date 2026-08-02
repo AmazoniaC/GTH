@@ -123,6 +123,12 @@
 /* Impresión: libera las restricciones de scroll del layout para que el
    contenido (manual, desprendible, etc.) fluya en varias páginas. */
 @media print {
+  /* Tamaño de papel Carta con márgenes uniformes. */
+  @page {
+    size: letter;
+    margin: 1.6cm 1.8cm;
+  }
+
   /* Fuerza una paleta clara y legible al imprimir, incluso en modo oscuro. */
   :root,
   .dark {

@@ -233,6 +233,7 @@ export function ManualPage() {
           <Bullets
             items={[
               'Datos de la empresa: nombre, NIT, representante legal, dirección, etc.',
+              'Logo de la empresa: súbelo en “Datos de la empresa”; aparecerá en el membrete de los documentos (desprendible, certificados, contrato y liquidación).',
               'Listas editables (catálogos): tipos de documento, EPS, fondos, bancos, tipos de ausencia, estados, y más, agrupados por tema.',
               'Campos personalizados: agrega campos propios a la ficha del empleado.',
               'Usuarios: crea usuarios y asígnales su rol (solo administradores).',
