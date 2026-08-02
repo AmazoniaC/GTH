@@ -19,6 +19,9 @@ import { PlatformPage } from '@/features/platform/platform-page';
 import { AbsencesPage } from '@/features/absences/pages/absences-page';
 import { ManualPage } from '@/features/manual/manual-page';
 import { DocumentsPage } from '@/features/documents-gen/pages/documents-page';
+import { LiquidationsPage } from '@/features/liquidations/pages/liquidations-page';
+import { NewLiquidationPage } from '@/features/liquidations/pages/new-liquidation-page';
+import { LiquidationDetailPage } from '@/features/liquidations/pages/liquidation-detail-page';
 import { useAuthStore } from '@/features/auth/auth.store';
 
 export default function App() {
@@ -44,6 +47,9 @@ export default function App() {
         <Route path="/employees/:documentNumber" element={<EmployeeDetailPage />} />
         <Route path="/payroll" element={<PayrollPage />} />
         <Route path="/payroll/simulator" element={<PayrollSimulatorPage />} />
+        <Route path="/payroll/liquidations" element={<LiquidationsPage />} />
+        <Route path="/payroll/liquidations/new" element={<NewLiquidationPage />} />
+        <Route path="/payroll/liquidations/:id" element={<LiquidationDetailPage />} />
         <Route path="/payroll/periods/:id" element={<PayrollPeriodPage />} />
         <Route path="/payroll/payslips/:id" element={<PayslipPage />} />
         <Route path="/users" element={<UsersPage />} />

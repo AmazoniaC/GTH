@@ -55,6 +55,7 @@ model Organization {
   absences       Absence[]
   vacationAdjustments VacationAdjustment[]
   documentTemplates DocumentTemplate[]
+  liquidations   Liquidation[]
 
   @@map("organizations")
 }
@@ -262,6 +263,7 @@ model Employee {
   experiences  WorkExperience[]
   absences     Absence[]
   vacationAdjustments VacationAdjustment[]
+  liquidations Liquidation[]
 
   @@unique([organizationId, employeeCode])
   @@unique([organizationId, documentNumber])
@@ -479,6 +481,43 @@ model DocumentTemplate {
 
   @@index([organizationId])
   @@map("document_templates")
+}
+
+// ==================================================================
+// MÓDULO: LIQUIDACIÓN DEFINITIVA DE CONTRATO
+// ==================================================================
+
+// Liquidación definitiva (finiquito) al terminar el contrato. Guarda el
+// detalle de conceptos (cesantías, intereses, prima, vacaciones, etc.) para
+// trazabilidad y reimpresión del desprendible.
+model Liquidation {
+  id             String   @id @default(cuid())
+  organizationId String
+  employeeId     String
+
+  terminationDate DateTime
+  reason          String // Motivo del retiro (RESIGNATION, DISMISSAL_*, CONTRACT_END, MUTUAL)
+
+  baseSalary         Decimal @db.Decimal(14, 2)
+  transportAllowance Decimal @db.Decimal(14, 2) @default(0)
+
+  // Detalle de conceptos: [{ code, concept, type: EARNING|DEDUCTION, amount, detail }]
+  items          Json
+  totalEarnings  Decimal  @db.Decimal(16, 2) @default(0)
+  totalDeductions Decimal @db.Decimal(16, 2) @default(0)
+  netPay         Decimal  @db.Decimal(16, 2) @default(0)
+
+  notes          String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([employeeId])
+  @@map("liquidations")
 }
 
 // Bitácora de auditoría: registra creaciones, cambios y eliminaciones.

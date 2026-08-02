@@ -252,6 +252,17 @@ listados y conteos.
 ### 5.19 `absences`
 Módulo de Vacaciones y Ausencias. Ver sección 7.
 
+### 5.21 `liquidations`
+Liquidación definitiva de contrato. `liquidation.calculator.ts` es una función
+pura (con `days360`, convención 30/360) que calcula cesantías + intereses,
+prima y vacaciones proporcionales (más salario pendiente, otros conceptos y
+deducciones manuales). `liquidation.service` resuelve el contexto (contrato
+vigente, auxilio de transporte según SMMLV, saldo de vacaciones del módulo de
+ausencias, fechas de corte por defecto), calcula, persiste el `Liquidation` y
+—opcionalmente— marca al empleado retirado y cierra su contrato. Endpoints bajo
+`/liquidations` (`/reasons`, `/compute`, CRUD). Gateado por
+`requireModule('PAYROLL')` y rol de nómina.
+
 ### 5.20 `certificates`
 Documentos y certificados. Plantillas editables por empresa
 (`DocumentTemplate`) con variables `{{grupo.campo}}`. `certificate.constants.ts`

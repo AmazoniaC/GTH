@@ -61,6 +61,7 @@ export const navSections: NavSection[] = [
     title: 'Nómina',
     items: [
       { label: 'Nóminas', to: '/payroll', icon: Wallet, end: true, module: 'PAYROLL' },
+      { label: 'Liquidaciones', to: '/payroll/liquidations', icon: FileText, module: 'PAYROLL' },
       { label: 'Simulador', to: '/payroll/simulator', icon: Calculator, module: 'PAYROLL' },
     ],
   },
