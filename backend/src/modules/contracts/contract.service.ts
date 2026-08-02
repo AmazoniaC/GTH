@@ -100,6 +100,18 @@ export class ContractService {
         });
       }
 
+      // Si el empleado estaba retirado, el nuevo contrato lo reactiva.
+      const employee = await tx.employee.findUnique({
+        where: { id: employeeId },
+        select: { status: true },
+      });
+      if (employee?.status === 'TERMINATED') {
+        await tx.employee.update({
+          where: { id: employeeId },
+          data: { status: 'ACTIVE', terminationDate: null },
+        });
+      }
+
       return created;
     });
   }
