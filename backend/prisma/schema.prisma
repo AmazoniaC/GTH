@@ -495,6 +495,7 @@ model Liquidation {
   organizationId String
   employeeId     String
 
+  number          String? // Consecutivo (ej: LIQ-000123)
   terminationDate DateTime
   reason          String // Motivo del retiro (RESIGNATION, DISMISSAL_*, CONTRACT_END, MUTUAL)
 
@@ -518,6 +519,18 @@ model Liquidation {
   @@index([organizationId])
   @@index([employeeId])
   @@map("liquidations")
+}
+
+// Consecutivos por empresa y por serie (LIQUIDATION, PAYSLIP, DOCUMENT) para
+// numerar los documentos de forma correlativa.
+model DocumentSequence {
+  id             String   @id @default(cuid())
+  organizationId String
+  series         String
+  current        Int      @default(0)
+
+  @@unique([organizationId, series])
+  @@map("document_sequences")
 }
 
 // Bitácora de auditoría: registra creaciones, cambios y eliminaciones.
@@ -678,6 +691,7 @@ model Payslip {
   periodId       String
   employeeId     String
 
+  number         String? // Consecutivo del desprendible (ej: NOM-000123)
   workedDays     Int      @default(30)
   baseSalary     Decimal  @db.Decimal(14, 2)
 

@@ -64,6 +64,7 @@ export interface LiquidationListItem {
 
 export interface LiquidationDetail {
   id: string;
+  number?: string | null;
   terminationDate: string;
   reason: string;
   baseSalary: string;

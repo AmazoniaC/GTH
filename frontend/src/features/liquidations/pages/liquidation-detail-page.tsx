@@ -37,9 +37,14 @@ export function LiquidationDetailPage() {
       <Card className="p-8 print:border-0 print:shadow-none">
         {/* Membrete */}
         <Letterhead org={org} />
-        <h1 className="mb-2 text-center text-base font-bold uppercase tracking-wide">
+        <h1 className="text-center text-base font-bold uppercase tracking-wide">
           Liquidación definitiva de contrato
         </h1>
+        {liq.number && (
+          <p className="mb-2 text-center text-xs font-medium text-muted-foreground">
+            N° {liq.number}
+          </p>
+        )}
 
         {/* Datos del empleado */}
         <div className="grid grid-cols-2 gap-2 py-4 text-sm">
@@ -52,27 +57,22 @@ export function LiquidationDetailPage() {
         </div>
 
         {/* Devengados */}
-        <Section title="Devengados">
-          {earnings.map((it, i) => (
-            <ItemRow key={i} concept={it.concept} detail={it.detail} amount={formatCurrency(it.amount)} />
-          ))}
-          <Total label="Total devengado" value={formatCurrency(liq.totalEarnings)} />
-        </Section>
+        <ItemsTable
+          title="Devengados"
+          items={earnings}
+          totalLabel="Total devengado"
+          totalValue={formatCurrency(liq.totalEarnings)}
+        />
 
         {/* Deducciones */}
         {deductions.length > 0 && (
-          <Section title="Deducciones">
-            {deductions.map((it, i) => (
-              <ItemRow
-                key={i}
-                concept={it.concept}
-                detail={it.detail}
-                amount={`−${formatCurrency(it.amount)}`}
-                negative
-              />
-            ))}
-            <Total label="Total deducciones" value={`−${formatCurrency(liq.totalDeductions)}`} />
-          </Section>
+          <ItemsTable
+            title="Deducciones"
+            items={deductions}
+            negative
+            totalLabel="Total deducciones"
+            totalValue={`−${formatCurrency(liq.totalDeductions)}`}
+          />
         )}
 
         {/* Neto */}
@@ -112,44 +112,46 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function ItemsTable({
+  title,
+  items,
+  negative,
+  totalLabel,
+  totalValue,
+}: {
+  title: string;
+  items: { concept: string; detail?: string; amount: number }[];
+  negative?: boolean;
+  totalLabel: string;
+  totalValue: string;
+}) {
   return (
     <div className="mt-4">
       <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
       </p>
-      <div className="space-y-1">{children}</div>
-    </div>
-  );
-}
-
-function ItemRow({
-  concept,
-  detail,
-  amount,
-  negative,
-}: {
-  concept: string;
-  detail?: string;
-  amount: string;
-  negative?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span>
-        {concept}
-        {detail && <span className="ml-1 text-xs text-muted-foreground">({detail})</span>}
-      </span>
-      <span className={negative ? 'text-destructive' : ''}>{amount}</span>
-    </div>
-  );
-}
-
-function Total({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between border-t border-border pt-1 text-sm font-semibold">
-      <span>{label}</span>
-      <span>{value}</span>
+      <table className="zebra w-full text-sm">
+        <tbody>
+          {items.map((it, i) => (
+            <tr key={i} className="even:bg-muted/50">
+              <td className="px-2 py-1.5">
+                {it.concept}
+                {it.detail && <span className="ml-1 text-xs text-muted-foreground">({it.detail})</span>}
+              </td>
+              <td className={`px-2 py-1.5 text-right ${negative ? 'text-destructive' : ''}`}>
+                {negative ? '−' : ''}
+                {formatCurrency(it.amount)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr className="border-t border-border font-semibold">
+            <td className="px-2 py-1.5">{totalLabel}</td>
+            <td className="px-2 py-1.5 text-right">{totalValue}</td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   );
 }

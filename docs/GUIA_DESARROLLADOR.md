@@ -425,6 +425,16 @@ en la navegación.
 
 ---
 
+## 9.b Numeración consecutiva de documentos
+
+`core/utils/sequence.ts` gestiona consecutivos por empresa y por serie
+(`LIQUIDATION`→LIQ, `PAYSLIP`→NOM, `DOCUMENT`→DOC) sobre el modelo
+`DocumentSequence` (`reserveNumbers` incrementa de forma atómica y admite
+reservas en bloque para generaciones masivas). Lo usan la liquidación (campo
+`Liquidation.number`), los desprendibles (`Payslip.number`, asignados al crear
+el periodo) y la generación de certificados/contratos (número devuelto en el
+render).
+
 ## 10. Convenciones
 
 - TypeScript estricto en ambos lados (`tsc --noEmit` debe pasar limpio).
