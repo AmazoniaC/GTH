@@ -151,7 +151,17 @@ export class LiquidationService {
           },
         },
         organization: {
-          select: { name: true, legalName: true, nit: true, city: true, legalRepresentative: true },
+          select: {
+            name: true,
+            legalName: true,
+            nit: true,
+            address: true,
+            city: true,
+            phone: true,
+            email: true,
+            legalRepresentative: true,
+            logoUrl: true,
+          },
         },
       },
     });

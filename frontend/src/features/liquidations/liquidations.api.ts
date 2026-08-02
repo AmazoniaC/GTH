@@ -87,8 +87,12 @@ export interface LiquidationDetail {
     name: string;
     legalName?: string | null;
     nit: string;
+    address?: string | null;
     city?: string | null;
+    phone?: string | null;
+    email?: string | null;
     legalRepresentative?: string | null;
+    logoUrl?: string | null;
   };
 }
 

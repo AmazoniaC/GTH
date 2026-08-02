@@ -6,7 +6,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { usePayslip } from '../payroll.api';
-import { LogoMark } from '@/components/brand/logo';
+import { useOrganization } from '@/features/settings/organization.api';
+import { Letterhead, DocumentFooter } from '@/components/shared/document-letterhead';
 import { formatCurrency, getInitials } from '@/lib/utils';
 import type { PayslipItem } from '@/types';
 
@@ -14,6 +15,7 @@ export function PayslipPage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const { data: slip, isLoading } = usePayslip(id);
+  const { data: org } = useOrganization();
 
   if (isLoading) {
     return (
@@ -40,16 +42,13 @@ export function PayslipPage() {
         </Button>
       </div>
 
-      <Card className="mx-auto max-w-3xl">
+      <Card className="mx-auto max-w-3xl print:border-0 print:shadow-none">
         <CardContent className="p-8">
-          {/* Encabezado */}
-          <div className="flex items-start justify-between border-b border-border pb-6">
+          {/* Membrete de la empresa */}
+          {org && <Letterhead org={org} />}
+          <div className="flex items-start justify-between">
             <div>
-              <div className="flex items-center gap-2">
-                <LogoMark className="h-9 w-9" />
-                <p className="text-lg font-bold">Progrexa</p>
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">Desprendible de pago</p>
+              <h1 className="text-base font-bold uppercase tracking-wide">Desprendible de pago</h1>
               <p className="text-sm text-muted-foreground">{slip.period?.name}</p>
             </div>
             <Avatar className="h-16 w-16 text-xl">
@@ -110,6 +109,8 @@ export function PayslipPage() {
             <ItemList items={employerCosts} muted />
             <TotalRow label="Costo total empleador" value={slip.employerCost} />
           </div>
+
+          {org && <DocumentFooter org={org} />}
         </CardContent>
       </Card>
     </div>
