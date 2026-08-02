@@ -193,6 +193,11 @@ export class EmployeeService {
           transportAllowance: contract.transportAllowance ?? true,
           isActive: true,
         });
+        // Un nuevo contrato vigente reactiva a un empleado retirado
+        // (si no se cambió el estado explícitamente en esta misma edición).
+        if (before.status === 'TERMINATED' && input.status === undefined) {
+          await this.repo.update(id, { status: 'ACTIVE', terminationDate: null });
+        }
       }
     }
 
