@@ -1,0 +1,165 @@
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Printer } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useLiquidation, useTerminationReasons } from '../liquidations.api';
+import { formatCurrency, formatDate } from '@/lib/utils';
+
+export function LiquidationDetailPage() {
+  const { id = '' } = useParams();
+  const navigate = useNavigate();
+  const { data: liq, isLoading } = useLiquidation(id);
+  const { data: reasons } = useTerminationReasons();
+  const reasonLabel = reasons?.find((r) => r.code === liq?.reason)?.label ?? liq?.reason;
+
+  if (isLoading || !liq) {
+    return <Skeleton className="h-96" />;
+  }
+
+  const earnings = liq.items.filter((i) => i.type === 'EARNING');
+  const deductions = liq.items.filter((i) => i.type === 'DEDUCTION');
+  const emp = liq.employee;
+  const org = liq.organization;
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-4 flex items-center justify-between print:hidden">
+        <Button variant="ghost" onClick={() => navigate('/payroll/liquidations')}>
+          <ArrowLeft className="h-4 w-4" /> Volver
+        </Button>
+        <Button variant="outline" onClick={() => window.print()}>
+          <Printer className="h-4 w-4" /> Imprimir / PDF
+        </Button>
+      </div>
+
+      <Card className="p-8 print:border-0 print:shadow-none">
+        {/* Membrete */}
+        <div className="border-b border-border pb-4 text-center">
+          <p className="text-lg font-bold">{org.legalName || org.name}</p>
+          <p className="text-sm text-muted-foreground">NIT {org.nit}</p>
+          <h1 className="mt-4 text-base font-bold uppercase tracking-wide">
+            Liquidación definitiva de contrato
+          </h1>
+        </div>
+
+        {/* Datos del empleado */}
+        <div className="grid grid-cols-2 gap-2 py-4 text-sm">
+          <Field label="Empleado" value={`${emp.firstName} ${emp.lastName}`} />
+          <Field label="Documento" value={`${emp.documentType} ${emp.documentNumber}`} />
+          <Field label="Cargo" value={emp.position?.title ?? '—'} />
+          <Field label="Motivo del retiro" value={reasonLabel ?? '—'} />
+          <Field label="Fecha de ingreso" value={formatDate(emp.hireDate)} />
+          <Field label="Fecha de retiro" value={formatDate(liq.terminationDate)} />
+        </div>
+
+        {/* Devengados */}
+        <Section title="Devengados">
+          {earnings.map((it, i) => (
+            <ItemRow key={i} concept={it.concept} detail={it.detail} amount={formatCurrency(it.amount)} />
+          ))}
+          <Total label="Total devengado" value={formatCurrency(liq.totalEarnings)} />
+        </Section>
+
+        {/* Deducciones */}
+        {deductions.length > 0 && (
+          <Section title="Deducciones">
+            {deductions.map((it, i) => (
+              <ItemRow
+                key={i}
+                concept={it.concept}
+                detail={it.detail}
+                amount={`−${formatCurrency(it.amount)}`}
+                negative
+              />
+            ))}
+            <Total label="Total deducciones" value={`−${formatCurrency(liq.totalDeductions)}`} />
+          </Section>
+        )}
+
+        {/* Neto */}
+        <div className="mt-4 flex items-center justify-between rounded-lg bg-primary/5 px-4 py-3 text-lg font-bold text-primary">
+          <span>Neto a pagar</span>
+          <span>{formatCurrency(liq.netPay)}</span>
+        </div>
+
+        {liq.notes && (
+          <p className="mt-4 text-xs text-muted-foreground">
+            <b>Notas:</b> {liq.notes}
+          </p>
+        )}
+
+        {/* Firma */}
+        <div className="mt-16 grid grid-cols-2 gap-8 text-sm">
+          <SignatureBlock name={org.legalRepresentative || ''} role="Representante Legal" />
+          <SignatureBlock name={`${emp.firstName} ${emp.lastName}`} role="Recibí a satisfacción" />
+        </div>
+
+        <p className="mt-8 text-center text-xs text-muted-foreground">
+          Generado el {formatDate(liq.createdAt)} · {org.city ?? ''}
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <span className="text-xs text-muted-foreground">{label}: </span>
+      <span className="font-medium">{value}</span>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mt-4">
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {title}
+      </p>
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
+}
+
+function ItemRow({
+  concept,
+  detail,
+  amount,
+  negative,
+}: {
+  concept: string;
+  detail?: string;
+  amount: string;
+  negative?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span>
+        {concept}
+        {detail && <span className="ml-1 text-xs text-muted-foreground">({detail})</span>}
+      </span>
+      <span className={negative ? 'text-destructive' : ''}>{amount}</span>
+    </div>
+  );
+}
+
+function Total({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between border-t border-border pt-1 text-sm font-semibold">
+      <span>{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+}
+
+function SignatureBlock({ name, role }: { name: string; role: string }) {
+  return (
+    <div className="text-center">
+      <div className="mb-1 border-t border-foreground" />
+      <p className="font-medium">{name || ' '}</p>
+      <p className="text-xs text-muted-foreground">{role}</p>
+    </div>
+  );
+}

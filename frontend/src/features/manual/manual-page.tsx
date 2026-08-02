@@ -190,6 +190,15 @@ export function ManualPage() {
               'Cambia el estado del período (Procesada, Aprobada, Pagada) según tu flujo.',
             ]}
           />
+          <SubTitle>Liquidación definitiva de contrato</SubTitle>
+          <Steps
+            items={[
+              'Entra a “Liquidaciones” → “Nueva liquidación”.',
+              'Elige el empleado, la fecha de retiro y el motivo; opcionalmente los días de salario pendientes y otros conceptos/deducciones.',
+              'Pulsa “Calcular”: verás cesantías e intereses, prima y vacaciones proporcionales, con el neto a pagar.',
+              'Guarda; se genera el desprendible imprimible y (si lo dejas marcado) el empleado queda retirado y su contrato cerrado.',
+            ]}
+          />
           <SubTitle>Simulador</SubTitle>
           <p>
             Usa el <b>Simulador</b> para calcular el neto y el costo de un salario sin crear una
