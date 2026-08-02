@@ -7,6 +7,7 @@ import {
   buildContext,
   renderTemplate,
 } from './certificate.constants';
+import { reserveNumbers, formatDocNumber } from '../../core/utils/sequence';
 import type { CreateTemplateInput, RenderInput, UpdateTemplateInput } from './certificate.schema';
 
 const employeeInclude = {
@@ -125,12 +126,16 @@ export class CertificateService {
     const org = await prisma.organization.findUnique({ where: { id: organizationId } });
     if (!org) throw new NotFoundError('Empresa');
 
-    const documents = employees.map((emp) => {
+    // Consecutivos correlativos para los documentos generados.
+    const firstNumber = await reserveNumbers(organizationId, 'DOCUMENT', employees.length);
+
+    const documents = employees.map((emp, i) => {
       const context = buildContext(emp, org);
       return {
         employeeId: emp.id,
         employeeName: `${emp.firstName} ${emp.lastName}`,
         documentNumber: emp.documentNumber,
+        number: formatDocNumber('DOCUMENT', firstNumber + i),
         title: template.name,
         body: renderTemplate(template.body, context),
       };

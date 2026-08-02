@@ -4,6 +4,7 @@ import { AppError, NotFoundError } from '../../core/errors/AppError';
 import { auditService, Actor } from '../audit/audit.service';
 import { payrollService } from '../payroll/payroll.service';
 import { absenceService } from '../absences/absence.service';
+import { nextDocNumber } from '../../core/utils/sequence';
 import {
   calculateLiquidation,
   TERMINATION_REASONS,
@@ -85,10 +86,12 @@ export class LiquidationService {
     const ctx = await this.loadContext(organizationId, input);
     const { employee, result } = ctx;
 
+    const number = await nextDocNumber(organizationId, 'LIQUIDATION');
     const created = await prisma.liquidation.create({
       data: {
         organizationId,
         employeeId: employee.id,
+        number,
         terminationDate: input.terminationDate,
         reason: input.reason,
         baseSalary: new Prisma.Decimal(ctx.baseSalary),

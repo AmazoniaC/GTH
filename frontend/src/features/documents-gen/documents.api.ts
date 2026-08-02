@@ -20,6 +20,7 @@ export interface RenderedDoc {
   employeeId: string;
   employeeName: string;
   documentNumber: string;
+  number: string;
   title: string;
   body: string;
 }

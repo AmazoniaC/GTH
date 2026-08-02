@@ -62,6 +62,7 @@ export function printDocuments(result: RenderResult): void {
           </div>
         </header>
         <h1 class="title">${escapeHtml(doc.title)}</h1>
+        ${doc.number ? `<div class="doc-number">N° ${escapeHtml(doc.number)}</div>` : ''}
         <div class="body">${bodyToHtml(doc.body)}</div>
         <div class="signature">
           <div class="line"></div>
@@ -88,7 +89,8 @@ export function printDocuments(result: RenderResult): void {
   .letterhead .logo { height: 58px; max-width: 170px; object-fit: contain; }
   .letterhead .company { font-size: 17px; font-weight: bold; color: #1f3a5f; letter-spacing: .3px; }
   .letterhead .meta { font-size: 11px; color: #555; margin-top: 2px; }
-  .title { text-align: center; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 26px; }
+  .title { text-align: center; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 4px; }
+  .doc-number { text-align: center; font-size: 11px; color: #777; margin-bottom: 22px; }
   .body { font-size: 13.5px; line-height: 1.9; text-align: justify; flex: 1; }
   .body p { margin: 0 0 14px; }
   .signature { margin-top: 56px; }

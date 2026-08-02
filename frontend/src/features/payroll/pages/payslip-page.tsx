@@ -50,6 +50,9 @@ export function PayslipPage() {
             <div>
               <h1 className="text-base font-bold uppercase tracking-wide">Desprendible de pago</h1>
               <p className="text-sm text-muted-foreground">{slip.period?.name}</p>
+              {slip.number && (
+                <p className="text-xs font-medium text-muted-foreground">N° {slip.number}</p>
+              )}
             </div>
             <Avatar className="h-16 w-16 text-xl">
               <AvatarFallback>
@@ -130,17 +133,19 @@ function ItemList({
     return <p className="text-sm text-muted-foreground">Sin conceptos.</p>;
   }
   return (
-    <ul className="space-y-2">
-      {items.map((item) => (
-        <li key={item.id} className="flex items-center justify-between text-sm">
-          <span className={muted ? 'text-muted-foreground' : ''}>{item.concept}</span>
-          <span className="font-medium tabular-nums">
-            {negative ? '-' : ''}
-            {formatCurrency(item.amount)}
-          </span>
-        </li>
-      ))}
-    </ul>
+    <table className="zebra w-full text-sm">
+      <tbody>
+        {items.map((item) => (
+          <tr key={item.id} className="even:bg-muted/50">
+            <td className={`px-2 py-1.5 ${muted ? 'text-muted-foreground' : ''}`}>{item.concept}</td>
+            <td className="px-2 py-1.5 text-right font-medium tabular-nums">
+              {negative ? '-' : ''}
+              {formatCurrency(item.amount)}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 

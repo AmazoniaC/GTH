@@ -3,6 +3,7 @@ import { prisma } from '../../config/prisma';
 import { payrollRepository, PayrollRepository } from './payroll.repository';
 import { calculatePayroll, PayrollConfigValues } from './payroll.calculator';
 import { computeAbsenceNovelties } from './absence-novelties';
+import { reserveNumbers, formatDocNumber } from '../../core/utils/sequence';
 import { AppError, ConflictError, NotFoundError } from '../../core/errors/AppError';
 import type { CreatePeriodInput, SimulateInput, UpsertConfigInput } from './payroll.schema';
 
@@ -223,12 +224,20 @@ export class PayrollService {
       status: 'DRAFT',
     };
 
+    // Consecutivos correlativos para los desprendibles de este periodo.
+    const firstNumber = await reserveNumbers(organizationId, 'PAYSLIP', computed.length);
+    const numberByEmployee = new Map<string, string>();
+    computed.forEach((c, i) =>
+      numberByEmployee.set(c.employeeId, formatDocNumber('PAYSLIP', firstNumber + i)),
+    );
+
     return this.repo.createPeriodWithPayslips(
       periodData,
       (periodId) =>
         computed.map((c) => ({
           periodId,
           employeeId: c.employeeId,
+          number: numberByEmployee.get(c.employeeId),
           workedDays: c.workedDays,
           baseSalary: new Prisma.Decimal(c.baseSalary),
           totalEarnings: new Prisma.Decimal(c.result.totalEarnings),

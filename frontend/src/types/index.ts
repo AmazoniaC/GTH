@@ -356,6 +356,7 @@ export interface PayslipItem {
 
 export interface Payslip {
   id: string;
+  number?: string | null;
   workedDays: number;
   baseSalary: string;
   totalEarnings: string;

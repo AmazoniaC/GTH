@@ -157,4 +157,10 @@
   tr {
     break-inside: avoid;
   }
+
+  /* Conserva el sombreado zebra al imprimir. */
+  .zebra tbody tr {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
