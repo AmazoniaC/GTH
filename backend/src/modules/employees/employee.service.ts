@@ -184,19 +184,25 @@ export class EmployeeService {
       if (active) {
         await this.repo.updateContract(active.id, contractData);
       } else if (contract.baseSalary !== undefined) {
+        const contractStart = contract.startDate ?? new Date();
         await this.repo.createContract({
           employee: { connect: { id } },
           type: contract.type ?? 'INDEFINITE',
           baseSalary: new Prisma.Decimal(contract.baseSalary),
-          startDate: contract.startDate ?? new Date(),
+          startDate: contractStart,
           isIntegralSalary: contract.isIntegralSalary ?? false,
           transportAllowance: contract.transportAllowance ?? true,
           isActive: true,
         });
-        // Un nuevo contrato vigente reactiva a un empleado retirado
-        // (si no se cambió el estado explícitamente en esta misma edición).
+        // Un nuevo contrato vigente reactiva a un empleado retirado y la fecha
+        // de ingreso pasa a la del nuevo contrato (si no se cambió el estado
+        // explícitamente en esta misma edición).
         if (before.status === 'TERMINATED' && input.status === undefined) {
-          await this.repo.update(id, { status: 'ACTIVE', terminationDate: null });
+          await this.repo.update(id, {
+            status: 'ACTIVE',
+            terminationDate: null,
+            hireDate: contractStart,
+          });
         }
       }
     }
