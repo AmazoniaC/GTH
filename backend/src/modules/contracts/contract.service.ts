@@ -100,7 +100,10 @@ export class ContractService {
         });
       }
 
-      // Si el empleado estaba retirado, el nuevo contrato lo reactiva.
+      // Si el empleado estaba retirado, el nuevo contrato lo reactiva y la
+      // fecha de ingreso pasa a la del nuevo contrato (la antigüedad reinicia,
+      // pues el periodo anterior ya fue liquidado). La fecha original queda
+      // registrada en el historial de contratos.
       const employee = await tx.employee.findUnique({
         where: { id: employeeId },
         select: { status: true },
@@ -108,7 +111,7 @@ export class ContractService {
       if (employee?.status === 'TERMINATED') {
         await tx.employee.update({
           where: { id: employeeId },
-          data: { status: 'ACTIVE', terminationDate: null },
+          data: { status: 'ACTIVE', terminationDate: null, hireDate: input.startDate },
         });
       }
 
