@@ -90,7 +90,6 @@ const schema = z.object({
   bankAccountNumber: z.string().optional(),
   contractType: z.string().min(1),
   baseSalary: z.coerce.number().positive('Debe ser mayor a 0'),
-  startDate: z.string().min(1, 'Requerido'),
   isIntegralSalary: z.boolean(),
   transportAllowance: z.boolean(),
   dataConsent: z.boolean(),
@@ -147,7 +146,6 @@ const emptyDefaults: FormValues = {
   bankAccountNumber: '',
   contractType: 'INDEFINITE',
   baseSalary: 0,
-  startDate: today,
   isIntegralSalary: false,
   transportAllowance: true,
   dataConsent: false,
@@ -221,7 +219,6 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
         bankAccountNumber: employee.bankAccountNumber ?? '',
         contractType: contract?.type ?? 'INDEFINITE',
         baseSalary: contract ? Number(contract.baseSalary) : 0,
-        startDate: toDateInput(contract?.startDate ?? employee.hireDate),
         isIntegralSalary: contract?.isIntegralSalary ?? false,
         transportAllowance: contract?.transportAllowance ?? true,
         dataConsent: employee.dataConsent ?? false,
@@ -277,19 +274,27 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
       dataConsent: values.dataConsent,
       customFields: customValues,
     };
-    const contract = {
-      type: values.contractType,
-      baseSalary: values.baseSalary,
-      startDate: values.startDate,
-      isIntegralSalary: values.isIntegralSalary,
-      transportAllowance: values.transportAllowance,
-    };
-
     try {
       if (isEdit) {
+        // En edición NO se toca la fecha de inicio del contrato vigente
+        // (los contratos y sus fechas se gestionan en el historial de contratos).
+        const contract = {
+          type: values.contractType,
+          baseSalary: values.baseSalary,
+          isIntegralSalary: values.isIntegralSalary,
+          transportAllowance: values.transportAllowance,
+        };
         await updateEmployee.mutateAsync({ ...commonFields, status: values.status, contract });
         toast.success('Empleado actualizado correctamente');
       } else {
+        // El contrato inicial arranca en la fecha de ingreso (una sola fecha).
+        const contract = {
+          type: values.contractType,
+          baseSalary: values.baseSalary,
+          startDate: values.hireDate,
+          isIntegralSalary: values.isIntegralSalary,
+          transportAllowance: values.transportAllowance,
+        };
         await createEmployee.mutateAsync({ ...commonFields, contract });
         toast.success('Empleado creado correctamente');
       }
@@ -638,9 +643,10 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                   <Input type="number" {...register('baseSalary')} placeholder="1623500" />
                 </Field>
               </div>
-              <Field label="Fecha de inicio del contrato" error={errors.startDate?.message}>
-                <Input type="date" {...register('startDate')} />
-              </Field>
+              <p className="rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                El contrato inicia en la <b>fecha de ingreso</b> registrada en la pestaña “Laboral”.
+                Para renovar o cambiar contratos usa el historial de contratos del empleado.
+              </p>
               <div className="flex items-center justify-between rounded-lg border border-border p-3">
                 <div>
                   <p className="text-sm font-medium">Salario integral</p>
