@@ -31,7 +31,22 @@ export const env = {
   // Contraseña inicial para las cuentas de dueño de plataforma que se
   // aprovisionan automáticamente al arrancar (se puede cambiar luego).
   platformOwnerPassword: process.env.PLATFORM_OWNER_PASSWORD ?? 'Progrexa2026*',
+  // Configuración de correo saliente (SMTP) para enviar desprendibles, etc.
+  smtp: {
+    host: process.env.SMTP_HOST ?? '',
+    port: Number(process.env.SMTP_PORT ?? 587),
+    secure: process.env.SMTP_SECURE === 'true',
+    user: process.env.SMTP_USER ?? '',
+    pass: process.env.SMTP_PASS ?? '',
+    from: process.env.SMTP_FROM || process.env.SMTP_USER || '',
+    fromName: process.env.SMTP_FROM_NAME ?? 'Progrexa',
+  },
 };
+
+/** Indica si el envío de correos está configurado (SMTP). */
+export function isMailConfigured(): boolean {
+  return !!env.smtp.host && !!env.smtp.user;
+}
 
 // NIT sentinela de la organización interna del dueño de plataforma. No es
 // una empresa real: se oculta de los listados y conteos globales.

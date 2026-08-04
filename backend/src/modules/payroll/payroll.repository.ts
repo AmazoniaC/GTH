@@ -80,6 +80,7 @@ export class PayrollRepository {
               select: {
                 firstName: true,
                 lastName: true,
+                email: true,
                 employeeCode: true,
                 documentNumber: true,
                 position: { select: { title: true } },

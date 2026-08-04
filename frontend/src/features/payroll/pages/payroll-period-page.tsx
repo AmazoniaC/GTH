@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   BadgeCheck,
   Banknote,
+  Mail,
   Printer,
   Receipt,
   Trash2,
@@ -27,6 +28,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { PayrollStatusBadge } from '@/components/shared/status-badges';
 import {
   fetchPeriodForPrint,
+  sendPeriodPayslips,
   useDeletePeriod,
   usePayrollPeriod,
   useUpdatePeriodStatus,
@@ -51,6 +53,21 @@ export function PayrollPeriodPage() {
   const deletePeriod = useDeletePeriod();
   const { isAdmin, canManagePayroll } = usePermissions();
   const [downloading, setDownloading] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const handleSendEmails = async () => {
+    if (!confirm('¿Enviar el desprendible por correo a cada empleado con correo registrado?')) return;
+    setSending(true);
+    try {
+      const r = await sendPeriodPayslips(id);
+      toast.success(`${r.sent} enviado(s), ${r.skipped} sin correo.`);
+      if (r.failed.length) toast.error(`No se pudo enviar a: ${r.failed.slice(0, 4).join(', ')}${r.failed.length > 4 ? '…' : ''}`);
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setSending(false);
+    }
+  };
 
   const handleDownloadAll = async () => {
     setDownloading(true);
@@ -124,6 +141,11 @@ export function PayrollPeriodPage() {
           <Button variant="outline" onClick={handleDownloadAll} disabled={downloading}>
             <Printer className="h-4 w-4" /> {downloading ? 'Generando…' : 'Desprendibles (PDF)'}
           </Button>
+          {canManagePayroll && (
+            <Button variant="outline" onClick={handleSendEmails} disabled={sending}>
+              <Mail className="h-4 w-4" /> {sending ? 'Enviando…' : 'Enviar por correo'}
+            </Button>
+          )}
           {action && canManagePayroll && (
             <Button onClick={handleAdvance} disabled={updateStatus.isPending}>
               <BadgeCheck className="h-4 w-4" /> {action.label}
