@@ -11,19 +11,24 @@ export const idParam = z.object({
 
 export const addContractSchema = z.object({
   params: z.object({ employeeId: z.string().cuid() }),
-  body: z.object({
-    type: z.string().min(1),
-    paymentFrequency: z.nativeEnum(PaymentFrequency).default(PaymentFrequency.MONTHLY),
-    baseSalary: z.number().positive('El salario debe ser mayor a 0.'),
-    isIntegralSalary: z.boolean().default(false),
-    transportAllowance: z.boolean().default(true),
-    startDate: z.coerce.date(),
-    endDate: z.coerce.date().optional().nullable(),
-    probationEndDate: z.coerce.date().optional().nullable(),
-    notes: z.string().optional().nullable(),
-    // Motivo de terminación del contrato anterior (si aplica).
-    previousEndReason: z.string().optional().nullable(),
-  }),
+  body: z
+    .object({
+      type: z.string().min(1),
+      paymentFrequency: z.nativeEnum(PaymentFrequency).default(PaymentFrequency.MONTHLY),
+      baseSalary: z.number().positive('El salario debe ser mayor a 0.'),
+      isIntegralSalary: z.boolean().default(false),
+      transportAllowance: z.boolean().default(true),
+      startDate: z.coerce.date(),
+      endDate: z.coerce.date().optional().nullable(),
+      probationEndDate: z.coerce.date().optional().nullable(),
+      notes: z.string().optional().nullable(),
+      // Motivo de terminación del contrato anterior (si aplica).
+      previousEndReason: z.string().optional().nullable(),
+    })
+    .refine((v) => !v.endDate || v.endDate >= v.startDate, {
+      message: 'La fecha de fin no puede ser anterior al inicio.',
+      path: ['endDate'],
+    }),
 });
 
 export const updateContractSchema = z.object({

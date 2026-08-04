@@ -48,6 +48,10 @@ const MARITAL = [
   { value: 'WIDOWED', label: 'Viudo(a)' },
 ];
 
+// Umbral del auxilio de transporte: 2 SMMLV (referencia 2026). Solo para el
+// aviso en la UI; la nómina resuelve la elegibilidad con la parametrización real.
+const SMMLV_2X = 1_623_500 * 2;
+
 const schema = z.object({
   photoUrl: z.string().nullable().optional(),
   documentType: z.string().min(1),
@@ -87,12 +91,39 @@ const schema = z.object({
   arlRiskClass: z.coerce.number().min(1).max(5),
   bankName: z.string().optional(),
   bankAccountType: z.string().optional(),
-  bankAccountNumber: z.string().optional(),
+  bankAccountNumber: z
+    .string()
+    .regex(/^\d*$/, 'El número de cuenta debe contener solo dígitos.')
+    .optional(),
   contractType: z.string().min(1),
   baseSalary: z.coerce.number().positive('Debe ser mayor a 0'),
   isIntegralSalary: z.boolean(),
   transportAllowance: z.boolean(),
   dataConsent: z.boolean(),
+}).superRefine((v, ctx) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const age = (d: string) => {
+    const b = new Date(d);
+    const n = new Date();
+    let a = n.getFullYear() - b.getFullYear();
+    const m = n.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && n.getDate() < b.getDate())) a -= 1;
+    return a;
+  };
+  if (v.birthDate) {
+    if (v.birthDate >= today)
+      ctx.addIssue({ code: 'custom', path: ['birthDate'], message: 'Debe ser una fecha pasada.' });
+    else if (age(v.birthDate) < 18)
+      ctx.addIssue({ code: 'custom', path: ['birthDate'], message: 'El empleado debe ser mayor de edad.' });
+  }
+  if (v.hireDate && v.hireDate > today)
+    ctx.addIssue({ code: 'custom', path: ['hireDate'], message: 'La fecha de ingreso no puede ser futura.' });
+  if (v.issueDate) {
+    if (v.issueDate > today)
+      ctx.addIssue({ code: 'custom', path: ['issueDate'], message: 'No puede ser una fecha futura.' });
+    if (v.birthDate && v.issueDate < v.birthDate)
+      ctx.addIssue({ code: 'custom', path: ['issueDate'], message: 'No puede ser anterior al nacimiento.' });
+  }
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -661,6 +692,14 @@ export function EmployeeForm({ open, onOpenChange, employee }: EmployeeFormProps
                 </div>
                 <Switch checked={watch('transportAllowance')} onCheckedChange={(c) => setValue('transportAllowance', c)} />
               </div>
+              {watch('transportAllowance') &&
+                !watch('isIntegralSalary') &&
+                Number(watch('baseSalary')) > SMMLV_2X && (
+                  <p className="rounded-lg border border-amber-300/50 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+                    El salario supera 2 SMMLV, por lo que el auxilio de transporte{' '}
+                    <b>no se pagará</b> en la nómina aunque esté marcado.
+                  </p>
+                )}
             </TabsContent>
 
             {/* ---------- BANCARIOS ---------- */}
