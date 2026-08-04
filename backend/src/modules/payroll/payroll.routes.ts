@@ -35,6 +35,11 @@ router.post('/simulate', validate(simulateSchema), asyncHandler(payrollControlle
 // Periodos de nómina
 router.get('/periods', validate(listPeriodsSchema), asyncHandler(payrollController.listPeriods));
 router.get('/periods/:id', validate(idParamSchema), asyncHandler(payrollController.getPeriod));
+router.get(
+  '/periods/:id/payslips-print',
+  validate(idParamSchema),
+  asyncHandler(payrollController.periodForPrint),
+);
 router.post(
   '/periods',
   authorize(...payrollManagers),

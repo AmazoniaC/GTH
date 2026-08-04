@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
   BadgeCheck,
   Banknote,
+  Printer,
   Receipt,
   Trash2,
   TrendingDown,
@@ -23,7 +25,13 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { PayrollStatusBadge } from '@/components/shared/status-badges';
-import { useDeletePeriod, usePayrollPeriod, useUpdatePeriodStatus } from '../payroll.api';
+import {
+  fetchPeriodForPrint,
+  useDeletePeriod,
+  usePayrollPeriod,
+  useUpdatePeriodStatus,
+} from '../payroll.api';
+import { printPayslips } from '../print-payslips';
 import { usePermissions } from '@/features/auth/use-permissions';
 import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
@@ -42,6 +50,23 @@ export function PayrollPeriodPage() {
   const updateStatus = useUpdatePeriodStatus();
   const deletePeriod = useDeletePeriod();
   const { isAdmin, canManagePayroll } = usePermissions();
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadAll = async () => {
+    setDownloading(true);
+    try {
+      const data = await fetchPeriodForPrint(id);
+      if (!data.payslips.length) {
+        toast.error('Este periodo no tiene desprendibles.');
+        return;
+      }
+      printPayslips(data);
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const handleAdvance = async () => {
     if (!period) return;
@@ -96,6 +121,9 @@ export function PayrollPeriodPage() {
           <PayrollStatusBadge status={period.status} />
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleDownloadAll} disabled={downloading}>
+            <Printer className="h-4 w-4" /> {downloading ? 'Generando…' : 'Desprendibles (PDF)'}
+          </Button>
           {action && canManagePayroll && (
             <Button onClick={handleAdvance} disabled={updateStatus.isPending}>
               <BadgeCheck className="h-4 w-4" /> {action.label}

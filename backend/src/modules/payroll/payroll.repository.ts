@@ -56,6 +56,43 @@ export class PayrollRepository {
     });
   }
 
+  /** Periodo con TODOS los desprendibles + sus conceptos y datos de empresa. */
+  periodForPrint(id: string, organizationId: string) {
+    return prisma.payrollPeriod.findFirst({
+      where: { id, organizationId },
+      include: {
+        organization: {
+          select: {
+            name: true,
+            legalName: true,
+            nit: true,
+            address: true,
+            city: true,
+            phone: true,
+            email: true,
+            logoUrl: true,
+          },
+        },
+        payslips: {
+          include: {
+            items: true,
+            employee: {
+              select: {
+                firstName: true,
+                lastName: true,
+                employeeCode: true,
+                documentNumber: true,
+                position: { select: { title: true } },
+                department: { select: { name: true } },
+              },
+            },
+          },
+          orderBy: { employee: { firstName: 'asc' } },
+        },
+      },
+    });
+  }
+
   findPeriodByPeriodKey(organizationId: string, year: number, month: number, type: string) {
     return prisma.payrollPeriod.findFirst({
       where: { organizationId, year, month, type: type as never },
