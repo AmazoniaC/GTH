@@ -143,6 +143,21 @@ export class ContractService {
       throw new AppError('No se puede eliminar el único contrato del empleado.', 422);
     }
     await prisma.contract.delete({ where: { id } });
+
+    // Si se eliminó el contrato vigente, activa el más reciente que quede,
+    // para que el empleado no quede sin contrato activo.
+    if (contract.isActive) {
+      const latest = await prisma.contract.findFirst({
+        where: { employeeId: contract.employeeId },
+        orderBy: { startDate: 'desc' },
+      });
+      if (latest) {
+        await prisma.contract.update({
+          where: { id: latest.id },
+          data: { isActive: true, endDate: null, endReason: null },
+        });
+      }
+    }
     return { id };
   }
 

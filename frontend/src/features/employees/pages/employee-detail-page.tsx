@@ -235,7 +235,15 @@ export function EmployeeDetailPage() {
                 />
                 <Row
                   label="Auxilio de transporte"
-                  value={contract.transportAllowance ? 'Aplica' : 'No aplica'}
+                  value={
+                    !contract.transportAllowance
+                      ? 'No aplica'
+                      : contract.isIntegralSalary
+                        ? 'No aplica (salario integral)'
+                        : Number(contract.baseSalary) > 1_623_500 * 2
+                          ? 'No aplica (salario > 2 SMMLV)'
+                          : 'Aplica'
+                  }
                 />
                 <Row label="Inicio" value={formatDate(contract.startDate)} />
               </>

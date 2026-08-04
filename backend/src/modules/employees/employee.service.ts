@@ -161,6 +161,18 @@ export class EmployeeService {
 
     await this.repo.update(id, data);
 
+    // Sincroniza el correo del acceso al portal si el empleado tiene usuario
+    // y cambió su correo (el correo es su usuario de inicio de sesión).
+    if (input.email !== undefined && before.userId) {
+      const newEmail = (input.email ?? '').trim().toLowerCase();
+      if (newEmail && newEmail !== (before.email ?? '').toLowerCase()) {
+        const taken = await prisma.user.findUnique({ where: { email: newEmail } });
+        if (!taken || taken.id === before.userId) {
+          await prisma.user.update({ where: { id: before.userId }, data: { email: newEmail } });
+        }
+      }
+    }
+
     // Actualiza (o crea) el contrato vigente si se envían datos de contrato.
     if (contract && Object.keys(contract).length > 0) {
       const active = await this.repo.findActiveContract(id);
@@ -182,6 +194,21 @@ export class EmployeeService {
       };
 
       if (active) {
+        // Registra el cambio salarial en el historial si el salario cambió.
+        if (
+          contract.baseSalary !== undefined &&
+          Number(active.baseSalary.toString()) !== contract.baseSalary
+        ) {
+          await prisma.salaryChange.create({
+            data: {
+              employeeId: id,
+              previousSalary: active.baseSalary,
+              newSalary: new Prisma.Decimal(contract.baseSalary),
+              effectiveDate: new Date(),
+              reason: 'Ajuste desde la ficha del empleado',
+            },
+          });
+        }
         await this.repo.updateContract(active.id, contractData);
       } else if (contract.baseSalary !== undefined) {
         const contractStart = contract.startDate ?? new Date();

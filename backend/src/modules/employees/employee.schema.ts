@@ -1,18 +1,65 @@
 import { z } from 'zod';
 import { Gender, MaritalStatus, PaymentFrequency } from '@prisma/client';
 
+const MIN_AGE = 18;
+const MAX_AGE = 100;
+
+function ageYears(d: Date): number {
+  const now = new Date();
+  let a = now.getUTCFullYear() - d.getUTCFullYear();
+  const m = now.getUTCMonth() - d.getUTCMonth();
+  if (m < 0 || (m === 0 && now.getUTCDate() < d.getUTCDate())) a -= 1;
+  return a;
+}
+
+/** Validaciones cruzadas de fechas del empleado (nacimiento, ingreso, expedición). */
+function refineEmployeeDates(
+  v: { birthDate?: Date | null; hireDate?: Date | null; issueDate?: Date | null },
+  ctx: z.RefinementCtx,
+) {
+  const today = new Date();
+  if (v.birthDate) {
+    if (v.birthDate >= today) {
+      ctx.addIssue({ code: 'custom', path: ['birthDate'], message: 'La fecha de nacimiento debe ser pasada.' });
+    } else {
+      const age = ageYears(v.birthDate);
+      if (age < MIN_AGE)
+        ctx.addIssue({ code: 'custom', path: ['birthDate'], message: `El empleado debe ser mayor de edad (${MIN_AGE} años).` });
+      if (age > MAX_AGE)
+        ctx.addIssue({ code: 'custom', path: ['birthDate'], message: 'La fecha de nacimiento no es válida.' });
+    }
+  }
+  if (v.hireDate) {
+    if (v.hireDate > today)
+      ctx.addIssue({ code: 'custom', path: ['hireDate'], message: 'La fecha de ingreso no puede ser futura.' });
+    if (v.hireDate.getUTCFullYear() < 1950)
+      ctx.addIssue({ code: 'custom', path: ['hireDate'], message: 'La fecha de ingreso no es válida.' });
+  }
+  if (v.issueDate) {
+    if (v.issueDate > today)
+      ctx.addIssue({ code: 'custom', path: ['issueDate'], message: 'La fecha de expedición no puede ser futura.' });
+    if (v.birthDate && v.issueDate < v.birthDate)
+      ctx.addIssue({ code: 'custom', path: ['issueDate'], message: 'La expedición no puede ser anterior al nacimiento.' });
+  }
+}
+
 // Tipo de documento y tipo de contrato son catálogos editables (texto libre
 // validado contra las opciones configuradas en Configuración).
-const contractSchema = z.object({
-  type: z.string().min(1).default('INDEFINITE'),
-  paymentFrequency: z.nativeEnum(PaymentFrequency).default(PaymentFrequency.MONTHLY),
-  baseSalary: z.number().positive('El salario debe ser mayor a 0.'),
-  isIntegralSalary: z.boolean().default(false),
-  transportAllowance: z.boolean().default(true),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date().optional().nullable(),
-  notes: z.string().optional().nullable(),
-});
+const contractSchema = z
+  .object({
+    type: z.string().min(1).default('INDEFINITE'),
+    paymentFrequency: z.nativeEnum(PaymentFrequency).default(PaymentFrequency.MONTHLY),
+    baseSalary: z.number().positive('El salario debe ser mayor a 0.'),
+    isIntegralSalary: z.boolean().default(false),
+    transportAllowance: z.boolean().default(true),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date().optional().nullable(),
+    notes: z.string().optional().nullable(),
+  })
+  .refine((v) => !v.endDate || v.endDate >= v.startDate, {
+    message: 'La fecha de fin del contrato no puede ser anterior al inicio.',
+    path: ['endDate'],
+  });
 
 const employeeBase = {
   documentType: z.string().min(1).default('CC'),
@@ -60,10 +107,12 @@ const employeeBase = {
 };
 
 export const createEmployeeSchema = z.object({
-  body: z.object({
-    ...employeeBase,
-    contract: contractSchema,
-  }),
+  body: z
+    .object({
+      ...employeeBase,
+      contract: contractSchema,
+    })
+    .superRefine(refineEmployeeDates),
 });
 
 const contractUpdateSchema = z
@@ -82,7 +131,8 @@ export const updateEmployeeSchema = z.object({
   body: z
     .object({ ...employeeBase })
     .partial()
-    .extend({ contract: contractUpdateSchema.optional() }),
+    .extend({ contract: contractUpdateSchema.optional() })
+    .superRefine(refineEmployeeDates),
 });
 
 export const listEmployeesSchema = z.object({
