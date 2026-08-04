@@ -9,6 +9,16 @@ export async function fetchPeriodForPrint(id: string): Promise<PrintPeriod> {
   return data.data;
 }
 
+/** Envía por correo el desprendible a cada empleado del periodo con correo. */
+export async function sendPeriodPayslips(
+  id: string,
+): Promise<{ sent: number; skipped: number; failed: string[] }> {
+  const { data } = await api.post<{ data: { sent: number; skipped: number; failed: string[] } }>(
+    `/payroll/periods/${id}/send-payslips`,
+  );
+  return data.data;
+}
+
 export function usePayrollPeriods(filters?: { year?: number; status?: string }) {
   return useQuery({
     queryKey: ['payroll', 'periods', filters],

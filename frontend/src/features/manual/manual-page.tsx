@@ -200,6 +200,7 @@ export function ManualPage() {
               'El sistema liquida a todos los empleados activos con contrato vigente e incluye las novedades de ausencias del período.',
               'Revisa los desprendibles: devengados, deducciones, neto y costo del empleador.',
               'Con “Desprendibles (PDF)” generas de una vez las colillas de todo el período (una por página) para imprimir o guardar como un solo PDF.',
+              'Con “Enviar por correo” cada empleado recibe su desprendible en su correo (requiere configurar el correo saliente/SMTP del servidor).',
               'Cambia el estado del período (Procesada, Aprobada, Pagada) según tu flujo.',
             ]}
           />

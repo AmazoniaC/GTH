@@ -4,6 +4,8 @@ import { payrollRepository, PayrollRepository } from './payroll.repository';
 import { calculatePayroll, PayrollConfigValues } from './payroll.calculator';
 import { computeAbsenceNovelties } from './absence-novelties';
 import { reserveNumbers, formatDocNumber } from '../../core/utils/sequence';
+import { sendMail, isMailConfigured } from '../../config/mailer';
+import { renderPayslipEmail } from './payslip-email';
 import { AppError, ConflictError, NotFoundError } from '../../core/errors/AppError';
 import type { CreatePeriodInput, SimulateInput, UpsertConfigInput } from './payroll.schema';
 
@@ -134,6 +136,41 @@ export class PayrollService {
     const period = await this.repo.periodForPrint(id, organizationId);
     if (!period) throw new NotFoundError('Periodo de nómina');
     return period;
+  }
+
+  /** Envía por correo el desprendible a cada empleado del periodo con correo. */
+  async sendPeriodPayslips(id: string, organizationId: string) {
+    if (!isMailConfigured()) {
+      throw new AppError(
+        'El envío de correos no está configurado. Define las variables SMTP_* en el .env del servidor.',
+        400,
+      );
+    }
+    const period = await this.repo.periodForPrint(id, organizationId);
+    if (!period) throw new NotFoundError('Periodo de nómina');
+
+    let sent = 0;
+    let skipped = 0;
+    const failed: string[] = [];
+    for (const p of period.payslips) {
+      const email = p.employee.email;
+      const name = `${p.employee.firstName} ${p.employee.lastName}`;
+      if (!email) {
+        skipped += 1;
+        continue;
+      }
+      try {
+        await sendMail({
+          to: email,
+          subject: `Desprendible de pago · ${period.name}`,
+          html: renderPayslipEmail(period.name, p, period.organization),
+        });
+        sent += 1;
+      } catch {
+        failed.push(name);
+      }
+    }
+    return { sent, skipped, failed };
   }
 
   async getPayslip(id: string, organizationId: string) {

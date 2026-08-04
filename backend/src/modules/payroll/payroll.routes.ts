@@ -41,6 +41,12 @@ router.get(
   asyncHandler(payrollController.periodForPrint),
 );
 router.post(
+  '/periods/:id/send-payslips',
+  authorize(...payrollManagers),
+  validate(idParamSchema),
+  asyncHandler(payrollController.sendPeriodPayslips),
+);
+router.post(
   '/periods',
   authorize(...payrollManagers),
   validate(createPeriodSchema),
