@@ -53,6 +53,11 @@ export class PayrollController {
     return ok(res, result);
   };
 
+  periodForPrint = async (req: Request, res: Response) => {
+    const data = await payrollService.periodForPrint(req.params.id, req.auth!.organizationId);
+    return ok(res, data);
+  };
+
   // --- Desprendible ---
   getPayslip = async (req: Request, res: Response) => {
     const payslip = await payrollService.getPayslip(req.params.id, req.auth!.organizationId);

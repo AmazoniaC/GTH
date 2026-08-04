@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { PayrollConfig, PayrollPeriod, Payslip, SimulationResult } from '@/types';
+import type { PrintPeriod } from './print-payslips';
+
+/** Descarga el periodo con todos sus desprendibles (para impresión masiva). */
+export async function fetchPeriodForPrint(id: string): Promise<PrintPeriod> {
+  const { data } = await api.get<{ data: PrintPeriod }>(`/payroll/periods/${id}/payslips-print`);
+  return data.data;
+}
 
 export function usePayrollPeriods(filters?: { year?: number; status?: string }) {
   return useQuery({

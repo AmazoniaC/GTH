@@ -129,6 +129,13 @@ export class PayrollService {
     return period;
   }
 
+  /** Datos completos de un periodo para generar los desprendibles en masa. */
+  async periodForPrint(id: string, organizationId: string) {
+    const period = await this.repo.periodForPrint(id, organizationId);
+    if (!period) throw new NotFoundError('Periodo de nómina');
+    return period;
+  }
+
   async getPayslip(id: string, organizationId: string) {
     const payslip = await this.repo.findPayslipById(id, organizationId);
     if (!payslip) throw new NotFoundError('Desprendible');
