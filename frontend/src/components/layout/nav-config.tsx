@@ -13,6 +13,7 @@ import {
   CalendarDays,
   BookOpen,
   FileText,
+  BarChart3,
   type LucideIcon,
 } from 'lucide-react';
 import type { AppModule, UserRole } from '@/types';
@@ -45,6 +46,12 @@ export const navSections: NavSection[] = [
     items: [
       { label: 'Mi Portal', to: '/portal', icon: UserCircle, roles: ['EMPLOYEE'] },
       { label: 'Panel', to: '/dashboard', icon: LayoutDashboard },
+      {
+        label: 'Reportes',
+        to: '/reports',
+        icon: BarChart3,
+        roles: ['ADMIN', 'SUPER_ADMIN', 'HR_MANAGER', 'PAYROLL_MANAGER'],
+      },
       { label: 'Alertas', to: '/alerts', icon: Bell },
     ],
   },

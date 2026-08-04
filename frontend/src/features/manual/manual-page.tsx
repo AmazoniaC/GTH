@@ -71,12 +71,24 @@ export function ManualPage() {
           />
         </Section>
 
-        <Section id="dashboard" title="3. Panel principal (Dashboard)">
+        <Section id="dashboard" title="3. Panel principal y Reportes">
           <p>
             Al ingresar verás el <b>Panel</b> con los indicadores clave: número de empleados
             (activos, en licencia, retirados), empleados por departamento, la última nómina y la
-            tendencia de costos. Es un resumen para tomar decisiones rápidas.
+            tendencia de costos.
           </p>
+          <p>
+            En <b>Reportes</b> (para RRHH, nómina y administradores) encuentras tableros con
+            gráficas y <b>exportación a Excel</b>:
+          </p>
+          <Bullets
+            items={[
+              'Planta y rotación: empleados por área, contrato, género, antigüedad y edad; altas y bajas por mes.',
+              'Costos de nómina: tendencia mensual, costo por área, distribución salarial (por año).',
+              'Ausentismo: días por tipo y área, incapacidades por origen, top de ausencias y pasivo de vacaciones.',
+              'Cumplimiento: contratos/pruebas/documentos por vencer, Habeas Data y distribución por EPS/pensión/ARL/caja.',
+            ]}
+          />
         </Section>
 
         <Section id="empleados" title="4. Empleados">

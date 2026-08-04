@@ -252,6 +252,15 @@ listados y conteos.
 ### 5.19 `absences`
 Módulo de Vacaciones y Ausencias. Ver sección 7.
 
+### 5.22 `reports`
+Reportes y analítica (función base, rol RRHH/nómina/admin). `report.service`
+expone agregaciones: `headcount` (planta y rotación), `payroll(year)` (costos y
+distribución salarial), `absenteeism(from,to)` (días por tipo/área, incapacidades
+por origen, top, y pasivo de vacaciones) y `compliance` (alertas, Habeas Data,
+distribución de seguridad social). Endpoints bajo `/reports`. El frontend
+(`features/reports`) los grafica con recharts y exporta a Excel/CSV con
+`lib/export-csv.ts`.
+
 ### 5.21 `liquidations`
 Liquidación definitiva de contrato. `liquidation.calculator.ts` es una función
 pura (con `days360`, convención 30/360) que calcula cesantías + intereses,
