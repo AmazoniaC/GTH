@@ -5,7 +5,8 @@ import { calculatePayroll, PayrollConfigValues } from './payroll.calculator';
 import { computeAbsenceNovelties } from './absence-novelties';
 import { reserveNumbers, formatDocNumber } from '../../core/utils/sequence';
 import { sendMail, isMailConfigured } from '../../config/mailer';
-import { renderPayslipEmail } from './payslip-email';
+import { renderPayslipEmailBody, periodPhrase } from './payslip-email';
+import { renderPayslipPdf } from './payslip-pdf';
 import { AppError, ConflictError, NotFoundError } from '../../core/errors/AppError';
 import type { CreatePeriodInput, SimulateInput, UpsertConfigInput } from './payroll.schema';
 
@@ -149,6 +150,7 @@ export class PayrollService {
     const period = await this.repo.periodForPrint(id, organizationId);
     if (!period) throw new NotFoundError('Periodo de nómina');
 
+    const phrase = periodPhrase(period.type, period.month, period.year);
     let sent = 0;
     let skipped = 0;
     const failed: string[] = [];
@@ -160,10 +162,13 @@ export class PayrollService {
         continue;
       }
       try {
+        const pdf = await renderPayslipPdf(period.name, p, period.organization);
+        const fileName = `Desprendible-${p.number ?? p.employee.documentNumber}.pdf`;
         await sendMail({
           to: email,
-          subject: `Desprendible de pago · ${period.name}`,
-          html: renderPayslipEmail(period.name, p, period.organization),
+          subject: `Comprobante de pago · ${period.name}`,
+          html: renderPayslipEmailBody(name, phrase, period.organization),
+          attachments: [{ filename: fileName, content: pdf, contentType: 'application/pdf' }],
         });
         sent += 1;
       } catch {

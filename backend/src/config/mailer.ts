@@ -16,10 +16,17 @@ function getTransporter(): Transporter | null {
   return transporter;
 }
 
+export interface MailAttachment {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+}
+
 export interface MailInput {
   to: string;
   subject: string;
   html: string;
+  attachments?: MailAttachment[];
 }
 
 /** Envía un correo. Lanza si el SMTP no está configurado. */
@@ -33,6 +40,7 @@ export async function sendMail(input: MailInput): Promise<void> {
     to: input.to,
     subject: input.subject,
     html: input.html,
+    attachments: input.attachments,
   });
 }
 
