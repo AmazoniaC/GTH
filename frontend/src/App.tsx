@@ -19,6 +19,7 @@ import { PlatformPage } from '@/features/platform/platform-page';
 import { AbsencesPage } from '@/features/absences/pages/absences-page';
 import { ManualPage } from '@/features/manual/manual-page';
 import { DocumentsPage } from '@/features/documents-gen/pages/documents-page';
+import { ReportsPage } from '@/features/reports/pages/reports-page';
 import { LiquidationsPage } from '@/features/liquidations/pages/liquidations-page';
 import { NewLiquidationPage } from '@/features/liquidations/pages/new-liquidation-page';
 import { LiquidationDetailPage } from '@/features/liquidations/pages/liquidation-detail-page';
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/portal" element={<PortalPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
         <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/employees" element={<EmployeesPage />} />
         <Route path="/absences" element={<AbsencesPage />} />
