@@ -56,6 +56,7 @@ model Organization {
   vacationAdjustments VacationAdjustment[]
   documentTemplates DocumentTemplate[]
   liquidations   Liquidation[]
+  payrollNovelties PayrollNovelty[]
 
   @@map("organizations")
 }
@@ -264,6 +265,7 @@ model Employee {
   absences     Absence[]
   vacationAdjustments VacationAdjustment[]
   liquidations Liquidation[]
+  payrollNovelties PayrollNovelty[]
 
   @@unique([organizationId, employeeCode])
   @@unique([organizationId, documentNumber])
@@ -531,6 +533,54 @@ model DocumentSequence {
 
   @@unique([organizationId, series])
   @@map("document_sequences")
+}
+
+// ==================================================================
+// MÓDULO: NÓMINA — NOVEDADES (horas extra, bonos, préstamos, etc.)
+// ==================================================================
+
+enum NoveltyKind {
+  EARNING // Devengado (suma al pago)
+  DEDUCTION // Deducción (resta del pago)
+}
+
+// Novedad de nómina de un empleado que se incluye al liquidar el periodo.
+// Las puntuales aplican una vez; las recurrentes (ej: préstamos) aplican en
+// cada periodo hasta completar las cuotas.
+model PayrollNovelty {
+  id             String   @id @default(cuid())
+  organizationId String
+  employeeId     String
+
+  kind           NoveltyKind
+  code           String // OVERTIME_* | BONUS | COMMISSION | ALLOWANCE | LOAN | OTHER_*
+  concept        String
+  amount         Decimal  @db.Decimal(14, 2) // Valor por periodo
+
+  recurring      Boolean  @default(false)
+  installments   Int? // Nº de cuotas (préstamos recurrentes)
+  appliedCount   Int      @default(0)
+
+  // Periodo objetivo opcional (si se define, solo aplica a ese mes/año).
+  year           Int?
+  month          Int?
+
+  // Detalle de horas extra (si aplica)
+  hours          Decimal? @db.Decimal(8, 2)
+  factor         Decimal? @db.Decimal(6, 4)
+
+  isActive       Boolean  @default(true)
+  notes          String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([employeeId])
+  @@map("payroll_novelties")
 }
 
 // Bitácora de auditoría: registra creaciones, cambios y eliminaciones.

@@ -3,6 +3,7 @@ import { prisma } from '../../config/prisma';
 import { payrollRepository, PayrollRepository } from './payroll.repository';
 import { calculatePayroll, PayrollConfigValues } from './payroll.calculator';
 import { computeAbsenceNovelties } from './absence-novelties';
+import { noveltyService } from '../novelties/novelty.service';
 import { reserveNumbers, formatDocNumber } from '../../core/utils/sequence';
 import { sendMail, isMailConfigured } from '../../config/mailer';
 import { renderPayslipEmailBody, periodPhrase } from './payslip-email';
@@ -226,12 +227,22 @@ export class PayrollService {
       absencesByEmployee.set(a.employeeId, list);
     }
 
+    // Novedades de nómina aplicables al periodo (horas extra, bonos, préstamos).
+    const novelties = await noveltyService.applicableForPeriod(organizationId, input.year, input.month);
+    const noveltiesByEmployee = new Map<string, typeof novelties>();
+    for (const n of novelties) {
+      const list = noveltiesByEmployee.get(n.employeeId) ?? [];
+      list.push(n);
+      noveltiesByEmployee.set(n.employeeId, list);
+    }
+    const appliedNoveltyIds: string[] = [];
+
     // Precalcula todo antes de tocar la BD.
     const computed = eligible.map((emp) => {
       const contract = emp.contracts[0];
       const baseSalary = num(contract.baseSalary);
       const empAbsences = absencesByEmployee.get(emp.id) ?? [];
-      const novelties = computeAbsenceNovelties(
+      const absenceNov = computeAbsenceNovelties(
         empAbsences,
         baseSalary,
         config.minimumWage,
@@ -239,16 +250,31 @@ export class PayrollService {
         endDate,
         input.workedDays,
       );
+
+      // Novedades de nómina del empleado → devengados y deducciones extra.
+      const extraEarnings = [...absenceNov.additionalEarnings];
+      const extraDeductions: { code: string; concept: string; amount: number }[] = [];
+      for (const n of noveltiesByEmployee.get(emp.id) ?? []) {
+        appliedNoveltyIds.push(n.id);
+        const amount = num(n.amount);
+        if (n.kind === 'EARNING') {
+          extraEarnings.push({ code: n.code, concept: n.concept, amount, funder: 'EMPLOYER' });
+        } else {
+          extraDeductions.push({ code: n.code, concept: n.concept, amount });
+        }
+      }
+
       const result = calculatePayroll({
         baseSalary,
-        workedDays: novelties.paidDays,
+        workedDays: absenceNov.paidDays,
         hasTransportAllowance: contract.transportAllowance,
         isIntegralSalary: contract.isIntegralSalary,
         arlRiskClass: emp.arlRiskClass,
         config,
-        additionalEarnings: novelties.additionalEarnings,
+        additionalEarnings: extraEarnings,
+        additionalDeductions: extraDeductions,
       });
-      return { employeeId: emp.id, baseSalary, workedDays: novelties.paidDays, result };
+      return { employeeId: emp.id, baseSalary, workedDays: absenceNov.paidDays, result };
     });
 
     const totals = computed.reduce(
@@ -280,7 +306,7 @@ export class PayrollService {
       numberByEmployee.set(c.employeeId, formatDocNumber('PAYSLIP', firstNumber + i)),
     );
 
-    return this.repo.createPeriodWithPayslips(
+    const period = await this.repo.createPeriodWithPayslips(
       periodData,
       (periodId) =>
         computed.map((c) => ({
@@ -309,6 +335,10 @@ export class PayrollService {
         }),
       totals,
     );
+
+    // Marca las novedades aplicadas (avanza cuotas de préstamos, cierra puntuales).
+    await noveltyService.markApplied(appliedNoveltyIds);
+    return period;
   }
 
   async updatePeriodStatus(id: string, organizationId: string, status: string) {

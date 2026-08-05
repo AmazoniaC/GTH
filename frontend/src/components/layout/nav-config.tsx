@@ -14,6 +14,7 @@ import {
   BookOpen,
   FileText,
   BarChart3,
+  Receipt,
   type LucideIcon,
 } from 'lucide-react';
 import type { AppModule, UserRole } from '@/types';
@@ -68,6 +69,7 @@ export const navSections: NavSection[] = [
     title: 'Nómina',
     items: [
       { label: 'Nóminas', to: '/payroll', icon: Wallet, end: true, module: 'PAYROLL' },
+      { label: 'Novedades', to: '/payroll/novelties', icon: Receipt, module: 'PAYROLL' },
       { label: 'Liquidaciones', to: '/payroll/liquidations', icon: FileText, module: 'PAYROLL' },
       { label: 'Simulador', to: '/payroll/simulator', icon: Calculator, module: 'PAYROLL' },
     ],

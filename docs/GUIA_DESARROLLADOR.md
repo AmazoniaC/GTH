@@ -252,6 +252,16 @@ listados y conteos.
 ### 5.19 `absences`
 Módulo de Vacaciones y Ausencias. Ver sección 7.
 
+### 5.23 `novelties`
+Novedades de nómina (módulo Nómina). `PayrollNovelty` guarda devengados
+(horas extra con cálculo automático salario/240×horas×factor —
+`config/payroll-novelties.ts`—, bonos, comisiones, auxilios) y deducciones
+(préstamos recurrentes por cuotas, otras deducciones). Al liquidar un periodo,
+`payroll.service.createPeriod` incorpora las novedades aplicables
+(`applicableForPeriod`) como devengados/deducciones extra del desprendible y
+luego `markApplied` avanza las cuotas y cierra las puntuales. Endpoints
+`/novelties` (catálogo + CRUD), gateados por el módulo PAYROLL.
+
 ### 5.22 `reports`
 Reportes y analítica (función base, rol RRHH/nómina/admin). `report.service`
 expone agregaciones: `headcount` (planta y rotación), `payroll(year)` (costos y
