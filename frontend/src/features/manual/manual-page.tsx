@@ -204,6 +204,13 @@ export function ManualPage() {
               'Cambia el estado del período (Procesada, Aprobada, Pagada) según tu flujo.',
             ]}
           />
+          <SubTitle>Novedades de nómina</SubTitle>
+          <p>
+            En <b>Novedades</b> registras horas extra (con recargo calculado automáticamente),
+            bonos, comisiones, auxilios y <b>deducciones</b> como préstamos/libranzas. Las novedades
+            <b> puntuales</b> se aplican en la próxima liquidación; los <b>préstamos</b> se descuentan
+            por cuotas cada mes hasta saldar. Todo se refleja automáticamente en el desprendible.
+          </p>
           <SubTitle>Liquidación definitiva de contrato</SubTitle>
           <Steps
             items={[

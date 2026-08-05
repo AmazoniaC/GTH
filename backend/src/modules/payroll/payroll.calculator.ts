@@ -33,8 +33,10 @@ export interface PayrollCalcInput {
   isIntegralSalary: boolean;
   arlRiskClass: number; // 1..5
   config: PayrollConfigValues;
-  // Devengados adicionales por novedades (incapacidades, licencias, etc.).
+  // Devengados adicionales por novedades (incapacidades, licencias, extras...).
   additionalEarnings?: AdditionalEarning[];
+  // Deducciones adicionales por novedades (préstamos, otras deducciones).
+  additionalDeductions?: { code: string; concept: string; amount: number }[];
 }
 
 export type ItemType = 'EARNING' | 'DEDUCTION' | 'EMPLOYER_COST';
@@ -121,11 +123,18 @@ export function calculatePayroll(input: PayrollCalcInput): PayrollCalcResult {
     concept: e.concept,
     amount: e.amount,
   }));
+  const extraDeductionItems: CalcItem[] = (input.additionalDeductions ?? []).map((d) => ({
+    type: 'DEDUCTION' as ItemType,
+    code: d.code,
+    concept: d.concept,
+    amount: d.amount,
+  }));
 
   const items: CalcItem[] = [
     earning(CONCEPT.SALARY, salary),
     ...(transport > 0 ? [earning(CONCEPT.TRANSPORT, transport)] : []),
     ...extraEarningItems,
+    ...extraDeductionItems,
     deduction(CONCEPT.HEALTH_EMPLOYEE, healthEmployee),
     deduction(CONCEPT.PENSION_EMPLOYEE, pensionEmployee),
     ...(solidarityFund > 0 ? [deduction(CONCEPT.SOLIDARITY_FUND, solidarityFund)] : []),

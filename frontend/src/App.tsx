@@ -20,6 +20,7 @@ import { AbsencesPage } from '@/features/absences/pages/absences-page';
 import { ManualPage } from '@/features/manual/manual-page';
 import { DocumentsPage } from '@/features/documents-gen/pages/documents-page';
 import { ReportsPage } from '@/features/reports/pages/reports-page';
+import { NoveltiesPage } from '@/features/novelties/pages/novelties-page';
 import { LiquidationsPage } from '@/features/liquidations/pages/liquidations-page';
 import { NewLiquidationPage } from '@/features/liquidations/pages/new-liquidation-page';
 import { LiquidationDetailPage } from '@/features/liquidations/pages/liquidation-detail-page';
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="/employees/:documentNumber" element={<EmployeeDetailPage />} />
         <Route path="/payroll" element={<PayrollPage />} />
         <Route path="/payroll/simulator" element={<PayrollSimulatorPage />} />
+        <Route path="/payroll/novelties" element={<NoveltiesPage />} />
         <Route path="/payroll/liquidations" element={<LiquidationsPage />} />
         <Route path="/payroll/liquidations/new" element={<NewLiquidationPage />} />
         <Route path="/payroll/liquidations/:id" element={<LiquidationDetailPage />} />
