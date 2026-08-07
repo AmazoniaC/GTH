@@ -559,10 +559,19 @@ ADMIN/HR_MANAGER/SUPER_ADMIN. Todas las operaciones quedan en auditoría.
   checklist de documentos con verificación; entrevistas con puntaje.
 - Oferta (`JobOffer`): valida la modalidad (fecha de fin obligatoria cuando
   aplica) y el período de prueba; genera contrato interno.
-- **Contratar** (`hire`): en una transacción crea el `Employee` + `Contract`
-  (mapeando la modalidad al catálogo `CONTRACT_TYPE`), marca la postulación
-  como HIRED, cubre la vacante cuando se llenan las plazas y siembra el
-  onboarding. Respeta el límite de empleados del plan.
+- **Contratar** (`hire`): en una transacción crea el `Employee` + `Contract`,
+  marca la postulación como HIRED, cubre la vacante cuando se llenan las plazas
+  y siembra el onboarding. **No duplica lógica**: delega la creación del
+  empleado en `employeeService.createRecord()` — la **única** función canónica
+  de alta de empleados, tx-aware, que también usa el alta directa/importación.
+  Así el límite del plan, el control de duplicados, el contrato y las
+  validaciones viven en un solo lugar. La modalidad de la oferta se mapea al
+  catálogo `CONTRACT_TYPE` y el período de prueba se traslada al contrato.
+- **Un registro, dos caminos** (estándar de los ERP): el empleado es único y
+  se llega a él por contratación (camino principal) o por alta directa/Excel
+  (carga inicial, recontratación, altas express). `GET /recruitment/origin/:id`
+  expone de qué vacante salió un empleado; su ficha muestra “Contratado desde
+  VAC-…”.
 - Firma: registro interno (marcar firmado + adjuntar el contrato firmado como
   data URL). Preparado para integrar un proveedor externo en el futuro.
 

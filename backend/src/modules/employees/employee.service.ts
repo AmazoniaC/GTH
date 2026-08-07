@@ -73,19 +73,32 @@ export class EmployeeService {
     return employee;
   }
 
-  async create(organizationId: string, input: CreateEmployeeInput, actor?: Actor) {
-    const existing = await this.repo.findByDocument(input.documentNumber, organizationId);
+  /**
+   * Crea el empleado y su contrato. **Única implementación** de alta de
+   * empleados en la aplicación: la usan tanto el alta directa/importación
+   * como la contratación desde el módulo de Selección (`recruitment.hire`).
+   *
+   * No registra auditoría (la hace quien la invoca, con la etiqueta que
+   * corresponda) y acepta un cliente de transacción para poder ejecutarse de
+   * forma atómica junto con otras operaciones.
+   */
+  async createRecord(
+    organizationId: string,
+    input: CreateEmployeeInput,
+    db: Prisma.TransactionClient | typeof prisma = prisma,
+  ) {
+    const existing = await this.repo.findByDocument(input.documentNumber, organizationId, db);
     if (existing) {
       throw new ConflictError('Ya existe un empleado con este número de documento.');
     }
 
     // Respeta el límite de empleados asignado por el dueño de la plataforma.
-    const org = await prisma.organization.findUnique({
+    const org = await db.organization.findUnique({
       where: { id: organizationId },
       select: { maxEmployees: true },
     });
     if (org?.maxEmployees != null) {
-      const current = await prisma.employee.count({ where: { organizationId } });
+      const current = await db.employee.count({ where: { organizationId } });
       if (current >= org.maxEmployees) {
         throw new AppError(
           `Alcanzaste el límite de empleados de tu plan (${org.maxEmployees}). Contacta al administrador de la plataforma para ampliarlo.`,
@@ -116,6 +129,7 @@ export class EmployeeService {
           transportAllowance: contract.transportAllowance,
           startDate: contract.startDate,
           endDate: contract.endDate ?? null,
+          probationEndDate: contract.probationEndDate ?? null,
           notes: contract.notes ?? null,
           isActive: true,
         },
@@ -123,7 +137,11 @@ export class EmployeeService {
     };
 
     if (data.dataConsent) data.dataConsentAt = new Date();
-    const createdEmployee = await this.repo.create(data);
+    return this.repo.create(data, db);
+  }
+
+  async create(organizationId: string, input: CreateEmployeeInput, actor?: Actor) {
+    const createdEmployee = await this.createRecord(organizationId, input);
     await auditService.record({
       organizationId,
       actor,

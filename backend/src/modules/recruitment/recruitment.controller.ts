@@ -85,6 +85,10 @@ export class RecruitmentController {
   // Contratar
   hire = async (req: Request, res: Response) =>
     created(res, await recruitmentService.hire(req.params.id, orgOf(req), req.body, actorOf(req)));
+
+  // Trazabilidad: origen de contratación de un empleado
+  originForEmployee = async (req: Request, res: Response) =>
+    ok(res, await recruitmentService.originForEmployee(req.params.id, orgOf(req)));
 }
 
 export const recruitmentController = new RecruitmentController();
