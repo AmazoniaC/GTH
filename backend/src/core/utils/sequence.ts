@@ -6,6 +6,7 @@ const PREFIX: Record<string, string> = {
   LIQUIDATION: 'LIQ',
   PAYSLIP: 'NOM',
   DOCUMENT: 'DOC',
+  VACANCY: 'VAC',
 };
 
 export function formatDocNumber(series: string, n: number): string {

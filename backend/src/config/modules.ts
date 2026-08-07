@@ -8,6 +8,7 @@
 export const APP_MODULES = [
   { key: 'EMPLOYEES', label: 'Gestión de Empleados' },
   { key: 'PAYROLL', label: 'Nómina' },
+  { key: 'RECRUITMENT', label: 'Contratación y Selección' },
 ] as const;
 
 export type ModuleKey = (typeof APP_MODULES)[number]['key'];
