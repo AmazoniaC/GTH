@@ -6,6 +6,11 @@ import type { AppModule, AuthUser } from '@/types';
 export const AVAILABLE_MODULES: { key: AppModule; label: string; description: string }[] = [
   { key: 'EMPLOYEES', label: 'Gestión de Empleados', description: 'Empleados y organigrama' },
   { key: 'PAYROLL', label: 'Nómina', description: 'Liquidación y simulador' },
+  {
+    key: 'RECRUITMENT',
+    label: 'Contratación y Selección',
+    description: 'Vacantes, candidatos, entrevistas y onboarding',
+  },
 ];
 
 export interface PlatformSummary {

@@ -57,6 +57,15 @@ const LiquidationDetailPage = named(
   () => import('@/features/liquidations/pages/liquidation-detail-page'),
   'LiquidationDetailPage',
 );
+const VacanciesPage = named(() => import('@/features/recruitment/pages/vacancies-page'), 'VacanciesPage');
+const VacancyDetailPage = named(
+  () => import('@/features/recruitment/pages/vacancy-detail-page'),
+  'VacancyDetailPage',
+);
+const ApplicationDetailPage = named(
+  () => import('@/features/recruitment/pages/application-detail-page'),
+  'ApplicationDetailPage',
+);
 
 /** Indicador de carga mientras se descarga el módulo de una ruta. */
 function RouteFallback() {
@@ -89,6 +98,9 @@ export default function App() {
           <Route path="/absences" element={<AbsencesPage />} />
           <Route path="/documents" element={<DocumentsPage />} />
           <Route path="/organization" element={<OrgChartPage />} />
+          <Route path="/recruitment" element={<VacanciesPage />} />
+          <Route path="/recruitment/vacancies/:id" element={<VacancyDetailPage />} />
+          <Route path="/recruitment/applications/:id" element={<ApplicationDetailPage />} />
           <Route path="/employees/:documentNumber" element={<EmployeeDetailPage />} />
           <Route path="/payroll" element={<PayrollPage />} />
           <Route path="/payroll/simulator" element={<PayrollSimulatorPage />} />

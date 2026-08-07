@@ -22,6 +22,7 @@ import { certificateRoutes } from '../modules/certificates/certificate.routes';
 import { liquidationRoutes } from '../modules/liquidations/liquidation.routes';
 import { reportRoutes } from '../modules/reports/report.routes';
 import { noveltyRoutes } from '../modules/novelties/novelty.routes';
+import { recruitmentRoutes } from '../modules/recruitment/recruitment.routes';
 
 /**
  * Registro central de módulos. Para añadir un nuevo módulo en el futuro
@@ -50,6 +51,7 @@ router.use('/documents-gen', certificateRoutes);
 router.use('/liquidations', liquidationRoutes);
 router.use('/reports', reportRoutes);
 router.use('/novelties', noveltyRoutes);
+router.use('/recruitment', recruitmentRoutes);
 router.use('/payroll', payrollRoutes);
 router.use('/catalog', catalogRoutes);
 router.use('/dashboard', dashboardRoutes);

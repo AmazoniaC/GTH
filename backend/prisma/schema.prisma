@@ -22,41 +22,44 @@ datasource db {
 // ==================================================================
 
 model Organization {
-  id           String   @id @default(cuid())
-  name         String
-  nit          String   @unique
-  legalName    String?
+  id                  String  @id @default(cuid())
+  name                String
+  nit                 String  @unique
+  legalName           String?
   legalRepresentative String? // Representante legal / responsable
-  address      String?
-  city         String?
-  phone        String?
-  email        String?
-  website      String?
-  logoUrl      String?
-  isActive     Boolean  @default(true)
+  address             String?
+  city                String?
+  phone               String?
+  email               String?
+  website             String?
+  logoUrl             String?
+  isActive            Boolean @default(true)
 
   // Configuración asignada por el dueño de la plataforma (super admin):
   // qué módulos tiene activos la empresa y cuántos empleados puede registrar.
   modules      String[] @default(["EMPLOYEES", "PAYROLL"]) // Ver config/modules.ts
   maxEmployees Int? // Límite de empleados (null = sin límite)
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  users          User[]
-  employees      Employee[]
-  departments    Department[]
-  positions      Position[]
-  payrollPeriods PayrollPeriod[]
-  payrollConfigs PayrollConfig[]
-  catalogOptions CatalogOption[]
-  auditLogs      AuditLog[]
-  customFields   CustomFieldDefinition[]
-  absences       Absence[]
+  users               User[]
+  employees           Employee[]
+  departments         Department[]
+  positions           Position[]
+  payrollPeriods      PayrollPeriod[]
+  payrollConfigs      PayrollConfig[]
+  catalogOptions      CatalogOption[]
+  auditLogs           AuditLog[]
+  customFields        CustomFieldDefinition[]
+  absences            Absence[]
   vacationAdjustments VacationAdjustment[]
-  documentTemplates DocumentTemplate[]
-  liquidations   Liquidation[]
-  payrollNovelties PayrollNovelty[]
+  documentTemplates   DocumentTemplate[]
+  liquidations        Liquidation[]
+  payrollNovelties    PayrollNovelty[]
+  vacancies           Vacancy[]
+  candidates          Candidate[]
+  applications        Application[]
 
   @@map("organizations")
 }
@@ -70,18 +73,18 @@ enum UserRole {
 }
 
 model User {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   organizationId String
-  email          String   @unique
+  email          String    @unique
   password       String
   firstName      String
   lastName       String
-  role           UserRole @default(HR_MANAGER)
+  role           UserRole  @default(HR_MANAGER)
   avatarUrl      String?
-  isActive       Boolean  @default(true)
+  isActive       Boolean   @default(true)
   lastLoginAt    DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   employee     Employee?
@@ -182,13 +185,13 @@ model CatalogOption {
 }
 
 model Employee {
-  id             String   @id @default(cuid())
+  id             String  @id @default(cuid())
   organizationId String
-  userId         String?  @unique
+  userId         String? @unique
 
   // Identificación
   employeeCode   String
-  documentType   String   @default("CC") // Catálogo editable DOCUMENT_TYPE
+  documentType   String    @default("CC") // Catálogo editable DOCUMENT_TYPE
   documentNumber String
   issuePlace     String? // Lugar de expedición del documento
   issueDate      DateTime? // Fecha de expedición del documento
@@ -217,55 +220,55 @@ model Employee {
   emergencyContactPhone String?
 
   // Organización
-  departmentId   String?
-  positionId     String?
-  managerId      String? // Jefe directo (jerarquía)
-  costCenter     String? // Centro de costo (catálogo COST_CENTER)
-  workLocation   String? // Sede / centro de trabajo (catálogo WORK_LOCATION)
-  hireDate       DateTime
+  departmentId    String?
+  positionId      String?
+  managerId       String? // Jefe directo (jerarquía)
+  costCenter      String? // Centro de costo (catálogo COST_CENTER)
+  workLocation    String? // Sede / centro de trabajo (catálogo WORK_LOCATION)
+  hireDate        DateTime
   terminationDate DateTime?
-  status         String   @default("ACTIVE") // Catálogo editable EMPLOYEE_STATUS
+  status          String    @default("ACTIVE") // Catálogo editable EMPLOYEE_STATUS
 
   // Seguridad social (Colombia)
-  eps                 String? // Entidad Promotora de Salud
-  pensionFund         String? // Administradora de Fondo de Pensiones (AFP)
-  severanceFund       String? // Fondo de cesantías
-  compensationFund    String? // Caja de compensación familiar
-  arl                 String? // Administradora de Riesgos Laborales (entidad)
-  arlRiskClass        Int     @default(1) // Nivel/clase de riesgo ARL (1-5)
+  eps              String? // Entidad Promotora de Salud
+  pensionFund      String? // Administradora de Fondo de Pensiones (AFP)
+  severanceFund    String? // Fondo de cesantías
+  compensationFund String? // Caja de compensación familiar
+  arl              String? // Administradora de Riesgos Laborales (entidad)
+  arlRiskClass     Int     @default(1) // Nivel/clase de riesgo ARL (1-5)
 
   // Datos bancarios
-  bankName       String?
-  bankAccountType String? // Ahorros / Corriente
+  bankName          String?
+  bankAccountType   String? // Ahorros / Corriente
   bankAccountNumber String?
 
   // Campos personalizados (definidos por la empresa) — { clave: valor }
-  customFields   Json?
+  customFields Json?
 
   // Consentimiento de tratamiento de datos (Ley 1581 / Habeas Data)
-  dataConsent    Boolean  @default(false)
-  dataConsentAt  DateTime?
+  dataConsent   Boolean   @default(false)
+  dataConsentAt DateTime?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
-  department   Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  position     Position?    @relation(fields: [positionId], references: [id], onDelete: SetNull)
-  manager      Employee?    @relation("EmployeeManager", fields: [managerId], references: [id], onDelete: SetNull)
-  reports      Employee[]   @relation("EmployeeManager")
-  contracts    Contract[]
-  payslips     Payslip[]
-  documents    EmployeeDocument[]
-  salaryChanges SalaryChange[]
-  dependents   Dependent[]
-  educations   Education[]
-  experiences  WorkExperience[]
-  absences     Absence[]
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  department          Department?          @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  position            Position?            @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  manager             Employee?            @relation("EmployeeManager", fields: [managerId], references: [id], onDelete: SetNull)
+  reports             Employee[]           @relation("EmployeeManager")
+  contracts           Contract[]
+  payslips            Payslip[]
+  documents           EmployeeDocument[]
+  salaryChanges       SalaryChange[]
+  dependents          Dependent[]
+  educations          Education[]
+  experiences         WorkExperience[]
+  absences            Absence[]
   vacationAdjustments VacationAdjustment[]
-  liquidations Liquidation[]
-  payrollNovelties PayrollNovelty[]
+  liquidations        Liquidation[]
+  payrollNovelties    PayrollNovelty[]
 
   @@unique([organizationId, employeeCode])
   @@unique([organizationId, documentNumber])
@@ -278,21 +281,21 @@ model Employee {
 // El contenido se guarda como data URL (base64). El tipo se controla con el
 // catálogo editable FILE_TYPE.
 model EmployeeDocument {
-  id          String   @id @default(cuid())
-  employeeId  String
+  id         String @id @default(cuid())
+  employeeId String
 
-  type        String // Código del catálogo FILE_TYPE
-  name        String // Nombre/descripción visible
-  fileName    String
-  mimeType    String
-  size        Int // Tamaño en bytes
-  content     String // data URL base64
+  type     String // Código del catálogo FILE_TYPE
+  name     String // Nombre/descripción visible
+  fileName String
+  mimeType String
+  size     Int // Tamaño en bytes
+  content  String // data URL base64
 
-  issueDate   DateTime?
-  expiryDate  DateTime?
+  issueDate  DateTime?
+  expiryDate DateTime?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
@@ -302,16 +305,16 @@ model EmployeeDocument {
 
 // Formación académica (hoja de vida).
 model Education {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   employeeId  String
   level       String // Catálogo EDUCATION_LEVEL
   institution String
   title       String? // Título / programa
   startDate   DateTime?
   endDate     DateTime?
-  isCompleted Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isCompleted Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
@@ -321,16 +324,16 @@ model Education {
 
 // Experiencia laboral previa (hoja de vida).
 model WorkExperience {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   employeeId       String
   company          String
   position         String
   startDate        DateTime?
   endDate          DateTime?
-  isCurrent        Boolean  @default(false)
+  isCurrent        Boolean   @default(false)
   responsibilities String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
@@ -361,8 +364,8 @@ model CustomFieldDefinition {
 
 // Grupo familiar / beneficiarios del empleado.
 model Dependent {
-  id             String   @id @default(cuid())
-  employeeId     String
+  id         String @id @default(cuid())
+  employeeId String
 
   relationship   String // Parentesco (catálogo RELATIONSHIP)
   firstName      String
@@ -371,11 +374,11 @@ model Dependent {
   documentNumber String?
   birthDate      DateTime?
   gender         Gender?
-  isBeneficiary  Boolean  @default(true) // Beneficiario de prestaciones
+  isBeneficiary  Boolean   @default(true) // Beneficiario de prestaciones
   notes          String?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
@@ -400,26 +403,26 @@ enum AbsenceStatus {
 // El "type" es un código del catálogo editable ABSENCE_TYPE; las reglas de
 // nómina y de conteo de días se derivan del código (config/absence-rules.ts).
 model Absence {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   organizationId String
   employeeId     String
 
-  type           String // Código del catálogo ABSENCE_TYPE
-  status         AbsenceStatus @default(APPROVED)
-  startDate      DateTime
-  endDate        DateTime
-  days           Decimal  @db.Decimal(6, 2) // Días calculados según la regla del tipo
+  type      String // Código del catálogo ABSENCE_TYPE
+  status    AbsenceStatus @default(APPROVED)
+  startDate DateTime
+  endDate   DateTime
+  days      Decimal       @db.Decimal(6, 2) // Días calculados según la regla del tipo
 
   // Datos de soporte (incapacidades/licencias)
-  entity         String? // EPS / ARL / entidad que expide el soporte
-  supportNumber  String? // Número de la incapacidad/licencia
-  diagnosis      String? // Diagnóstico o motivo clínico
-  reason         String? // Motivo (permisos, licencias)
-  notes          String?
-  documentUrl    String? // Soporte adjunto (data URL base64)
+  entity        String? // EPS / ARL / entidad que expide el soporte
+  supportNumber String? // Número de la incapacidad/licencia
+  diagnosis     String? // Diagnóstico o motivo clínico
+  reason        String? // Motivo (permisos, licencias)
+  notes         String?
+  documentUrl   String? // Soporte adjunto (data URL base64)
 
   // Reflejo en nómina (denormalizado para reportes y trazabilidad)
-  affectsPayroll Boolean  @default(false)
+  affectsPayroll Boolean @default(false)
 
   // Flujo de solicitud/aprobación (autoservicio)
   requestedByUserId String? // Usuario que creó la solicitud (empleado)
@@ -427,8 +430,8 @@ model Absence {
   reviewedAt        DateTime?
   reviewNote        String? // Comentario del aprobador (motivo del rechazo, etc.)
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -442,14 +445,14 @@ model Absence {
 // Ajustes manuales al saldo de vacaciones (RRHH). Positivo = suma días,
 // negativo = descuenta. Complementa la causación automática (1.25 días/mes).
 model VacationAdjustment {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   organizationId String
   employeeId     String
 
-  days           Decimal  @db.Decimal(6, 2) // + o -
-  reason         String?
-  effectiveDate  DateTime @default(now())
-  createdAt      DateTime @default(now())
+  days          Decimal  @db.Decimal(6, 2) // + o -
+  reason        String?
+  effectiveDate DateTime @default(now())
+  createdAt     DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -466,18 +469,18 @@ model VacationAdjustment {
 // salvo, cartas). El cuerpo admite variables {{...}} que se reemplazan con
 // datos del empleado, su contrato y la empresa al generar el documento.
 model DocumentTemplate {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   organizationId String
 
-  key            String // Categoría/plantilla (LABOR_CERTIFICATE, CONTRACT, ...)
-  name           String
-  body           String // Texto con variables {{empleado.nombre}}, etc.
-  isSystem       Boolean  @default(false) // Plantillas base provistas por defecto
-  isActive       Boolean  @default(true)
-  order          Int      @default(0)
+  key      String // Categoría/plantilla (LABOR_CERTIFICATE, CONTRACT, ...)
+  name     String
+  body     String // Texto con variables {{empleado.nombre}}, etc.
+  isSystem Boolean @default(false) // Plantillas base provistas por defecto
+  isActive Boolean @default(true)
+  order    Int     @default(0)
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -493,7 +496,7 @@ model DocumentTemplate {
 // detalle de conceptos (cesantías, intereses, prima, vacaciones, etc.) para
 // trazabilidad y reimpresión del desprendible.
 model Liquidation {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   organizationId String
   employeeId     String
 
@@ -502,18 +505,18 @@ model Liquidation {
   reason          String // Motivo del retiro (RESIGNATION, DISMISSAL_*, CONTRACT_END, MUTUAL)
 
   baseSalary         Decimal @db.Decimal(14, 2)
-  transportAllowance Decimal @db.Decimal(14, 2) @default(0)
+  transportAllowance Decimal @default(0) @db.Decimal(14, 2)
 
   // Detalle de conceptos: [{ code, concept, type: EARNING|DEDUCTION, amount, detail }]
-  items          Json
-  totalEarnings  Decimal  @db.Decimal(16, 2) @default(0)
-  totalDeductions Decimal @db.Decimal(16, 2) @default(0)
-  netPay         Decimal  @db.Decimal(16, 2) @default(0)
+  items           Json
+  totalEarnings   Decimal @default(0) @db.Decimal(16, 2)
+  totalDeductions Decimal @default(0) @db.Decimal(16, 2)
+  netPay          Decimal @default(0) @db.Decimal(16, 2)
 
-  notes          String?
+  notes String?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -526,10 +529,10 @@ model Liquidation {
 // Consecutivos por empresa y por serie (LIQUIDATION, PAYSLIP, DOCUMENT) para
 // numerar los documentos de forma correlativa.
 model DocumentSequence {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   organizationId String
   series         String
-  current        Int      @default(0)
+  current        Int    @default(0)
 
   @@unique([organizationId, series])
   @@map("document_sequences")
@@ -548,32 +551,32 @@ enum NoveltyKind {
 // Las puntuales aplican una vez; las recurrentes (ej: préstamos) aplican en
 // cada periodo hasta completar las cuotas.
 model PayrollNovelty {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   organizationId String
   employeeId     String
 
-  kind           NoveltyKind
-  code           String // OVERTIME_* | BONUS | COMMISSION | ALLOWANCE | LOAN | OTHER_*
-  concept        String
-  amount         Decimal  @db.Decimal(14, 2) // Valor por periodo
+  kind    NoveltyKind
+  code    String // OVERTIME_* | BONUS | COMMISSION | ALLOWANCE | LOAN | OTHER_*
+  concept String
+  amount  Decimal     @db.Decimal(14, 2) // Valor por periodo
 
-  recurring      Boolean  @default(false)
-  installments   Int? // Nº de cuotas (préstamos recurrentes)
-  appliedCount   Int      @default(0)
+  recurring    Boolean @default(false)
+  installments Int? // Nº de cuotas (préstamos recurrentes)
+  appliedCount Int     @default(0)
 
   // Periodo objetivo opcional (si se define, solo aplica a ese mes/año).
-  year           Int?
-  month          Int?
+  year  Int?
+  month Int?
 
   // Detalle de horas extra (si aplica)
-  hours          Decimal? @db.Decimal(8, 2)
-  factor         Decimal? @db.Decimal(6, 4)
+  hours  Decimal? @db.Decimal(8, 2)
+  factor Decimal? @db.Decimal(6, 4)
 
-  isActive       Boolean  @default(true)
-  notes          String?
+  isActive Boolean @default(true)
+  notes    String?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -585,18 +588,18 @@ model PayrollNovelty {
 
 // Bitácora de auditoría: registra creaciones, cambios y eliminaciones.
 model AuditLog {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   organizationId String
 
-  userId         String?
-  userName       String?
-  action         String // CREATE | UPDATE | DELETE
-  entity         String // Employee | Contract | SalaryChange | Document | Dependent | User
-  entityId       String?
-  entityLabel    String?
-  changes        Json?
+  userId      String?
+  userName    String?
+  action      String // CREATE | UPDATE | DELETE
+  entity      String // Employee | Contract | SalaryChange | Document | Dependent | User
+  entityId    String?
+  entityLabel String?
+  changes     Json?
 
-  createdAt      DateTime @default(now())
+  createdAt DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -621,26 +624,26 @@ model SalaryChange {
 }
 
 model Contract {
-  id             String   @id @default(cuid())
-  employeeId     String
+  id         String @id @default(cuid())
+  employeeId String
 
-  type           String           @default("INDEFINITE") // Catálogo editable CONTRACT_TYPE
-  paymentFrequency PaymentFrequency @default(MONTHLY)
-  baseSalary     Decimal          @db.Decimal(14, 2)
+  type               String           @default("INDEFINITE") // Catálogo editable CONTRACT_TYPE
+  paymentFrequency   PaymentFrequency @default(MONTHLY)
+  baseSalary         Decimal          @db.Decimal(14, 2)
   // ¿Salario integral? (Ley 50). Si es true no aplica factor prestacional aparte.
-  isIntegralSalary Boolean        @default(false)
+  isIntegralSalary   Boolean          @default(false)
   // ¿Tiene derecho a auxilio de transporte? (normalmente <= 2 SMMLV)
-  transportAllowance Boolean      @default(true)
+  transportAllowance Boolean          @default(true)
 
-  startDate      DateTime
-  endDate        DateTime?
+  startDate        DateTime
+  endDate          DateTime?
   probationEndDate DateTime? // Fin del periodo de prueba
-  isActive       Boolean  @default(true)
-  endReason      String? // Motivo de terminación (para el historial)
-  notes          String?
+  isActive         Boolean   @default(true)
+  endReason        String? // Motivo de terminación (para el historial)
+  notes            String?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
@@ -656,34 +659,34 @@ model Contract {
 // porcentajes de aportes, UVT, etc.). Permite adaptar la nómina a cambios
 // de legislación sin tocar el código.
 model PayrollConfig {
-  id                    String   @id @default(cuid())
-  organizationId        String
-  year                  Int
+  id             String @id @default(cuid())
+  organizationId String
+  year           Int
 
-  minimumWage           Decimal  @db.Decimal(14, 2) // SMMLV
-  transportAllowance    Decimal  @db.Decimal(14, 2) // Auxilio de transporte
-  uvt                   Decimal  @db.Decimal(14, 2) // Unidad de Valor Tributario
+  minimumWage        Decimal @db.Decimal(14, 2) // SMMLV
+  transportAllowance Decimal @db.Decimal(14, 2) // Auxilio de transporte
+  uvt                Decimal @db.Decimal(14, 2) // Unidad de Valor Tributario
 
   // Porcentajes (expresados como fracción, ej: 0.04 = 4%)
-  healthEmployeeRate    Decimal  @db.Decimal(6, 5) @default(0.04000)
-  healthEmployerRate    Decimal  @db.Decimal(6, 5) @default(0.08500)
-  pensionEmployeeRate   Decimal  @db.Decimal(6, 5) @default(0.04000)
-  pensionEmployerRate   Decimal  @db.Decimal(6, 5) @default(0.12000)
+  healthEmployeeRate  Decimal @default(0.04000) @db.Decimal(6, 5)
+  healthEmployerRate  Decimal @default(0.08500) @db.Decimal(6, 5)
+  pensionEmployeeRate Decimal @default(0.04000) @db.Decimal(6, 5)
+  pensionEmployerRate Decimal @default(0.12000) @db.Decimal(6, 5)
 
   // Parafiscales
-  senaRate              Decimal  @db.Decimal(6, 5) @default(0.02000)
-  icbfRate              Decimal  @db.Decimal(6, 5) @default(0.03000)
-  compensationFundRate  Decimal  @db.Decimal(6, 5) @default(0.04000)
+  senaRate             Decimal @default(0.02000) @db.Decimal(6, 5)
+  icbfRate             Decimal @default(0.03000) @db.Decimal(6, 5)
+  compensationFundRate Decimal @default(0.04000) @db.Decimal(6, 5)
 
   // Prestaciones sociales (provisiones)
-  severanceRate         Decimal  @db.Decimal(6, 5) @default(0.08330) // Cesantías
-  severanceInterestRate Decimal  @db.Decimal(6, 5) @default(0.01000) // Intereses cesantías (mensual)
-  serviceBonusRate      Decimal  @db.Decimal(6, 5) @default(0.08330) // Prima de servicios
-  vacationRate          Decimal  @db.Decimal(6, 5) @default(0.04170) // Vacaciones
+  severanceRate         Decimal @default(0.08330) @db.Decimal(6, 5) // Cesantías
+  severanceInterestRate Decimal @default(0.01000) @db.Decimal(6, 5) // Intereses cesantías (mensual)
+  serviceBonusRate      Decimal @default(0.08330) @db.Decimal(6, 5) // Prima de servicios
+  vacationRate          Decimal @default(0.04170) @db.Decimal(6, 5) // Vacaciones
 
-  isActive              Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -707,26 +710,26 @@ enum PayrollStatus {
 }
 
 model PayrollPeriod {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   organizationId String
 
-  name           String // Ej: "Nómina Julio 2026"
-  type           PayrollPeriodType @default(MONTHLY)
-  year           Int
-  month          Int
-  startDate      DateTime
-  endDate        DateTime
-  paymentDate    DateTime?
-  status         PayrollStatus @default(DRAFT)
+  name        String // Ej: "Nómina Julio 2026"
+  type        PayrollPeriodType @default(MONTHLY)
+  year        Int
+  month       Int
+  startDate   DateTime
+  endDate     DateTime
+  paymentDate DateTime?
+  status      PayrollStatus     @default(DRAFT)
 
   // Totales consolidados (denormalizados para reportes rápidos)
-  totalEarnings  Decimal  @db.Decimal(16, 2) @default(0)
-  totalDeductions Decimal @db.Decimal(16, 2) @default(0)
-  totalNet       Decimal  @db.Decimal(16, 2) @default(0)
-  totalEmployerCost Decimal @db.Decimal(16, 2) @default(0)
+  totalEarnings     Decimal @default(0) @db.Decimal(16, 2)
+  totalDeductions   Decimal @default(0) @db.Decimal(16, 2)
+  totalNet          Decimal @default(0) @db.Decimal(16, 2)
+  totalEmployerCost Decimal @default(0) @db.Decimal(16, 2)
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   payslips     Payslip[]
@@ -737,24 +740,24 @@ model PayrollPeriod {
 }
 
 model Payslip {
-  id             String   @id @default(cuid())
-  periodId       String
-  employeeId     String
+  id         String @id @default(cuid())
+  periodId   String
+  employeeId String
 
-  number         String? // Consecutivo del desprendible (ej: NOM-000123)
-  workedDays     Int      @default(30)
-  baseSalary     Decimal  @db.Decimal(14, 2)
+  number     String? // Consecutivo del desprendible (ej: NOM-000123)
+  workedDays Int     @default(30)
+  baseSalary Decimal @db.Decimal(14, 2)
 
-  totalEarnings  Decimal  @db.Decimal(14, 2) @default(0)
-  totalDeductions Decimal @db.Decimal(14, 2) @default(0)
-  netPay         Decimal  @db.Decimal(14, 2) @default(0)
-  employerCost   Decimal  @db.Decimal(14, 2) @default(0)
+  totalEarnings   Decimal @default(0) @db.Decimal(14, 2)
+  totalDeductions Decimal @default(0) @db.Decimal(14, 2)
+  netPay          Decimal @default(0) @db.Decimal(14, 2)
+  employerCost    Decimal @default(0) @db.Decimal(14, 2)
 
-  status         PayrollStatus @default(DRAFT)
-  notes          String?
+  status PayrollStatus @default(DRAFT)
+  notes  String?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   period   PayrollPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
   employee Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -772,19 +775,277 @@ enum PayslipItemType {
 }
 
 model PayslipItem {
-  id          String   @id @default(cuid())
-  payslipId   String
+  id        String @id @default(cuid())
+  payslipId String
 
-  type        PayslipItemType
-  code        String   // Código interno (ej: SALARY, HEALTH_EMP, TRANSPORT)
-  concept     String   // Descripción visible
-  quantity    Decimal  @db.Decimal(10, 2) @default(1)
-  amount      Decimal  @db.Decimal(14, 2)
+  type     PayslipItemType
+  code     String // Código interno (ej: SALARY, HEALTH_EMP, TRANSPORT)
+  concept  String // Descripción visible
+  quantity Decimal         @default(1) @db.Decimal(10, 2)
+  amount   Decimal         @db.Decimal(14, 2)
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   payslip Payslip @relation(fields: [payslipId], references: [id], onDelete: Cascade)
 
   @@index([payslipId])
   @@map("payslip_items")
+}
+
+// ==================================================================
+// MÓDULO: CONTRATACIÓN Y SELECCIÓN (Reclutamiento)
+// ==================================================================
+// Cubre el ciclo completo: vacantes, candidatos y hojas de vida, proceso
+// de selección por etapas, entrevistas, validación de documentos, generación
+// y firma de contratos (priorizando el término indefinido como regla general
+// según la Reforma Laboral, Ley 2466 de 2025), afiliaciones a seguridad
+// social, dotación, inducción y período de prueba. Al contratar, integra con
+// el módulo de Empleados creando el empleado y su contrato.
+
+enum VacancyStatus {
+  DRAFT // Borrador
+  OPEN // Abierta / publicada
+  PAUSED // En pausa
+  CLOSED // Cerrada sin contratar
+  FILLED // Cubierta (contratada)
+  CANCELLED // Cancelada
+}
+
+enum WorkMode {
+  ONSITE // Presencial
+  REMOTE // Remoto
+  HYBRID // Híbrido
+}
+
+// Modalidad de contrato (Colombia). El término indefinido es la regla general
+// (Reforma Laboral, Ley 2466 de 2025). El resto son excepciones que proceden
+// según la naturaleza de la labor.
+enum ContractModality {
+  INDEFINITE // Término indefinido (regla general)
+  FIXED_TERM // Término fijo
+  WORK_OR_LABOR // Obra o labor
+  LEARNING // Contrato de aprendizaje (Ley 2466/2025)
+  OCCASIONAL // Ocasional / transitorio
+}
+
+// Etapas del embudo de selección.
+enum ApplicationStage {
+  APPLIED // Postulado
+  SCREENING // Preselección / filtro de hoja de vida
+  INTERVIEW // Entrevistas
+  TECHNICAL_TEST // Pruebas técnicas
+  OFFER // Oferta / contratación
+  HIRED // Contratado
+  REJECTED // Descartado
+  WITHDRAWN // Retirado por el candidato
+}
+
+enum InterviewType {
+  PHONE // Telefónica
+  VIRTUAL // Virtual (videollamada)
+  IN_PERSON // Presencial
+  TECHNICAL // Prueba técnica
+}
+
+enum InterviewStatus {
+  SCHEDULED // Programada
+  COMPLETED // Realizada
+  CANCELLED // Cancelada
+  NO_SHOW // No asistió
+}
+
+enum OfferStatus {
+  DRAFT // Borrador
+  SENT // Enviada al candidato
+  ACCEPTED // Aceptada
+  DECLINED // Rechazada
+  EXPIRED // Vencida
+}
+
+enum OnboardingStatus {
+  PENDING // Pendiente
+  IN_PROGRESS // En proceso
+  DONE // Completada
+  NA // No aplica
+}
+
+// Vacante / requisición de personal.
+model Vacancy {
+  id             String           @id @default(cuid())
+  organizationId String
+  code           String? // Consecutivo legible (VAC-000001)
+  title          String
+  departmentId   String? // Referencia libre (sin FK para mantener el módulo autónomo)
+  positionId     String?
+  description    String?
+  requirements   String?
+  modality       ContractModality @default(INDEFINITE)
+  workMode       WorkMode         @default(ONSITE)
+  location       String?
+  salaryMin      Decimal?         @db.Decimal(14, 2)
+  salaryMax      Decimal?         @db.Decimal(14, 2)
+  openings       Int              @default(1)
+  status         VacancyStatus    @default(OPEN)
+  hiringManager  String? // Jefe solicitante (nombre libre)
+  publishedAt    DateTime?
+  closedAt       DateTime?
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@index([organizationId])
+  @@map("vacancies")
+}
+
+// Candidato (persona). Su hoja de vida se guarda como data URL.
+model Candidate {
+  id              String   @id @default(cuid())
+  organizationId  String
+  firstName       String
+  lastName        String
+  documentType    String   @default("CC") // Catálogo DOCUMENT_TYPE
+  documentNumber  String?
+  email           String?
+  phone           String?
+  city            String?
+  source          String? // Fuente (portal, referido, LinkedIn, etc.)
+  resumeUrl       String? // Hoja de vida (data URL)
+  linkedinUrl     String?
+  currentPosition String?
+  expectedSalary  Decimal? @db.Decimal(14, 2)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@index([organizationId])
+  @@map("candidates")
+}
+
+// Postulación: candidatura de una persona a una vacante (núcleo del proceso).
+model Application {
+  id              String           @id @default(cuid())
+  organizationId  String
+  vacancyId       String
+  candidateId     String
+  stage           ApplicationStage @default(APPLIED)
+  rating          Int? // Valoración 1-5
+  source          String?
+  appliedAt       DateTime         @default(now())
+  rejectedReason  String?
+  hiredEmployeeId String?          @unique // Empleado creado al contratar
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vacancy         Vacancy               @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+  candidate       Candidate             @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  interviews      Interview[]
+  documents       ApplicationDocument[]
+  offer           JobOffer?
+  onboardingTasks OnboardingTask[]
+
+  @@unique([vacancyId, candidateId])
+  @@index([organizationId])
+  @@map("applications")
+}
+
+// Entrevista dentro de un proceso de selección.
+model Interview {
+  id              String          @id @default(cuid())
+  applicationId   String
+  type            InterviewType   @default(VIRTUAL)
+  status          InterviewStatus @default(SCHEDULED)
+  scheduledAt     DateTime
+  durationMin     Int             @default(45)
+  interviewerId   String? // Usuario entrevistador
+  interviewerName String?
+  location        String? // Sala o enlace
+  score           Int? // Puntaje 1-5
+  feedback        String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("interviews")
+}
+
+// Documento obligatorio del candidato con su validación.
+model ApplicationDocument {
+  id            String    @id @default(cuid())
+  applicationId String
+  type          String // Catálogo RECRUITMENT_DOC_TYPE
+  name          String
+  fileUrl       String? // data URL
+  required      Boolean   @default(true)
+  verified      Boolean   @default(false)
+  verifiedAt    DateTime?
+  verifiedBy    String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("application_documents")
+}
+
+// Oferta / contrato generado para una postulación.
+model JobOffer {
+  id                 String           @id @default(cuid())
+  applicationId      String           @unique
+  modality           ContractModality @default(INDEFINITE)
+  positionTitle      String?
+  baseSalary         Decimal          @db.Decimal(14, 2)
+  isIntegralSalary   Boolean          @default(false)
+  transportAllowance Boolean          @default(true)
+  paymentFrequency   PaymentFrequency @default(MONTHLY)
+  startDate          DateTime
+  endDate            DateTime? // Término fijo / obra
+  probationDays      Int? // Período de prueba en días
+  workScheduleNote   String? // Jornada / horario
+  status             OfferStatus      @default(DRAFT)
+  sentAt             DateTime?
+  respondedAt        DateTime?
+  signedByCandidate  Boolean          @default(false)
+  signedAt           DateTime?
+  signedDocumentUrl  String? // Contrato firmado (data URL)
+  contractText       String? // Borrador/cuerpo del contrato generado
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("job_offers")
+}
+
+// Tarea de onboarding (afiliaciones, dotación, inducción, período de prueba).
+model OnboardingTask {
+  id            String           @id @default(cuid())
+  applicationId String
+  category      String // AFFILIATION / ENDOWMENT / INDUCTION / SIGNATURE / DOCUMENTS / TRIAL / OTHER
+  title         String
+  status        OnboardingStatus @default(PENDING)
+  dueDate       DateTime?
+  completedAt   DateTime?
+  responsibleId String? // Usuario responsable
+  notes         String?
+  order         Int              @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("onboarding_tasks")
 }

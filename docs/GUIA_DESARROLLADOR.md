@@ -521,6 +521,65 @@ El esquema se despliega mediante migraciones versionadas y commiteadas en
 
 ---
 
+## 9.d Módulo de Contratación y Selección
+
+Módulo `RECRUITMENT` (gated por empresa). Centraliza el ciclo completo de
+contratación de personal en Colombia e integra con Talento Humano y Nómina.
+
+### Reglas legales (`config/recruitment.ts`)
+
+Refleja la legislación vigente y la Reforma Laboral (Ley 2466 de 2025):
+
+- **Modalidades de contrato** (`CONTRACT_MODALITIES`): indefinido (regla
+  general por defecto), término fijo, obra o labor, aprendizaje y ocasional.
+  Cada una con su nota legal y si requiere fecha de fin.
+- **Período de prueba** (`suggestedProbationDays`, `isProbationValid`): máximo
+  2 meses; en fijos inferiores a 1 año, 1/5 del término pactado sin exceder 2
+  meses; el aprendizaje no tiene período de prueba. Cubierto por pruebas
+  (`tests/recruitment.test.ts`).
+- **Documentos obligatorios** (`REQUIRED_DOCUMENT_TYPES`) y **plantilla de
+  onboarding** (`ONBOARDING_TEMPLATE`): afiliaciones (EPS, AFP, ARL, CCF,
+  cesantías), firma, dotación, inducción y seguimiento del período de prueba.
+
+### Modelo de datos (Prisma)
+
+`Vacancy` → `Application` (postulación) ← `Candidate`. La postulación agrupa
+`Interview[]`, `ApplicationDocument[]`, `JobOffer?` y `OnboardingTask[]`. La
+etapa (`ApplicationStage`) modela el embudo: APPLIED → SCREENING → INTERVIEW →
+TECHNICAL_TEST → OFFER → HIRED (o REJECTED/WITHDRAWN).
+
+### Backend (`modules/recruitment/`)
+
+`schema` (Zod) · `service` · `controller` · `routes`. Rutas bajo
+`/recruitment`, protegidas con `requireModule('RECRUITMENT')` y restringidas a
+ADMIN/HR_MANAGER/SUPER_ADMIN. Todas las operaciones quedan en auditoría.
+
+- Vacantes: CRUD + consecutivo `VAC-000001`.
+- Postulaciones: crea o reutiliza el candidato por documento; mover de etapa;
+  checklist de documentos con verificación; entrevistas con puntaje.
+- Oferta (`JobOffer`): valida la modalidad (fecha de fin obligatoria cuando
+  aplica) y el período de prueba; genera contrato interno.
+- **Contratar** (`hire`): en una transacción crea el `Employee` + `Contract`
+  (mapeando la modalidad al catálogo `CONTRACT_TYPE`), marca la postulación
+  como HIRED, cubre la vacante cuando se llenan las plazas y siembra el
+  onboarding. Respeta el límite de empleados del plan.
+- Firma: registro interno (marcar firmado + adjuntar el contrato firmado como
+  data URL). Preparado para integrar un proveedor externo en el futuro.
+
+### Frontend (`features/recruitment/`)
+
+- `recruitment.api.ts`: hooks de TanStack Query y etiquetas.
+- `pages/vacancies-page.tsx`: tarjetas de vacantes, métricas y alta.
+- `pages/vacancy-detail-page.tsx`: tablero del embudo por etapas + postular
+  candidato.
+- `pages/application-detail-page.tsx`: hub del candidato con pestañas (perfil,
+  entrevistas, documentos, oferta/contrato, onboarding) y botón Contratar.
+
+Rutas `lazy()` en `App.tsx` (`/recruitment`, `/recruitment/vacancies/:id`,
+`/recruitment/applications/:id`) y sección “Contratación” en el menú.
+
+---
+
 ## 10. Convenciones
 
 - TypeScript estricto en ambos lados (`tsc --noEmit` debe pasar limpio).
@@ -546,6 +605,10 @@ El esquema se despliega mediante migraciones versionadas y commiteadas en
   (impersonación). Manual de uso in-app.
 - Cumplimiento Colombia: Habeas Data, parámetros de nómina legales, festivos
   con Ley Emiliani.
+- Contratación y Selección (módulo `RECRUITMENT`): vacantes, candidatos y
+  hojas de vida, embudo de selección, entrevistas, validación de documentos,
+  generación y firma de contratos (Ley 2466/2025), afiliaciones, dotación,
+  inducción y período de prueba, con contratación integrada a Empleados.
 - Robustez: pruebas unitarias del motor de cálculo, migraciones versionadas,
   manejo global de errores + health-check, generación de nómina atómica,
   rate limiting, `ErrorBoundary` y code-splitting.

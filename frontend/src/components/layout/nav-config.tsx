@@ -15,6 +15,7 @@ import {
   FileText,
   BarChart3,
   Receipt,
+  Briefcase,
   type LucideIcon,
 } from 'lucide-react';
 import type { AppModule, UserRole } from '@/types';
@@ -63,6 +64,19 @@ export const navSections: NavSection[] = [
       { label: 'Ausencias', to: '/absences', icon: CalendarDays, module: 'EMPLOYEES' },
       { label: 'Documentos', to: '/documents', icon: FileText, module: 'EMPLOYEES' },
       { label: 'Organigrama', to: '/organization', icon: Network, module: 'EMPLOYEES' },
+    ],
+  },
+  {
+    title: 'Contratación',
+    items: [
+      {
+        label: 'Vacantes',
+        to: '/recruitment',
+        icon: Briefcase,
+        end: true,
+        module: 'RECRUITMENT',
+        roles: ['ADMIN', 'HR_MANAGER', 'SUPER_ADMIN'],
+      },
     ],
   },
   {
