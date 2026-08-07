@@ -2,6 +2,9 @@ import { Prisma, AbsenceStatus } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError, ForbiddenError, NotFoundError } from '../../core/errors/AppError';
 import { auditService, Actor } from '../audit/audit.service';
+import { toNumber as num } from '../../core/utils/decimal';
+import { round2 } from '../../core/utils/math';
+import { employeeBriefSelect } from '../../core/prisma/selects';
 import {
   countBusinessDays,
   countCalendarDays,
@@ -26,13 +29,7 @@ const EFFECTIVE_STATUSES: AbsenceStatus[] = [
 // las pendientes, para evitar solicitudes duplicadas).
 const BLOCKING_STATUSES: AbsenceStatus[] = [...EFFECTIVE_STATUSES, AbsenceStatus.PENDING];
 
-const employeeSelect = {
-  select: { id: true, firstName: true, lastName: true, documentNumber: true, photoUrl: true },
-};
-
-const num = (d: Prisma.Decimal | number): number =>
-  typeof d === 'number' ? d : Number(d.toString());
-const round2 = (n: number) => Math.round(n * 100) / 100;
+const employeeSelect = employeeBriefSelect;
 
 export class AbsenceService {
   /** Días de la ausencia según la regla del tipo (hábiles o calendario). */

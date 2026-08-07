@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/api';
 import { Plus, Briefcase, Users, CalendarClock, MapPin } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatCard } from '@/components/shared/stat-card';
@@ -220,7 +221,7 @@ function VacancyDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v
         requirements: '',
       });
     } catch (e) {
-      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'No se pudo crear.');
+      toast.error(getErrorMessage(e, 'No se pudo crear.'));
     }
   };
 

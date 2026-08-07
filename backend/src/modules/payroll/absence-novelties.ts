@@ -1,5 +1,6 @@
 import { getAbsenceRule } from '../../config/absence-rules';
 import { countCalendarDays, countDaysInPeriod } from '../../core/utils/colombia-dates';
+import { round } from '../../core/utils/math';
 import type { AdditionalEarning } from './payroll.calculator';
 
 export interface AbsenceForPayroll {
@@ -14,8 +15,6 @@ export interface AbsenceNovelties {
   unpaidDays: number;
   benefitDays: number;
 }
-
-const round = (n: number) => Math.round(n);
 
 /**
  * Traduce las ausencias de un empleado que caen dentro del período de

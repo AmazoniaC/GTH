@@ -1,10 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError, NotFoundError } from '../../core/errors/AppError';
+import { toNumber as num } from '../../core/utils/decimal';
 import type { AddContractInput, AddSalaryChangeInput, UpdateContractInput } from './contract.schema';
-
-const num = (d: Prisma.Decimal | number): number =>
-  typeof d === 'number' ? d : Number(d.toString());
 
 /**
  * Servicio de contratos e historial salarial. Cada nuevo contrato cierra el

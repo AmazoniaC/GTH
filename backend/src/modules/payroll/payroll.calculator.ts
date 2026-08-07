@@ -1,4 +1,5 @@
 import { ARL_RATES, CONCEPT, CONCEPT_LABEL, THRESHOLDS } from './payroll.constants';
+import { round } from '../../core/utils/math';
 
 export interface PayrollConfigValues {
   minimumWage: number;
@@ -56,8 +57,6 @@ export interface PayrollCalcResult {
   employerCost: number;
   ibc: number;
 }
-
-const round = (n: number): number => Math.round(n);
 
 /**
  * Motor de cálculo de nómina colombiana.

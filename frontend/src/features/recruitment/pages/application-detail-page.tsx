@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/api';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -508,7 +509,7 @@ function OfferTab({ app }: { app: Application }) {
       });
       toast.success('Oferta guardada.');
     } catch (e) {
-      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'No se pudo guardar.');
+      toast.error(getErrorMessage(e, 'No se pudo guardar.'));
     }
   };
 
@@ -744,7 +745,7 @@ function HireDialog({
       toast.success(`Empleado creado (${(res as { employeeCode?: string }).employeeCode ?? ''}).`);
       onOpenChange(false);
     } catch (e) {
-      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'No se pudo contratar.');
+      toast.error(getErrorMessage(e, 'No se pudo contratar.'));
     }
   };
 

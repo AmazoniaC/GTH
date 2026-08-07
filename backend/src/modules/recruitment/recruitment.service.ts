@@ -3,6 +3,7 @@ import { prisma } from '../../config/prisma';
 import { AppError, ConflictError, NotFoundError } from '../../core/errors/AppError';
 import { auditService, Actor } from '../audit/audit.service';
 import { reserveNumbers, formatDocNumber } from '../../core/utils/sequence';
+import { toNumber } from '../../core/utils/decimal';
 import { employeeService } from '../employees/employee.service';
 import {
   CONTRACT_MODALITIES,
@@ -32,8 +33,7 @@ import type {
   UpsertOfferInput,
 } from './recruitment.schema';
 
-const num = (d: Prisma.Decimal | number | null): number =>
-  d == null ? 0 : typeof d === 'number' ? d : Number(d.toString());
+const num = toNumber;
 
 const dec = (n?: number | null): Prisma.Decimal | null =>
   n == null ? null : new Prisma.Decimal(n);

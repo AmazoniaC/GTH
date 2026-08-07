@@ -1,12 +1,7 @@
 import { Request, Response } from 'express';
 import { employeeService } from './employee.service';
 import { created, ok } from '../../core/utils/apiResponse';
-import type { Actor } from '../audit/audit.service';
-
-const actorOf = (req: Request): Actor => ({
-  userId: req.auth!.sub,
-  userName: req.auth!.email,
-});
+import { actorOf } from '../../core/utils/request';
 
 export class EmployeeController {
   list = async (req: Request, res: Response) => {

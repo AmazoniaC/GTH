@@ -6,6 +6,8 @@
  * generar el documento.
  */
 
+import { CONTRACT_TYPE_LABELS as CANONICAL_CONTRACT_LABELS } from '../catalog/catalog.constants';
+
 export interface DefaultTemplate {
   key: string;
   name: string;
@@ -118,13 +120,10 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   PA: 'pasaporte',
 };
 
-const CONTRACT_TYPE_LABELS: Record<string, string> = {
-  INDEFINITE: 'término indefinido',
-  FIXED_TERM: 'término fijo',
-  WORK_LABOR: 'obra o labor',
-  APPRENTICESHIP: 'aprendizaje',
-  TEMPORARY: 'temporal / ocasional',
-};
+// Etiquetas en minúscula (para prosa), derivadas de la fuente única del catálogo.
+const CONTRACT_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+  Object.entries(CANONICAL_CONTRACT_LABELS).map(([code, label]) => [code, label.toLowerCase()]),
+);
 
 const currency = new Intl.NumberFormat('es-CO', {
   style: 'currency',

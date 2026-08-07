@@ -1,8 +1,7 @@
 import PDFDocument from 'pdfkit';
 import { Prisma } from '@prisma/client';
+import { toNumber as num } from '../../core/utils/decimal';
 
-const num = (d: Prisma.Decimal | number): number =>
-  typeof d === 'number' ? d : Number(d.toString());
 const cop = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 const money = (v: Prisma.Decimal | number) => cop.format(num(v));
 

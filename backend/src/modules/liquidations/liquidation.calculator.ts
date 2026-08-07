@@ -4,6 +4,7 @@
  * Función pura, sin dependencias de infraestructura. Usa la convención de
  * días 30/360 propia de la liquidación de prestaciones sociales.
  */
+import { round } from '../../core/utils/math';
 
 export const TERMINATION_REASONS = [
   { code: 'RESIGNATION', label: 'Renuncia voluntaria' },
@@ -49,8 +50,6 @@ export interface LiquidationResult {
     dailySalary: number;
   };
 }
-
-const round = (n: number) => Math.round(n);
 
 /** Días entre dos fechas con la convención 30/360 (mes = 30 días). */
 export function days360(start: Date, end: Date): number {

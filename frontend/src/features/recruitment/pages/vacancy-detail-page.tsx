@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/api';
 import { ArrowLeft, Plus, UserPlus, ChevronRight } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card } from '@/components/ui/card';
@@ -222,7 +223,7 @@ function AddCandidateDialog({
         notes: '',
       });
     } catch (e) {
-      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'No se pudo postular.');
+      toast.error(getErrorMessage(e, 'No se pudo postular.'));
     }
   };
 
