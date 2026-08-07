@@ -123,3 +123,12 @@ export const DEFAULT_OPTIONS: Record<CatalogCategory, DefaultOption[]> = {
     'Especialización', 'Maestría', 'Doctorado',
   ]),
 };
+
+/**
+ * Etiquetas de tipo de contrato (fuente única, derivada del catálogo por
+ * defecto). La usan reportes y la generación de documentos para no repetir el
+ * mapa código→etiqueta en varios sitios.
+ */
+export const CONTRACT_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+  DEFAULT_OPTIONS.CONTRACT_TYPE.map((o) => [o.code, o.label]),
+);

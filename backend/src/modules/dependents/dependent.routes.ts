@@ -6,13 +6,12 @@ import { validate } from '../../core/middlewares/validate.middleware';
 import { asyncHandler } from '../../core/utils/asyncHandler';
 import { created, ok } from '../../core/utils/apiResponse';
 import { createDependentSchema, employeeParam, idParam, updateDependentSchema } from './dependent.schema';
-import type { Actor } from '../audit/audit.service';
+import { actorOf } from '../../core/utils/request';
 
 const router = Router();
 router.use(authenticate);
 
 const managers = [UserRole.ADMIN, UserRole.HR_MANAGER, UserRole.SUPER_ADMIN];
-const actorOf = (req: Request): Actor => ({ userId: req.auth!.sub, userName: req.auth!.email });
 
 router.get(
   '/employees/:employeeId/dependents',

@@ -507,6 +507,25 @@ El esquema se despliega mediante migraciones versionadas y commiteadas en
   reserva de consecutivos, la creación del periodo con sus desprendibles y el
   marcado de novedades aplicadas ocurren en una sola transacción.
 
+### Utilidades compartidas (sin duplicación)
+
+Para no repetir la misma lógica en cada módulo:
+
+- `core/utils/decimal.ts` → `toNumber` (Decimal/number/null → number, **null-safe**).
+- `core/utils/math.ts` → `round`, `round2` (puras; las usan los motores de cálculo).
+- `core/utils/request.ts` → `orgOf(req)`, `actorOf(req)` (contexto autenticado).
+- `core/prisma/selects.ts` → `employeeBriefSelect` (proyección reutilizable).
+- `config/legal-defaults.ts` → `DEFAULT_MINIMUM_WAGE`, `DEFAULT_PAYROLL_CONFIG`
+  (fuente única del SMMLV/parámetros de referencia; antes se repetían).
+- `catalog.constants.ts` → `CONTRACT_TYPE_LABELS` (única fuente de etiquetas de
+  tipo de contrato; reportes y certificados la derivan).
+- Frontend: `getErrorMessage(error, fallback?)` (`lib/api.ts`) para mensajes de
+  error de la API, y `lib/constants.ts` `DEFAULT_SMMLV` para avisos de la UI.
+
+Las fechas de los periodos de nómina se construyen en **UTC** (`Date.UTC`),
+coherente con el resto del sistema de fechas, para no depender de la zona
+horaria del servidor.
+
 ### Seguridad y rendimiento
 
 - **Rate limiting** (`express-rate-limit`): límite estricto en `/auth/login` y

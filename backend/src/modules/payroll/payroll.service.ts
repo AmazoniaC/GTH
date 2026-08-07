@@ -9,32 +9,15 @@ import { sendMail, isMailConfigured } from '../../config/mailer';
 import { renderPayslipEmailBody, periodPhrase } from './payslip-email';
 import { renderPayslipPdf } from './payslip-pdf';
 import { AppError, ConflictError, NotFoundError } from '../../core/errors/AppError';
+import { toNumber } from '../../core/utils/decimal';
+import { DEFAULT_PAYROLL_CONFIG } from '../../config/legal-defaults';
 import type { CreatePeriodInput, SimulateInput, UpsertConfigInput } from './payroll.schema';
 
-/**
- * Valores por defecto de parametrización legal (referencia 2026).
- * Se usan cuando la empresa aún no ha configurado sus parámetros; son
- * editables desde el módulo de Nómina.
- */
-const DEFAULT_CONFIG = {
-  minimumWage: 1_623_500,
-  transportAllowance: 200_000,
-  uvt: 49_799,
-  healthEmployeeRate: 0.04,
-  healthEmployerRate: 0.085,
-  pensionEmployeeRate: 0.04,
-  pensionEmployerRate: 0.12,
-  senaRate: 0.02,
-  icbfRate: 0.03,
-  compensationFundRate: 0.04,
-  severanceRate: 0.0833,
-  severanceInterestRate: 0.01,
-  serviceBonusRate: 0.0833,
-  vacationRate: 0.0417,
-};
+// Parametrización legal por defecto (referencia 2026). Fuente única en
+// `config/legal-defaults.ts`; editable por empresa en `PayrollConfig`.
+const DEFAULT_CONFIG = DEFAULT_PAYROLL_CONFIG;
 
-const num = (d: Prisma.Decimal | number): number =>
-  typeof d === 'number' ? d : Number(d.toString());
+const num = toNumber;
 
 export class PayrollService {
   constructor(private readonly repo: PayrollRepository = payrollRepository) {}
@@ -205,8 +188,10 @@ export class PayrollService {
       throw new AppError('No hay empleados activos con contrato vigente para liquidar.', 422);
     }
 
-    const startDate = new Date(input.year, input.month - 1, 1);
-    const endDate = new Date(input.year, input.month, 0);
+    // Fechas en UTC (coherente con el resto del sistema de fechas), para que
+    // los límites del mes no dependan de la zona horaria del servidor.
+    const startDate = new Date(Date.UTC(input.year, input.month - 1, 1));
+    const endDate = new Date(Date.UTC(input.year, input.month, 0));
 
     // Novedades por ausencias del período (vacaciones, incapacidades, etc.).
     // Solo cuentan las aprobadas, en disfrute o finalizadas que se solapan

@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError, NotFoundError } from '../../core/errors/AppError';
 import { auditService, Actor } from '../audit/audit.service';
+import { toNumber as num } from '../../core/utils/decimal';
 import { payrollService } from '../payroll/payroll.service';
 import { absenceService } from '../absences/absence.service';
 import { nextDocNumber } from '../../core/utils/sequence';
@@ -12,8 +13,6 @@ import {
 } from './liquidation.calculator';
 import type { ComputeLiquidationInput, CreateLiquidationInput } from './liquidation.schema';
 
-const num = (d: Prisma.Decimal | number): number =>
-  typeof d === 'number' ? d : Number(d.toString());
 
 const THRESHOLD_TRANSPORT_WAGES = 2; // auxilio de transporte hasta 2 SMMLV
 

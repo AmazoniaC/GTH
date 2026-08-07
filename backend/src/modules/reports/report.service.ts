@@ -2,9 +2,9 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { alertsService } from '../alerts/alerts.service';
 import { getAbsenceRule } from '../../config/absence-rules';
-
-const num = (d: Prisma.Decimal | number | null): number =>
-  d == null ? 0 : typeof d === 'number' ? d : Number(d.toString());
+import { toNumber as num } from '../../core/utils/decimal';
+import { CONTRACT_TYPE_LABELS } from '../catalog/catalog.constants';
+import { DEFAULT_MINIMUM_WAGE } from '../../config/legal-defaults';
 
 const EFFECTIVE = ['APPROVED', 'IN_PROGRESS', 'COMPLETED'] as const;
 
@@ -58,13 +58,7 @@ export class ReportService {
     const bySeniority = new Map<string, number>();
     const byAge = new Map<string, number>();
     const genderLabel: Record<string, string> = { MALE: 'Hombres', FEMALE: 'Mujeres', OTHER: 'Otro' };
-    const typeLabel: Record<string, string> = {
-      INDEFINITE: 'Término indefinido',
-      FIXED_TERM: 'Término fijo',
-      WORK_LABOR: 'Obra o labor',
-      APPRENTICESHIP: 'Aprendizaje',
-      TEMPORARY: 'Temporal',
-    };
+    const typeLabel = CONTRACT_TYPE_LABELS;
     const inc = (m: Map<string, number>, k: string) => m.set(k, (m.get(k) ?? 0) + 1);
     const years = (d: Date) => (now.getTime() - d.getTime()) / (365.25 * 86400000);
 
@@ -169,7 +163,7 @@ export class ReportService {
       where: { organizationId },
       orderBy: { year: 'desc' },
     });
-    const smmlv = config ? num(config.minimumWage) : 1_623_500;
+    const smmlv = config ? num(config.minimumWage) : DEFAULT_MINIMUM_WAGE;
     const dist = new Map<string, number>([
       ['≤ 1 SMMLV', 0],
       ['1-2 SMMLV', 0],

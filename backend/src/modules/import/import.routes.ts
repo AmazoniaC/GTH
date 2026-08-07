@@ -7,13 +7,11 @@ import { validate } from '../../core/middlewares/validate.middleware';
 import { asyncHandler } from '../../core/utils/asyncHandler';
 import { ok } from '../../core/utils/apiResponse';
 import { importEmployeesSchema } from './import.schema';
-import type { Actor } from '../audit/audit.service';
+import { actorOf } from '../../core/utils/request';
 
 const router = Router();
 router.use(authenticate);
 router.use(requireModule('EMPLOYEES'));
-
-const actorOf = (req: Request): Actor => ({ userId: req.auth!.sub, userName: req.auth!.email });
 
 router.post(
   '/employees',

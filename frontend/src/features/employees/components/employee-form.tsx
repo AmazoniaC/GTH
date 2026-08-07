@@ -37,6 +37,7 @@ import { PhotoUpload } from '@/components/shared/photo-upload';
 import { CatalogSelect } from '@/components/shared/catalog-select';
 import { getErrorMessage } from '@/lib/api';
 import { getInitials, toDateInput } from '@/lib/utils';
+import { DEFAULT_SMMLV } from '@/lib/constants';
 import { COLOMBIA, DEPARTMENTS } from '@/lib/colombia-geo';
 import type { Employee } from '@/types';
 
@@ -50,7 +51,7 @@ const MARITAL = [
 
 // Umbral del auxilio de transporte: 2 SMMLV (referencia 2026). Solo para el
 // aviso en la UI; la nómina resuelve la elegibilidad con la parametrización real.
-const SMMLV_2X = 1_623_500 * 2;
+const SMMLV_2X = DEFAULT_SMMLV * 2;
 
 const schema = z.object({
   photoUrl: z.string().nullable().optional(),

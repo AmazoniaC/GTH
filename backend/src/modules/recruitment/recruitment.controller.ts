@@ -3,8 +3,7 @@ import { recruitmentService } from './recruitment.service';
 import { ok, created } from '../../core/utils/apiResponse';
 import type { Actor } from '../audit/audit.service';
 
-const actorOf = (req: Request): Actor => ({ userId: req.auth!.sub, userName: req.auth!.email });
-const orgOf = (req: Request) => req.auth!.organizationId;
+import { actorOf, orgOf } from '../../core/utils/request';
 
 export class RecruitmentController {
   // Catálogo y resumen

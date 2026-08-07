@@ -9,17 +9,12 @@ import {
   overtimeAmount,
   overtimeFactor,
 } from '../../config/payroll-novelties';
+import { toNumber as num } from '../../core/utils/decimal';
+import { employeeBriefSelect as employeeSelect } from '../../core/prisma/selects';
 import type { CreateNoveltyInput, ListNoveltiesQuery, UpdateNoveltyInput } from './novelty.schema';
-
-const num = (d: Prisma.Decimal | number | null): number =>
-  d == null ? 0 : typeof d === 'number' ? d : Number(d.toString());
 
 /** Cliente de Prisma o cliente de transacción (para operaciones atómicas). */
 type PrismaLike = typeof prisma | Prisma.TransactionClient;
-
-const employeeSelect = {
-  select: { id: true, firstName: true, lastName: true, documentNumber: true, photoUrl: true },
-};
 
 const LABELS: Record<string, string> = Object.fromEntries(
   [...OVERTIME_TYPES, ...EARNING_TYPES, ...DEDUCTION_TYPES].map((t) => [t.code, t.label]),
