@@ -454,6 +454,73 @@ reservas en bloque para generaciones masivas). Lo usan la liquidación (campo
 el periodo) y la generación de certificados/contratos (número devuelto en el
 render).
 
+## 9.c Robustez, pruebas y despliegue
+
+Además de las funcionalidades, la app incorpora una base de robustez para
+operar de forma confiable en producción.
+
+### Pruebas automatizadas (Vitest)
+
+El motor de cálculo (funciones puras, sin infraestructura) está cubierto por
+pruebas unitarias. Se ejecutan con `npm test` en la raíz (corre backend y
+frontend) o por proyecto.
+
+- **Backend** (`backend/tests/`):
+  - `payroll.calculator.test.ts`: devengados, deducciones, IBC, exoneración
+    de aportes, fondo de solidaridad, salario integral, novedades por
+    financiador (EMPLOYER/EPS/ARL).
+  - `liquidation.calculator.test.ts`: `days360`, `workedDays360` y la
+    liquidación completa (cesantías, intereses, prima, vacaciones).
+  - `colombia-dates.test.ts`: festivos con Ley Emiliani (incluye la
+    coincidencia de San Pedro y Sagrado Corazón el 30/06/2025), conteo de días
+    hábiles y calendario, y el recorte de una ausencia al periodo liquidado.
+  - `payroll-novelties.test.ts`: factores y valor de horas extra.
+  - `absence-rules.test.ts`: reglas por tipo de ausencia y su efecto en nómina.
+- **Frontend** (`frontend/tests/`): `colombia-dates.test.ts` verifica la
+  paridad de conteo de días en la UI (`previewAbsenceDays`).
+
+> Las pruebas viven en `tests/` (fuera de `src/`) para no incluirse en el
+> build de producción. Al modificar cualquier fórmula o regla legal, ejecuta
+> `npm test` y ajusta/añade casos: es la red de seguridad de la nómina.
+
+### Migraciones versionadas de Prisma
+
+El esquema se despliega mediante migraciones versionadas y commiteadas en
+`backend/prisma/migrations/` (con `migration_lock.toml`). Flujos:
+
+- Desarrollo (crea/aplica migraciones): `npm run setup` o
+  `npm --prefix backend run prisma:migrate`.
+- Producción (aplica lo ya versionado, no genera nuevas): `npm run deploy:db`
+  → `prisma migrate deploy`.
+- Al cambiar `schema.prisma`, genera la migración con
+  `prisma migrate dev --name <cambio>` y commitea la carpeta resultante.
+
+### Manejo global de errores y disponibilidad
+
+- `server.ts` verifica la conexión a la base de datos al arrancar (falla
+  temprano con un mensaje claro si PostgreSQL no está disponible) y registra
+  manejadores `unhandledRejection` / `uncaughtException` para evitar caídas
+  silenciosas, con cierre ordenado ante `SIGINT`/`SIGTERM`.
+- Sonda de disponibilidad: `GET /api/health` responde `200` con
+  `database: "up"` o `503` si la BD no responde (útil para orquestadores).
+- La generación de un periodo de nómina (`createPeriod`) es **atómica**: la
+  reserva de consecutivos, la creación del periodo con sus desprendibles y el
+  marcado de novedades aplicadas ocurren en una sola transacción.
+
+### Seguridad y rendimiento
+
+- **Rate limiting** (`express-rate-limit`): límite estricto en `/auth/login` y
+  `/auth/refresh` (10 intentos / 15 min por IP) y un límite general para toda
+  la API (300 req/min). En producción se activa `trust proxy` para identificar
+  la IP real tras el proxy inverso.
+- **Frontend resiliente**: `ErrorBoundary` global muestra una pantalla amigable
+  ante un error de render en vez de dejar la app en blanco.
+- **Code-splitting**: las páginas se cargan con `lazy()` + `Suspense` (un chunk
+  por ruta) y las dependencias grandes (React, TanStack/axios, recharts) se
+  agrupan en paquetes cacheables (`manualChunks`), reduciendo la carga inicial.
+
+---
+
 ## 10. Convenciones
 
 - TypeScript estricto en ambos lados (`tsc --noEmit` debe pasar limpio).
@@ -479,7 +546,10 @@ render).
   (impersonación). Manual de uso in-app.
 - Cumplimiento Colombia: Habeas Data, parámetros de nómina legales, festivos
   con Ley Emiliani.
+- Robustez: pruebas unitarias del motor de cálculo, migraciones versionadas,
+  manejo global de errores + health-check, generación de nómina atómica,
+  rate limiting, `ErrorBoundary` y code-splitting.
 
-Pendientes/ideas para continuar: nómina electrónica DIAN, control de
-asistencia, calendario visual de ausencias, cambio automático de estado del
-empleado durante licencias, notificaciones por correo.
+Pendientes/ideas para continuar: nómina electrónica DIAN, PILA, archivo de
+dispersión bancaria, control de asistencia, calendario visual de ausencias,
+cambio automático de estado del empleado durante licencias.

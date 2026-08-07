@@ -6,10 +6,15 @@ import cookieParser from 'cookie-parser';
 import { env } from './config/env';
 import { apiRouter } from './routes';
 import { errorHandler, notFoundHandler } from './core/middlewares/error.middleware';
+import { apiLimiter } from './core/middlewares/rate-limit.middleware';
 
 /** Construye y configura la aplicación Express. */
 export function createApp(): Application {
   const app = express();
+
+  // Detrás de un proxy inverso (producción): confía en el primer salto para
+  // que el limitador de tasa identifique la IP real del cliente.
+  if (env.isProduction) app.set('trust proxy', 1);
 
   app.use(helmet());
   app.use(
@@ -24,7 +29,8 @@ export function createApp(): Application {
   app.use(cookieParser());
   if (!env.isProduction) app.use(morgan('dev'));
 
-  app.use(env.apiPrefix, apiRouter);
+  // Límite general de peticiones para toda la API.
+  app.use(env.apiPrefix, apiLimiter, apiRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -14,6 +14,9 @@ import type { CreateNoveltyInput, ListNoveltiesQuery, UpdateNoveltyInput } from 
 const num = (d: Prisma.Decimal | number | null): number =>
   d == null ? 0 : typeof d === 'number' ? d : Number(d.toString());
 
+/** Cliente de Prisma o cliente de transacción (para operaciones atómicas). */
+type PrismaLike = typeof prisma | Prisma.TransactionClient;
+
 const employeeSelect = {
   select: { id: true, firstName: true, lastName: true, documentNumber: true, photoUrl: true },
 };
@@ -147,20 +150,24 @@ export class NoveltyService {
     return rows.filter((r) => !(r.recurring && r.installments != null && r.appliedCount >= r.installments));
   }
 
-  /** Marca como aplicadas las novedades usadas en un periodo. */
-  async markApplied(ids: string[]) {
+  /**
+   * Marca como aplicadas las novedades usadas en un periodo.
+   *
+   * Acepta un cliente de transacción para poder ejecutarse de forma atómica
+   * junto con la creación del periodo de nómina (evita que una novedad quede
+   * incluida en un desprendible sin marcarse como aplicada, o viceversa).
+   */
+  async markApplied(ids: string[], client: PrismaLike = prisma) {
     if (ids.length === 0) return;
-    const novelties = await prisma.payrollNovelty.findMany({ where: { id: { in: ids } } });
-    await prisma.$transaction(
-      novelties.map((n) => {
-        const nextCount = n.appliedCount + 1;
-        const done = !n.recurring || (n.installments != null && nextCount >= n.installments);
-        return prisma.payrollNovelty.update({
-          where: { id: n.id },
-          data: { appliedCount: nextCount, isActive: done ? false : n.isActive },
-        });
-      }),
-    );
+    const novelties = await client.payrollNovelty.findMany({ where: { id: { in: ids } } });
+    for (const n of novelties) {
+      const nextCount = n.appliedCount + 1;
+      const done = !n.recurring || (n.installments != null && nextCount >= n.installments);
+      await client.payrollNovelty.update({
+        where: { id: n.id },
+        data: { appliedCount: nextCount, isActive: done ? false : n.isActive },
+      });
+    }
   }
 }
 

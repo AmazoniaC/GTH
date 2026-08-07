@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { prisma } from '../config/prisma';
 import { authRoutes } from '../modules/auth/auth.routes';
 import { userRoutes } from '../modules/users/user.routes';
 import { employeeRoutes } from '../modules/employees/employee.routes';
@@ -29,9 +30,17 @@ import { noveltyRoutes } from '../modules/novelties/novelty.routes';
  */
 const router = Router();
 
-router.get('/health', (_req, res) =>
-  res.json({ status: 'ok', service: 'gth-api', timestamp: new Date().toISOString() }),
-);
+// Sonda de disponibilidad: verifica que la API y la base de datos respondan.
+router.get('/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', service: 'gth-api', database: 'up', timestamp: new Date().toISOString() });
+  } catch {
+    res
+      .status(503)
+      .json({ status: 'error', service: 'gth-api', database: 'down', timestamp: new Date().toISOString() });
+  }
+});
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);

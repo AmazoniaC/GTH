@@ -299,45 +299,57 @@ export class PayrollService {
       status: 'DRAFT',
     };
 
-    // Consecutivos correlativos para los desprendibles de este periodo.
-    const firstNumber = await reserveNumbers(organizationId, 'PAYSLIP', computed.length);
-    const numberByEmployee = new Map<string, string>();
-    computed.forEach((c, i) =>
-      numberByEmployee.set(c.employeeId, formatDocNumber('PAYSLIP', firstNumber + i)),
+    // Toda la generación es atómica: la reserva de consecutivos, la creación
+    // del periodo con sus desprendibles y el marcado de novedades aplicadas
+    // ocurren en una sola transacción. Si algo falla, no queda ningún efecto
+    // parcial (ni consecutivos consumidos ni novedades marcadas sin nómina).
+    const period = await prisma.$transaction(
+      async (tx) => {
+        // Consecutivos correlativos para los desprendibles de este periodo.
+        const firstNumber = await reserveNumbers(organizationId, 'PAYSLIP', computed.length, tx);
+        const numberByEmployee = new Map<string, string>();
+        computed.forEach((c, i) =>
+          numberByEmployee.set(c.employeeId, formatDocNumber('PAYSLIP', firstNumber + i)),
+        );
+
+        const created = await this.repo.createPeriodWithPayslips(
+          periodData,
+          (periodId) =>
+            computed.map((c) => ({
+              periodId,
+              employeeId: c.employeeId,
+              number: numberByEmployee.get(c.employeeId),
+              workedDays: c.workedDays,
+              baseSalary: new Prisma.Decimal(c.baseSalary),
+              totalEarnings: new Prisma.Decimal(c.result.totalEarnings),
+              totalDeductions: new Prisma.Decimal(c.result.totalDeductions),
+              netPay: new Prisma.Decimal(c.result.netPay),
+              employerCost: new Prisma.Decimal(c.result.employerCost),
+              status: 'PROCESSED',
+            })),
+          (payslipMap) =>
+            computed.flatMap((c) => {
+              const payslipId = payslipMap.get(c.employeeId);
+              if (!payslipId) return [];
+              return c.result.items.map((item) => ({
+                payslipId,
+                type: item.type,
+                code: item.code,
+                concept: item.concept,
+                amount: new Prisma.Decimal(item.amount),
+              }));
+            }),
+          totals,
+          tx,
+        );
+
+        // Marca las novedades aplicadas (avanza cuotas de préstamos, cierra puntuales).
+        await noveltyService.markApplied(appliedNoveltyIds, tx);
+        return created;
+      },
+      { timeout: 30_000 },
     );
 
-    const period = await this.repo.createPeriodWithPayslips(
-      periodData,
-      (periodId) =>
-        computed.map((c) => ({
-          periodId,
-          employeeId: c.employeeId,
-          number: numberByEmployee.get(c.employeeId),
-          workedDays: c.workedDays,
-          baseSalary: new Prisma.Decimal(c.baseSalary),
-          totalEarnings: new Prisma.Decimal(c.result.totalEarnings),
-          totalDeductions: new Prisma.Decimal(c.result.totalDeductions),
-          netPay: new Prisma.Decimal(c.result.netPay),
-          employerCost: new Prisma.Decimal(c.result.employerCost),
-          status: 'PROCESSED',
-        })),
-      (payslipMap) =>
-        computed.flatMap((c) => {
-          const payslipId = payslipMap.get(c.employeeId);
-          if (!payslipId) return [];
-          return c.result.items.map((item) => ({
-            payslipId,
-            type: item.type,
-            code: item.code,
-            concept: item.concept,
-            amount: new Prisma.Decimal(item.amount),
-          }));
-        }),
-      totals,
-    );
-
-    // Marca las novedades aplicadas (avanza cuotas de préstamos, cierra puntuales).
-    await noveltyService.markApplied(appliedNoveltyIds);
     return period;
   }
 
