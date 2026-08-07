@@ -1,11 +1,11 @@
 import PDFDocument from 'pdfkit';
 import { Prisma } from '@prisma/client';
 import { toNumber as num } from '../../core/utils/decimal';
+import { ACCENT, drawLetterhead, drawFooter } from '../../core/pdf/letterhead';
 
 const cop = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 const money = (v: Prisma.Decimal | number) => cop.format(num(v));
 
-const ACCENT = '#1f3a5f';
 const ZEBRA = '#f1f5f9';
 
 interface Item {
@@ -33,17 +33,6 @@ interface Org {
   logoUrl: string | null;
 }
 
-function logoBuffer(dataUrl: string | null): Buffer | null {
-  if (!dataUrl) return null;
-  const m = dataUrl.match(/^data:image\/(png|jpe?g);base64,(.+)$/i);
-  if (!m) return null;
-  try {
-    return Buffer.from(m[2], 'base64');
-  } catch {
-    return null;
-  }
-}
-
 /** Genera el PDF (tamaño Carta) del desprendible de pago de un empleado. */
 export function renderPayslipPdf(periodName: string, p: Payslip, org: Org): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -55,30 +44,9 @@ export function renderPayslipPdf(periodName: string, p: Payslip, org: Org): Prom
 
     const left = 40;
     const width = 612 - 80; // Letter width - margins
-    let y = 40;
 
-    // --- Membrete ---
-    const logo = logoBuffer(org.logoUrl);
-    let textX = left;
-    if (logo) {
-      try {
-        doc.image(logo, left, y, { height: 42 });
-        textX = left + 130;
-      } catch {
-        /* imagen inválida: se ignora */
-      }
-    }
-    doc.font('Helvetica-Bold').fontSize(13).fillColor(ACCENT).text(org.legalName || org.name, textX, y);
-    doc.font('Helvetica').fontSize(8).fillColor('#555');
-    const metaLines = [
-      `NIT ${org.nit}`,
-      [org.address, org.city].filter(Boolean).join(', '),
-      [org.phone ? `Tel: ${org.phone}` : '', org.email].filter(Boolean).join('  ·  '),
-    ].filter(Boolean);
-    doc.text(metaLines.join('\n'), textX, y + 18);
-    y += 52;
-    doc.moveTo(left, y).lineTo(left + width, y).lineWidth(2).strokeColor(ACCENT).stroke();
-    y += 14;
+    // --- Membrete (compartido) ---
+    let y = drawLetterhead(doc, org, left, width, 40);
 
     // --- Título ---
     doc.font('Helvetica-Bold').fontSize(12).fillColor('#1a1a1a').text('DESPRENDIBLE DE PAGO', left, y);
@@ -137,12 +105,8 @@ export function renderPayslipPdf(periodName: string, p: Payslip, org: Org): Prom
     doc.text(money(p.netPay), left, y + 9, { width: width - 12, align: 'right' });
     y += 44;
 
-    // --- Pie ---
-    doc.font('Helvetica').fontSize(7.5).fillColor('#999');
-    const footer = [org.legalName || org.name, `NIT ${org.nit}`, org.address, org.city, org.phone, org.email]
-      .filter(Boolean)
-      .join('  ·  ');
-    doc.text(footer, left, 720, { width, align: 'center' });
+    // --- Pie (compartido) ---
+    drawFooter(doc, org, left, width);
 
     doc.end();
   });

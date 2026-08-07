@@ -75,6 +75,7 @@ router.delete('/documents/:id', validate(idParam), asyncHandler(recruitmentContr
 // Oferta / contrato
 router.put('/applications/:id/offer', validate(upsertOfferSchema), asyncHandler(recruitmentController.upsertOffer));
 router.patch('/applications/:id/offer/status', validate(offerStatusSchema), asyncHandler(recruitmentController.updateOfferStatus));
+router.get('/applications/:id/contract.pdf', validate(idParam), asyncHandler(recruitmentController.contractPdf));
 
 // Onboarding
 router.post('/applications/:id/onboarding/seed', validate(seedOnboardingSchema), asyncHandler(recruitmentController.seedOnboarding));

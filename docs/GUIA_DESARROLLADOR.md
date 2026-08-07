@@ -593,6 +593,14 @@ ADMIN/HR_MANAGER/SUPER_ADMIN. Todas las operaciones quedan en auditoría.
   VAC-…”.
 - Firma: registro interno (marcar firmado + adjuntar el contrato firmado como
   data URL). Preparado para integrar un proveedor externo en el futuro.
+- **PDF del contrato con membrete** (`contract-pdf.ts`, pdfkit, tamaño Carta):
+  arma el articulado del contrato individual de trabajo desde la oferta
+  (objeto, modalidad/duración, período de prueba, remuneración, jornada,
+  lugar, obligaciones, terminación) y un bloque de firmas. Se descarga en
+  `GET /recruitment/applications/:id/contract.pdf` (blob vía axios) con el
+  botón “Descargar contrato (PDF)” de la pestaña de Oferta. El membrete y el
+  pie corporativos son un helper compartido (`core/pdf/letterhead.ts`) que
+  también usa el desprendible de pago (una sola fuente del encabezado).
 
 ### Frontend (`features/recruitment/`)
 
