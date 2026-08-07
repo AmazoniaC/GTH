@@ -132,30 +132,38 @@ export class PayrollRepository {
     });
   }
 
-  /** Crea el periodo junto a todos sus desprendibles en una transacción. */
+  /**
+   * Crea el periodo junto a todos sus desprendibles de forma atómica.
+   *
+   * Si se le pasa un cliente de transacción (`tx`) se ejecuta dentro de esa
+   * transacción; en caso contrario abre la suya propia. Esto permite que el
+   * servicio agrupe en una sola transacción la reserva de consecutivos, la
+   * creación del periodo y el marcado de novedades aplicadas.
+   */
   createPeriodWithPayslips(
     period: Prisma.PayrollPeriodCreateInput,
     payslips: (periodId: string) => Prisma.PayslipCreateManyInput[],
     items: (payslipMap: Map<string, string>) => Prisma.PayslipItemCreateManyInput[],
     totals: { totalEarnings: number; totalDeductions: number; totalNet: number; totalEmployerCost: number },
+    tx?: Prisma.TransactionClient,
   ) {
-    return prisma.$transaction(async (tx) => {
-      const createdPeriod = await tx.payrollPeriod.create({ data: period });
+    const run = async (client: Prisma.TransactionClient) => {
+      const createdPeriod = await client.payrollPeriod.create({ data: period });
 
       const payslipRows = payslips(createdPeriod.id);
       // Necesitamos IDs; creamos uno a uno para mapear employeeId -> payslipId.
       const employeeToPayslip = new Map<string, string>();
       for (const row of payslipRows) {
-        const created = await tx.payslip.create({ data: row });
+        const created = await client.payslip.create({ data: row });
         employeeToPayslip.set(created.employeeId, created.id);
       }
 
       const itemRows = items(employeeToPayslip);
       if (itemRows.length) {
-        await tx.payslipItem.createMany({ data: itemRows });
+        await client.payslipItem.createMany({ data: itemRows });
       }
 
-      return tx.payrollPeriod.update({
+      return client.payrollPeriod.update({
         where: { id: createdPeriod.id },
         data: {
           totalEarnings: totals.totalEarnings,
@@ -166,7 +174,8 @@ export class PayrollRepository {
         },
         include: { _count: { select: { payslips: true } } },
       });
-    });
+    };
+    return tx ? run(tx) : prisma.$transaction(run);
   }
 }
 

@@ -6,17 +6,20 @@ import { Toaster } from 'sonner';
 import App from './App';
 import { queryClient } from './lib/query-client';
 import { ThemeProvider } from './components/theme/theme-provider';
+import { ErrorBoundary } from './components/error-boundary';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <App />
-          <Toaster richColors position="top-right" closeButton />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <App />
+            <Toaster richColors position="top-right" closeButton />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
 );
