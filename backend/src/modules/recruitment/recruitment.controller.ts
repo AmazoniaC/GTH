@@ -88,6 +88,14 @@ export class RecruitmentController {
   // Trazabilidad: origen de contratación de un empleado
   originForEmployee = async (req: Request, res: Response) =>
     ok(res, await recruitmentService.originForEmployee(req.params.id, orgOf(req)));
+
+  // PDF del contrato de trabajo con membrete
+  contractPdf = async (req: Request, res: Response) => {
+    const { buffer, fileName } = await recruitmentService.contractPdf(req.params.id, orgOf(req));
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.send(buffer);
+  };
 }
 
 export const recruitmentController = new RecruitmentController();

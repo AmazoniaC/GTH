@@ -12,6 +12,7 @@ import {
   CalendarPlus,
   UserCheck,
   ExternalLink,
+  Download,
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card } from '@/components/ui/card';
@@ -52,6 +53,7 @@ import {
   useSeedOnboarding,
   useUpdateOnboardingTask,
   useRecruitmentCatalog,
+  downloadContractPdf,
   STAGE_LABELS,
   INTERVIEW_TYPE_LABELS,
   PIPELINE_STAGES,
@@ -485,6 +487,14 @@ function OfferTab({ app }: { app: Application }) {
 
   const rule = catalog?.modalities.find((m) => m.code === form.modality);
 
+  const downloadContract = async () => {
+    try {
+      await downloadContractPdf(app.id, `Contrato-${app.candidate.firstName}-${app.candidate.lastName}.pdf`);
+    } catch (e) {
+      toast.error(getErrorMessage(e, 'No se pudo generar el contrato.'));
+    }
+  };
+
   const save = async () => {
     if (!form.baseSalary || Number(form.baseSalary) <= 0) {
       toast.error('Indica el salario base.');
@@ -601,6 +611,10 @@ function OfferTab({ app }: { app: Application }) {
               </Badge>
             </div>
             <div className="flex flex-col gap-2">
+              <Button size="sm" variant="outline" onClick={downloadContract}>
+                <Download className="mr-2 h-4 w-4" />
+                Descargar contrato (PDF)
+              </Button>
               {offer.status === 'DRAFT' && (
                 <Button size="sm" variant="outline" onClick={() => status.mutate({ id: app.id, status: 'SENT' })}>
                   Marcar como enviada

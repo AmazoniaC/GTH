@@ -4,6 +4,7 @@ import { AppError, ConflictError, NotFoundError } from '../../core/errors/AppErr
 import { auditService, Actor } from '../audit/audit.service';
 import { reserveNumbers, formatDocNumber } from '../../core/utils/sequence';
 import { toNumber } from '../../core/utils/decimal';
+import { renderContractPdf } from './contract-pdf';
 import { employeeService } from '../employees/employee.service';
 import {
   CONTRACT_MODALITIES,
@@ -848,6 +849,56 @@ export class RecruitmentService {
       vacancyTitle: app.vacancy.title,
       hiredAt: app.updatedAt,
     };
+  }
+
+  // ============================ Contrato PDF =========================
+
+  /** Genera el PDF del contrato de trabajo con membrete a partir de la oferta. */
+  async contractPdf(applicationId: string, organizationId: string): Promise<{ buffer: Buffer; fileName: string }> {
+    const app = await prisma.application.findFirst({
+      where: { id: applicationId, organizationId },
+      include: { candidate: true, offer: true, vacancy: { select: { title: true } } },
+    });
+    if (!app) throw new NotFoundError('Postulación');
+    if (!app.offer) throw new AppError('Primero define la oferta/contrato del candidato.', 422);
+    if (!app.candidate.documentNumber) {
+      throw new AppError('El candidato debe tener número de documento para generar el contrato.', 422);
+    }
+
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: {
+        name: true, legalName: true, nit: true, address: true, city: true,
+        phone: true, email: true, logoUrl: true, legalRepresentative: true,
+      },
+    });
+    if (!org) throw new NotFoundError('Empresa');
+
+    const o = app.offer;
+    const buffer = await renderContractPdf({
+      org,
+      candidate: {
+        firstName: app.candidate.firstName,
+        lastName: app.candidate.lastName,
+        documentType: app.candidate.documentType,
+        documentNumber: app.candidate.documentNumber,
+      },
+      vacancyTitle: app.vacancy.title,
+      offer: {
+        modality: o.modality,
+        positionTitle: o.positionTitle,
+        baseSalary: o.baseSalary,
+        isIntegralSalary: o.isIntegralSalary,
+        transportAllowance: o.transportAllowance,
+        paymentFrequency: o.paymentFrequency,
+        startDate: o.startDate,
+        endDate: o.endDate,
+        probationDays: o.probationDays,
+        workScheduleNote: o.workScheduleNote,
+      },
+    });
+    const safeName = `${app.candidate.firstName}-${app.candidate.lastName}`.replace(/[^\w-]+/g, '_');
+    return { buffer, fileName: `Contrato-${safeName}.pdf` };
   }
 
   // ============================== Resumen ============================

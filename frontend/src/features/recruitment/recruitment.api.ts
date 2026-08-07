@@ -362,6 +362,21 @@ export function useUpsertOffer() {
   });
 }
 
+/** Descarga el PDF del contrato de trabajo (con membrete) de una postulación. */
+export async function downloadContractPdf(applicationId: string, fileName = 'Contrato.pdf') {
+  const res = await api.get(`/recruitment/applications/${applicationId}/contract.pdf`, {
+    responseType: 'blob',
+  });
+  const url = URL.createObjectURL(res.data as Blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export function useUpdateOfferStatus() {
   const qc = useQueryClient();
   return useMutation({
