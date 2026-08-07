@@ -39,6 +39,9 @@ router.use(authorize(...managers));
 router.get('/catalog', asyncHandler(recruitmentController.catalog));
 router.get('/summary', asyncHandler(recruitmentController.summary));
 
+// Trazabilidad: origen de contratación de un empleado (para su ficha)
+router.get('/origin/:id', validate(idParam), asyncHandler(recruitmentController.originForEmployee));
+
 // Vacantes
 router.get('/vacancies', validate(listVacanciesSchema), asyncHandler(recruitmentController.listVacancies));
 router.post('/vacancies', validate(createVacancySchema), asyncHandler(recruitmentController.createVacancy));

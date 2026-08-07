@@ -3,6 +3,7 @@ import { prisma } from '../../config/prisma';
 import { AppError, ConflictError, NotFoundError } from '../../core/errors/AppError';
 import { auditService, Actor } from '../audit/audit.service';
 import { reserveNumbers, formatDocNumber } from '../../core/utils/sequence';
+import { employeeService } from '../employees/employee.service';
 import {
   CONTRACT_MODALITIES,
   ONBOARDING_CATEGORIES,
@@ -733,30 +734,8 @@ export class RecruitmentService {
     if (!c.documentNumber) {
       throw new AppError('El candidato debe tener número de documento para ser contratado.', 422);
     }
-
-    // Verifica el límite de empleados del plan.
-    const org = await prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { maxEmployees: true },
-    });
-    if (org?.maxEmployees != null) {
-      const currentCount = await prisma.employee.count({ where: { organizationId } });
-      if (currentCount >= org.maxEmployees) {
-        throw new AppError(
-          `Alcanzaste el límite de empleados de tu plan (${org.maxEmployees}). Contacta al administrador de la plataforma para ampliarlo.`,
-          409,
-        );
-      }
-    }
-
-    // Evita duplicar el empleado por documento.
-    const dup = await prisma.employee.findFirst({
-      where: { organizationId, documentNumber: c.documentNumber },
-      select: { id: true },
-    });
-    if (dup) {
-      throw new ConflictError('Ya existe un empleado con ese número de documento.');
-    }
+    // El límite del plan y el control de documento duplicado los aplica
+    // `employeeService.createRecord` (única fuente de verdad).
 
     const offer = app.offer;
     const contractType = MODALITY_TO_CONTRACT_TYPE[offer.modality] ?? 'INDEFINITE';
@@ -764,41 +743,41 @@ export class RecruitmentService {
       offer.probationDays && offer.probationDays > 0
         ? new Date(offer.startDate.getTime() + offer.probationDays * 86_400_000)
         : null;
-    const employeeCode = clean(input.employeeCode) ?? c.documentNumber;
 
     const result = await prisma.$transaction(async (tx) => {
-      const employee = await tx.employee.create({
-        data: {
-          organizationId,
-          employeeCode,
+      // Reutiliza la única lógica canónica de creación de empleados (misma que
+      // el alta directa): valida el límite del plan, crea empleado + contrato
+      // y mantiene una sola fuente de verdad.
+      const employee = await employeeService.createRecord(
+        organizationId,
+        {
           documentType: c.documentType,
           documentNumber: c.documentNumber!,
+          employeeCode: clean(input.employeeCode) ?? undefined,
           firstName: c.firstName,
           lastName: c.lastName,
-          email: c.email,
-          mobile: c.phone,
-          city: c.city,
+          email: c.email ?? null,
+          mobile: c.phone ?? null,
+          city: c.city ?? null,
           departmentId: clean(input.departmentId),
           positionId: clean(input.positionId),
           arlRiskClass: input.arlRiskClass,
           hireDate: offer.startDate,
           status: 'ACTIVE',
-          contracts: {
-            create: {
-              type: contractType,
-              paymentFrequency: offer.paymentFrequency,
-              baseSalary: offer.baseSalary,
-              isIntegralSalary: offer.isIntegralSalary,
-              transportAllowance: offer.transportAllowance,
-              startDate: offer.startDate,
-              endDate: offer.endDate,
-              probationEndDate: probationEnd,
-              isActive: true,
-              notes: offer.notes,
-            },
+          contract: {
+            type: contractType,
+            paymentFrequency: offer.paymentFrequency,
+            baseSalary: num(offer.baseSalary),
+            isIntegralSalary: offer.isIntegralSalary,
+            transportAllowance: offer.transportAllowance,
+            startDate: offer.startDate,
+            endDate: offer.endDate ?? null,
+            probationEndDate: probationEnd,
+            notes: offer.notes ?? null,
           },
         },
-      });
+        tx,
+      );
 
       await tx.application.update({
         where: { id: applicationId },
@@ -846,6 +825,29 @@ export class RecruitmentService {
       entityLabel: `Contratación: ${c.firstName} ${c.lastName} · ${app.vacancy.title}`,
     });
     return { employeeId: result.id, employeeCode: result.employeeCode };
+  }
+
+  /**
+   * Origen de contratación de un empleado (trazabilidad): de qué vacante y
+   * postulación salió. Devuelve null si fue un alta directa/importación.
+   */
+  async originForEmployee(employeeId: string, organizationId: string) {
+    const app = await prisma.application.findFirst({
+      where: { organizationId, hiredEmployeeId: employeeId },
+      select: {
+        id: true,
+        updatedAt: true,
+        vacancy: { select: { id: true, code: true, title: true } },
+      },
+    });
+    if (!app) return null;
+    return {
+      applicationId: app.id,
+      vacancyId: app.vacancy.id,
+      vacancyCode: app.vacancy.code,
+      vacancyTitle: app.vacancy.title,
+      hiredAt: app.updatedAt,
+    };
   }
 
   // ============================== Resumen ============================

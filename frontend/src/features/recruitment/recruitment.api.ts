@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/features/auth/auth.store';
 
 export type ContractModality = 'INDEFINITE' | 'FIXED_TERM' | 'WORK_OR_LABOR' | 'LEARNING' | 'OCCASIONAL';
 export type WorkMode = 'ONSITE' | 'REMOTE' | 'HYBRID';
@@ -158,6 +159,28 @@ export function useRecruitmentCatalog() {
     queryKey: ['recruitment', 'catalog'],
     queryFn: () => unwrap(api.get<{ data: RecruitmentCatalog }>('/recruitment/catalog')),
     staleTime: Infinity,
+  });
+}
+
+export interface HiringOrigin {
+  applicationId: string;
+  vacancyId: string;
+  vacancyCode?: string | null;
+  vacancyTitle: string;
+  hiredAt: string;
+}
+
+/**
+ * Origen de contratación de un empleado (de qué vacante salió). Solo consulta
+ * si la empresa tiene activo el módulo de Contratación.
+ */
+export function useEmployeeHiringOrigin(employeeId?: string) {
+  const modules = useAuthStore((s) => s.user?.modules);
+  const enabled = !!employeeId && !!modules?.includes('RECRUITMENT');
+  return useQuery({
+    queryKey: ['recruitment', 'origin', employeeId],
+    queryFn: () => unwrap(api.get<{ data: HiringOrigin | null }>(`/recruitment/origin/${employeeId}`)),
+    enabled,
   });
 }
 

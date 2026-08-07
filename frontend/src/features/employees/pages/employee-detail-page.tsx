@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeStatusBadge, CONTRACT_TYPE_LABEL, DOCUMENT_TYPE_LABEL } from '@/components/shared/status-badges';
 import { useDeleteEmployee, useEmployeeByDocument } from '../employees.api';
+import { useEmployeeHiringOrigin } from '@/features/recruitment/recruitment.api';
 import { EmployeeForm } from '../components/employee-form';
 import { DocumentsSection } from '../components/documents-section';
 import { ContractsSection } from '../components/contracts-section';
@@ -57,6 +58,7 @@ export function EmployeeDetailPage() {
   const { documentNumber = '' } = useParams();
   const navigate = useNavigate();
   const { data: emp, isLoading } = useEmployeeByDocument(documentNumber);
+  const { data: origin } = useEmployeeHiringOrigin(emp?.id);
   const deleteEmployee = useDeleteEmployee();
   const { isAdmin, canManageEmployees } = usePermissions();
   const [editOpen, setEditOpen] = useState(false);
@@ -110,6 +112,15 @@ export function EmployeeDetailPage() {
                 <EmployeeStatusBadge status={emp.status} />
               </div>
               <p className="text-muted-foreground">{emp.position?.title ?? 'Sin cargo asignado'}</p>
+              {origin && (
+                <Link
+                  to={`/recruitment/vacancies/${origin.vacancyId}`}
+                  className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary hover:bg-primary/20"
+                >
+                  <Briefcase className="h-3 w-3" />
+                  Contratado desde {origin.vacancyCode ?? 'vacante'}
+                </Link>
+              )}
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Briefcase className="h-3.5 w-3.5" /> Cédula: {emp.documentNumber}

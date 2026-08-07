@@ -1,6 +1,9 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 
+/** Cliente de Prisma o cliente de transacción (para operaciones atómicas). */
+type Client = typeof prisma | Prisma.TransactionClient;
+
 /**
  * Repositorio de Empleados. Única capa que conoce Prisma para esta
  * entidad. Todas las consultas se acotan por `organizationId` para
@@ -54,8 +57,8 @@ export class EmployeeRepository {
     });
   }
 
-  findByDocument(documentNumber: string, organizationId: string) {
-    return prisma.employee.findFirst({
+  findByDocument(documentNumber: string, organizationId: string, client: Client = prisma) {
+    return client.employee.findFirst({
       where: { documentNumber, organizationId },
     });
   }
@@ -67,8 +70,8 @@ export class EmployeeRepository {
     });
   }
 
-  create(data: Prisma.EmployeeCreateInput) {
-    return prisma.employee.create({ data, include: this.detailInclude });
+  create(data: Prisma.EmployeeCreateInput, client: Client = prisma) {
+    return client.employee.create({ data, include: this.detailInclude });
   }
 
   update(id: string, data: Prisma.EmployeeUpdateInput) {

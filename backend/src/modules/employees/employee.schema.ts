@@ -54,6 +54,7 @@ const contractSchema = z
     transportAllowance: z.boolean().default(true),
     startDate: z.coerce.date(),
     endDate: z.coerce.date().optional().nullable(),
+    probationEndDate: z.coerce.date().optional().nullable(),
     notes: z.string().optional().nullable(),
   })
   .refine((v) => !v.endDate || v.endDate >= v.startDate, {
