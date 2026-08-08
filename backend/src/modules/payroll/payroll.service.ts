@@ -2,6 +2,7 @@ import { Prisma, PayrollPeriodType, AbsenceStatus } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { payrollRepository, PayrollRepository } from './payroll.repository';
 import { calculatePayroll, PayrollConfigValues } from './payroll.calculator';
+import { CONCEPT } from './payroll.constants';
 import { computeAbsenceNovelties } from './absence-novelties';
 import { noveltyService } from '../novelties/novelty.service';
 import { reserveNumbers, formatDocNumber } from '../../core/utils/sequence';
@@ -160,6 +161,89 @@ export class PayrollService {
       }
     }
     return { sent, skipped, failed };
+  }
+
+  /**
+   * Liquidación de aportes a seguridad social (base de la PILA) de un periodo.
+   *
+   * Reutiliza los conceptos ya calculados en los desprendibles, por lo que
+   * refleja correctamente la exoneración de aportes (Ley 1607) cuando aplica.
+   * El IBC se reconstruye a partir del aporte de salud del empleado.
+   */
+  async pilaForPeriod(id: string, organizationId: string) {
+    const period = await this.repo.periodForPila(id, organizationId);
+    if (!period) throw new NotFoundError('Periodo de nómina');
+
+    const config = await this.getConfigValues(organizationId, period.year);
+    const healthRate = config.healthEmployeeRate || 0.04;
+    const pensionRate = config.pensionEmployeeRate || 0.04;
+
+    const rows = period.payslips.map((p) => {
+      const by = new Map<string, number>();
+      for (const it of p.items) by.set(it.code, (by.get(it.code) ?? 0) + num(it.amount));
+      const get = (code: string) => by.get(code) ?? 0;
+
+      const healthEmp = get(CONCEPT.HEALTH_EMPLOYEE);
+      const pensionEmp = get(CONCEPT.PENSION_EMPLOYEE);
+      const ibc =
+        healthEmp > 0
+          ? Math.round(healthEmp / healthRate)
+          : pensionEmp > 0
+            ? Math.round(pensionEmp / pensionRate)
+            : 0;
+
+      const health = healthEmp + get(CONCEPT.HEALTH_EMPLOYER);
+      const pension = pensionEmp + get(CONCEPT.PENSION_EMPLOYER);
+      const fsp = get(CONCEPT.SOLIDARITY_FUND);
+      const arl = get(CONCEPT.ARL);
+      const ccf = get(CONCEPT.COMPENSATION_FUND);
+      const sena = get(CONCEPT.SENA);
+      const icbf = get(CONCEPT.ICBF);
+      const total = health + pension + fsp + arl + ccf + sena + icbf;
+      const e = p.employee;
+
+      return {
+        employee: `${e.firstName} ${e.lastName}`,
+        documentType: e.documentType,
+        documentNumber: e.documentNumber,
+        eps: e.eps ?? '',
+        afp: e.pensionFund ?? '',
+        arlEntity: e.arl ?? '',
+        ccfEntity: e.compensationFund ?? '',
+        riskClass: e.arlRiskClass,
+        days: Math.min(p.workedDays, 30),
+        ibc,
+        health,
+        pension,
+        fsp,
+        arl,
+        ccf,
+        sena,
+        icbf,
+        total,
+      };
+    });
+
+    const sum = (k: keyof (typeof rows)[number]) =>
+      rows.reduce((acc, r) => acc + (typeof r[k] === 'number' ? (r[k] as number) : 0), 0);
+
+    return {
+      period: { id: period.id, name: period.name, month: period.month, year: period.year },
+      organization: period.organization,
+      count: rows.length,
+      rows,
+      totals: {
+        ibc: sum('ibc'),
+        health: sum('health'),
+        pension: sum('pension'),
+        fsp: sum('fsp'),
+        arl: sum('arl'),
+        ccf: sum('ccf'),
+        sena: sum('sena'),
+        icbf: sum('icbf'),
+        total: sum('total'),
+      },
+    };
   }
 
   async getPayslip(id: string, organizationId: string) {

@@ -316,6 +316,18 @@ Archivos: `modules/payroll/payroll.calculator.ts` (función pura) y
 Parámetros por año en `PayrollConfig` (editables); `payroll.service` usa
 `DEFAULT_CONFIG` como referencia 2026 cuando no hay configuración.
 
+### PILA (liquidación de aportes)
+
+`pilaForPeriod(id, org)` arma la planilla de aportes a seguridad social de un
+periodo **reutilizando los conceptos ya calculados en los desprendibles**, por
+lo que refleja la exoneración de aportes cuando aplica. El IBC se reconstruye a
+partir del aporte de salud del empleado (`healthEmp / healthEmployeeRate`).
+Devuelve, por empleado, las entidades (EPS/AFP/ARL/Caja), el IBC, los días y
+los aportes por subsistema (salud, pensión, FSP, ARL, caja, SENA, ICBF) con sus
+totales. Endpoint `GET /payroll/periods/:id/pila`; en el frontend, el botón
+**PILA** de la página del periodo abre un diálogo con la planilla y su
+exportación a Excel (`PilaDialog`).
+
 ---
 
 ## 7. Módulo de Vacaciones y Ausencias

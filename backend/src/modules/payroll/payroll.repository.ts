@@ -56,6 +56,36 @@ export class PayrollRepository {
     });
   }
 
+  /** Periodo con desprendibles, conceptos y las entidades de seguridad social
+   * de cada empleado (para liquidar la PILA). */
+  periodForPila(id: string, organizationId: string) {
+    return prisma.payrollPeriod.findFirst({
+      where: { id, organizationId },
+      include: {
+        organization: { select: { name: true, legalName: true, nit: true } },
+        payslips: {
+          include: {
+            items: { select: { code: true, amount: true } },
+            employee: {
+              select: {
+                firstName: true,
+                lastName: true,
+                documentType: true,
+                documentNumber: true,
+                eps: true,
+                pensionFund: true,
+                arl: true,
+                compensationFund: true,
+                arlRiskClass: true,
+              },
+            },
+          },
+          orderBy: { employee: { firstName: 'asc' } },
+        },
+      },
+    });
+  }
+
   /** Periodo con TODOS los desprendibles + sus conceptos y datos de empresa. */
   periodForPrint(id: string, organizationId: string) {
     return prisma.payrollPeriod.findFirst({

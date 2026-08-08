@@ -40,6 +40,7 @@ router.get(
   validate(idParamSchema),
   asyncHandler(payrollController.periodForPrint),
 );
+router.get('/periods/:id/pila', validate(idParamSchema), asyncHandler(payrollController.pilaForPeriod));
 router.post(
   '/periods/:id/send-payslips',
   authorize(...payrollManagers),

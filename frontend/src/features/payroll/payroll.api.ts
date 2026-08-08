@@ -9,6 +9,44 @@ export async function fetchPeriodForPrint(id: string): Promise<PrintPeriod> {
   return data.data;
 }
 
+export interface PilaRow {
+  employee: string;
+  documentType: string;
+  documentNumber: string;
+  eps: string;
+  afp: string;
+  arlEntity: string;
+  ccfEntity: string;
+  riskClass: number;
+  days: number;
+  ibc: number;
+  health: number;
+  pension: number;
+  fsp: number;
+  arl: number;
+  ccf: number;
+  sena: number;
+  icbf: number;
+  total: number;
+}
+
+export interface PilaData {
+  period: { id: string; name: string; month: number; year: number };
+  organization: { name: string; legalName: string | null; nit: string };
+  count: number;
+  rows: PilaRow[];
+  totals: Omit<PilaRow, 'employee' | 'documentType' | 'documentNumber' | 'eps' | 'afp' | 'arlEntity' | 'ccfEntity' | 'riskClass' | 'days'>;
+}
+
+/** Liquidación de aportes (base PILA) de un periodo. */
+export function usePeriodPila(id: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['payroll', 'pila', id],
+    queryFn: async () => (await api.get<{ data: PilaData }>(`/payroll/periods/${id}/pila`)).data.data,
+    enabled: enabled && !!id,
+  });
+}
+
 /** Envía por correo el desprendible a cada empleado del periodo con correo. */
 export async function sendPeriodPayslips(
   id: string,
