@@ -38,6 +38,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { formatCurrency, formatDate, getInitials, toDateInput } from '@/lib/utils';
+import { openDataUrl } from '@/lib/download';
 import {
   useApplication,
   useMoveStage,
@@ -202,9 +203,13 @@ function ProfileTab({ app }: { app: Application }) {
         </Field>
         <Field label="Hoja de vida">
           {c.resumeUrl ? (
-            <a href={c.resumeUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+            <button
+              type="button"
+              onClick={() => openDataUrl(c.resumeUrl!)}
+              className="inline-flex items-center gap-1 text-primary hover:underline"
+            >
               <FileText className="h-4 w-4" /> Abrir
-            </a>
+            </button>
           ) : (
             '—'
           )}
@@ -424,9 +429,13 @@ function DocumentsTab({ app }: { app: Application }) {
                   {d.required && <Badge variant="outline">Obligatorio</Badge>}
                 </p>
                 {d.fileUrl && (
-                  <a href={d.fileUrl} target="_blank" rel="noreferrer" className="ml-6 inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => openDataUrl(d.fileUrl!)}
+                    className="ml-6 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
                     <ExternalLink className="h-3 w-3" /> Ver archivo
-                  </a>
+                  </button>
                 )}
               </div>
               <label className="cursor-pointer">
