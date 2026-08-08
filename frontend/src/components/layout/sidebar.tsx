@@ -1,5 +1,6 @@
-import { NavLink } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { navSections } from './nav-config';
 import { useAuthStore } from '@/features/auth/auth.store';
@@ -10,7 +11,19 @@ interface SidebarProps {
   onClose: () => void;
 }
 
+const COLLAPSE_KEY = 'sidebar:collapsed';
+
+function loadCollapsed(): Set<string> {
+  try {
+    const raw = localStorage.getItem(COLLAPSE_KEY);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
+
 export function Sidebar({ open, onClose }: SidebarProps) {
+  const location = useLocation();
   const role = useAuthStore((s) => s.user?.role);
   const isPlatformOwner = useAuthStore((s) => s.user?.isPlatformOwner);
   const impersonating = useAuthStore((s) => s.impersonation);
@@ -42,6 +55,41 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       }),
     }))
     .filter((section) => section.items.length > 0);
+
+  // Sección que contiene la ruta activa (para abrirla automáticamente).
+  const activeTitle = sections.find((s) =>
+    s.items.some(
+      (i) =>
+        location.pathname === i.to ||
+        (i.to !== '/' && !i.end && location.pathname.startsWith(`${i.to}/`)),
+    ),
+  )?.title;
+
+  const [collapsed, setCollapsed] = useState<Set<string>>(loadCollapsed);
+
+  const persist = (next: Set<string>) => {
+    localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...next]));
+    return next;
+  };
+
+  const toggleSection = (title: string) =>
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(title)) next.delete(title);
+      else next.add(title);
+      return persist(next);
+    });
+
+  // Al navegar, abre la sección de la página actual si estaba colapsada.
+  useEffect(() => {
+    if (!activeTitle) return;
+    setCollapsed((prev) => {
+      if (!prev.has(activeTitle)) return prev;
+      const next = new Set(prev);
+      next.delete(activeTitle);
+      return persist(next);
+    });
+  }, [activeTitle]);
 
   return (
     <>
@@ -80,35 +128,48 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
         {/* Navegación */}
         <nav className="flex-1 overflow-y-auto px-3 py-5">
-          {sections.map((section) => (
-            <div key={section.title} className="mb-6">
-              <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-muted">
-                {section.title}
-              </p>
-              <ul className="space-y-1">
-                {section.items.map((item) => (
-                  <li key={item.to}>
-                    <NavLink
-                      to={item.to}
-                      end={item.end}
-                      onClick={onClose}
-                      className={({ isActive }) =>
-                        cn(
-                          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                          isActive
-                            ? 'bg-sidebar-accent text-white shadow-md'
-                            : 'text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground',
-                        )
-                      }
-                    >
-                      <item.icon className="h-[18px] w-[18px]" />
-                      {item.label}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {sections.map((section) => {
+            const isOpen = !collapsed.has(section.title);
+            return (
+              <div key={section.title} className="mb-4">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.title)}
+                  aria-expanded={isOpen}
+                  className="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-sidebar-muted transition-colors hover:text-sidebar-foreground"
+                >
+                  <span>{section.title}</span>
+                  <ChevronDown
+                    className={cn('h-3.5 w-3.5 transition-transform duration-200', isOpen ? '' : '-rotate-90')}
+                  />
+                </button>
+                {isOpen && (
+                  <ul className="mt-1 space-y-1">
+                    {section.items.map((item) => (
+                      <li key={item.to}>
+                        <NavLink
+                          to={item.to}
+                          end={item.end}
+                          onClick={onClose}
+                          className={({ isActive }) =>
+                            cn(
+                              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                              isActive
+                                ? 'bg-sidebar-accent text-white shadow-md'
+                                : 'text-sidebar-muted hover:bg-sidebar-border hover:text-sidebar-foreground',
+                            )
+                          }
+                        >
+                          <item.icon className="h-[18px] w-[18px]" />
+                          {item.label}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         {/* Pie */}
