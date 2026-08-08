@@ -8,6 +8,7 @@ import {
   Mail,
   Printer,
   Receipt,
+  ShieldCheck,
   Trash2,
   TrendingDown,
   TrendingUp,
@@ -34,6 +35,7 @@ import {
   useUpdatePeriodStatus,
 } from '../payroll.api';
 import { printPayslips } from '../print-payslips';
+import { PilaDialog } from '../components/pila-dialog';
 import { usePermissions } from '@/features/auth/use-permissions';
 import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api';
@@ -54,6 +56,7 @@ export function PayrollPeriodPage() {
   const { isAdmin, canManagePayroll } = usePermissions();
   const [downloading, setDownloading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [pilaOpen, setPilaOpen] = useState(false);
 
   const handleSendEmails = async () => {
     if (!confirm('¿Enviar el desprendible por correo a cada empleado con correo registrado?')) return;
@@ -140,6 +143,9 @@ export function PayrollPeriodPage() {
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleDownloadAll} disabled={downloading}>
             <Printer className="h-4 w-4" /> {downloading ? 'Generando…' : 'Desprendibles (PDF)'}
+          </Button>
+          <Button variant="outline" onClick={() => setPilaOpen(true)}>
+            <ShieldCheck className="h-4 w-4" /> PILA
           </Button>
           {canManagePayroll && (
             <Button variant="outline" onClick={handleSendEmails} disabled={sending}>
@@ -253,6 +259,13 @@ export function PayrollPeriodPage() {
           </TableBody>
         </Table>
       </Card>
+
+      <PilaDialog
+        periodId={period.id}
+        periodName={period.name}
+        open={pilaOpen}
+        onOpenChange={setPilaOpen}
+      />
     </div>
   );
 }
