@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { downloadDataUrl } from '@/lib/download';
 import type { EmployeeDocument } from '@/types';
 
 export function useDocuments(employeeId: string) {
@@ -40,11 +41,9 @@ export function useDeleteDocument(employeeId: string) {
 export async function downloadDocument(id: string) {
   const { data } = await api.get<{ data: EmployeeDocument }>(`/documents/${id}/download`);
   const doc = data.data;
-  if (!doc.content) return;
-  const link = document.createElement('a');
-  link.href = doc.content;
-  link.download = doc.fileName || doc.name;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  if (!doc.content) {
+    throw new Error('El documento no tiene contenido almacenado. Vuelve a subirlo.');
+  }
+  // Vía Blob (fiable para archivos grandes; evita la pestaña en blanco).
+  downloadDataUrl(doc.content, doc.fileName || doc.name);
 }

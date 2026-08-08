@@ -78,5 +78,6 @@ export function getErrorMessage(error: unknown, fallback = 'Ocurrió un error in
   if (axios.isAxiosError(error)) {
     return (error.response?.data as { message?: string })?.message ?? error.message ?? fallback;
   }
+  if (error instanceof Error && error.message) return error.message;
   return fallback;
 }
