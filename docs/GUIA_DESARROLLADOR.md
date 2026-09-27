@@ -308,6 +308,13 @@ Archivos: `modules/payroll/payroll.calculator.ts` (función pura) y
   aportes de salud/pensión, fondo de solidaridad, ARL por clase de riesgo,
   parafiscales con exoneración (Ley 1607) y provisiones (cesantías, intereses,
   prima, vacaciones).
+- **Retención en la fuente** (Art. 383/388 ET, procedimiento 1): grava el
+  ingreso laboral (sin transporte), resta aportes obligatorios (salud, pensión,
+  FSP), aplica la renta exenta del 25% (tope 240 UVT) y el tope conjunto del
+  40% (máx. 420 UVT/mes), y usa la tabla del Art. 383 en UVT. `taxDeductions`
+  (opcional, por defecto 0) permite descontar dependientes, vivienda, etc. Se
+  aplica automáticamente como deducción; solo afecta al empleado (no al IBC ni
+  a la PILA). Requiere la UVT en `PayrollConfig`.
 - **Costo del empleador**: excluye los devengados financiados por terceros
   (EPS/ARL), que sí suman al neto del empleado pero no cuestan a la empresa.
 - `createPeriod` liquida a todos los empleados activos con contrato,

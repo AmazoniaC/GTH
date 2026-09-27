@@ -8,6 +8,7 @@ import {
 const config: PayrollConfigValues = {
   minimumWage: 1_623_500,
   transportAllowance: 200_000,
+  uvt: 49_799,
   healthEmployeeRate: 0.04,
   healthEmployerRate: 0.085,
   pensionEmployeeRate: 0.04,
@@ -150,5 +151,48 @@ describe('calculatePayroll · novedades adicionales', () => {
       additionalDeductions: [{ code: 'LOAN', concept: 'Préstamo', amount: 50_000 }],
     });
     expect(withLoan.netPay).toBe(plain.netPay - 50_000);
+  });
+});
+
+describe('calculatePayroll · retención en la fuente (Art. 383/388)', () => {
+  it('no retiene en salarios bajos (base bajo 95 UVT)', () => {
+    const r = calculatePayroll({ ...base, baseSalary: 1_623_500, workedDays: 30 });
+    expect(codes(r)).not.toContain('RETEFUENTE');
+  });
+
+  it('retiene en salarios altos y aparece como deducción', () => {
+    const r = calculatePayroll({ ...base, baseSalary: 8_000_000, workedDays: 30, hasTransportAllowance: false });
+    // Base gravable ≈ 109.6 UVT → tramo 19% → ~138.528.
+    expect(item(r, 'RETEFUENTE')?.amount).toBe(138_528);
+  });
+
+  it('el neto descuenta la retención', () => {
+    const r = calculatePayroll({ ...base, baseSalary: 8_000_000, workedDays: 30, hasTransportAllowance: false });
+    expect(r.netPay).toBe(r.totalEarnings - r.totalDeductions);
+    expect(r.totalDeductions).toBeGreaterThan(0);
+  });
+
+  it('las deducciones personales (dependientes, vivienda...) reducen la retención', () => {
+    const sin = calculatePayroll({ ...base, baseSalary: 8_000_000, workedDays: 30, hasTransportAllowance: false });
+    const con = calculatePayroll({
+      ...base,
+      baseSalary: 8_000_000,
+      workedDays: 30,
+      hasTransportAllowance: false,
+      taxDeductions: 1_500_000,
+    });
+    const rf = (r: ReturnType<typeof calculatePayroll>) => item(r, 'RETEFUENTE')?.amount ?? 0;
+    expect(rf(con)).toBeLessThan(rf(sin));
+  });
+
+  it('no retiene si la UVT no está configurada', () => {
+    const r = calculatePayroll({
+      ...base,
+      baseSalary: 8_000_000,
+      workedDays: 30,
+      hasTransportAllowance: false,
+      config: { ...config, uvt: 0 },
+    });
+    expect(codes(r)).not.toContain('RETEFUENTE');
   });
 });

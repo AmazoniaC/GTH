@@ -26,6 +26,7 @@ export class PayrollService {
   private toConfigValues(config: {
     minimumWage: Prisma.Decimal;
     transportAllowance: Prisma.Decimal;
+    uvt: Prisma.Decimal;
     healthEmployeeRate: Prisma.Decimal;
     healthEmployerRate: Prisma.Decimal;
     pensionEmployeeRate: Prisma.Decimal;
@@ -41,6 +42,7 @@ export class PayrollService {
     return {
       minimumWage: num(config.minimumWage),
       transportAllowance: num(config.transportAllowance),
+      uvt: num(config.uvt),
       healthEmployeeRate: num(config.healthEmployeeRate),
       healthEmployerRate: num(config.healthEmployerRate),
       pensionEmployeeRate: num(config.pensionEmployeeRate),

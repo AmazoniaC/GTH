@@ -1,9 +1,10 @@
-import { ARL_RATES, CONCEPT, CONCEPT_LABEL, THRESHOLDS } from './payroll.constants';
+import { ARL_RATES, CONCEPT, CONCEPT_LABEL, THRESHOLDS, WITHHOLDING, WITHHOLDING_TABLE } from './payroll.constants';
 import { round } from '../../core/utils/math';
 
 export interface PayrollConfigValues {
   minimumWage: number;
   transportAllowance: number;
+  uvt: number;
   healthEmployeeRate: number;
   healthEmployerRate: number;
   pensionEmployeeRate: number;
@@ -38,6 +39,10 @@ export interface PayrollCalcInput {
   additionalEarnings?: AdditionalEarning[];
   // Deducciones adicionales por novedades (préstamos, otras deducciones).
   additionalDeductions?: { code: string; concept: string; amount: number }[];
+  // Deducciones y rentas exentas mensuales para retención en la fuente
+  // (dependientes, intereses de vivienda, medicina prepagada, aportes
+  // voluntarios...). Reducen la base gravable. Por defecto 0.
+  taxDeductions?: number;
 }
 
 export type ItemType = 'EARNING' | 'DEDUCTION' | 'EMPLOYER_COST';
@@ -129,6 +134,35 @@ export function calculatePayroll(input: PayrollCalcInput): PayrollCalcResult {
     amount: d.amount,
   }));
 
+  // --- Retención en la fuente (Art. 383/388 ET, procedimiento 1) ---
+  // Solo grava el ingreso laboral (sin auxilio de transporte). Los ingresos
+  // financiados por terceros (EPS/ARL, p. ej. incapacidades) no se incluyen.
+  const uvt = config.uvt || 0;
+  let withholding = 0;
+  if (uvt > 0) {
+    const employerEarnings = extraEarnings
+      .filter((e) => e.funder === 'EMPLOYER')
+      .reduce((acc, e) => acc + e.amount, 0);
+    const taxableIncome = salary + employerEarnings;
+    // Ingresos no constitutivos: aportes obligatorios a salud y pensión + FSP.
+    const mandatory = healthEmployee + pensionEmployee + solidarityFund;
+    const subtotal = Math.max(0, taxableIncome - mandatory);
+    const otherDeductions = Math.max(0, input.taxDeductions ?? 0);
+    const exempt25 = Math.min(subtotal * WITHHOLDING.EXEMPT_RATE, WITHHOLDING.EXEMPT_CAP_UVT * uvt);
+    // Tope conjunto de deducciones y rentas exentas (Art. 336).
+    const benefits = Math.min(
+      otherDeductions + exempt25,
+      subtotal * WITHHOLDING.BENEFITS_CAP_RATE,
+      WITHHOLDING.BENEFITS_CAP_UVT * uvt,
+    );
+    const taxableBase = Math.max(0, subtotal - benefits);
+    const baseUvt = taxableBase / uvt;
+    const bracket = WITHHOLDING_TABLE.find((b) => baseUvt > b.from && baseUvt <= b.to);
+    if (bracket && bracket.rate > 0) {
+      withholding = round(((baseUvt - bracket.from) * bracket.rate + bracket.add) * uvt);
+    }
+  }
+
   const items: CalcItem[] = [
     earning(CONCEPT.SALARY, salary),
     ...(transport > 0 ? [earning(CONCEPT.TRANSPORT, transport)] : []),
@@ -137,6 +171,7 @@ export function calculatePayroll(input: PayrollCalcInput): PayrollCalcResult {
     deduction(CONCEPT.HEALTH_EMPLOYEE, healthEmployee),
     deduction(CONCEPT.PENSION_EMPLOYEE, pensionEmployee),
     ...(solidarityFund > 0 ? [deduction(CONCEPT.SOLIDARITY_FUND, solidarityFund)] : []),
+    ...(withholding > 0 ? [deduction(CONCEPT.WITHHOLDING, withholding)] : []),
     ...(healthEmployer > 0 ? [employerCost(CONCEPT.HEALTH_EMPLOYER, healthEmployer)] : []),
     employerCost(CONCEPT.PENSION_EMPLOYER, pensionEmployer),
     employerCost(CONCEPT.ARL, arl),

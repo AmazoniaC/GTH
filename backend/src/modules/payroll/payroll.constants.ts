@@ -26,6 +26,7 @@ export const CONCEPT = {
   SEVERANCE_INTEREST: 'INT_CESANTIAS',
   SERVICE_BONUS: 'PRIMA',
   VACATION: 'VACACIONES',
+  WITHHOLDING: 'RETEFUENTE',
 } as const;
 
 export const CONCEPT_LABEL: Record<string, string> = {
@@ -44,7 +45,31 @@ export const CONCEPT_LABEL: Record<string, string> = {
   [CONCEPT.SEVERANCE_INTEREST]: 'Intereses de cesantías',
   [CONCEPT.SERVICE_BONUS]: 'Prima de servicios',
   [CONCEPT.VACATION]: 'Vacaciones',
+  [CONCEPT.WITHHOLDING]: 'Retención en la fuente',
 };
+
+/**
+ * Retención en la fuente por rentas de trabajo (Colombia).
+ *
+ * Tabla del Art. 383 del Estatuto Tributario, expresada en UVT (rangos
+ * mensuales): tarifa marginal + retención acumulada en UVT del rango anterior.
+ */
+export const WITHHOLDING_TABLE: { from: number; to: number; rate: number; add: number }[] = [
+  { from: 0, to: 95, rate: 0, add: 0 },
+  { from: 95, to: 150, rate: 0.19, add: 0 },
+  { from: 150, to: 360, rate: 0.28, add: 10 },
+  { from: 360, to: 640, rate: 0.33, add: 69 },
+  { from: 640, to: 945, rate: 0.35, add: 162 },
+  { from: 945, to: 2300, rate: 0.37, add: 268 },
+  { from: 2300, to: Infinity, rate: 0.39, add: 770 },
+];
+
+export const WITHHOLDING = {
+  EXEMPT_RATE: 0.25, // Renta exenta laboral (Art. 206 num. 10)
+  EXEMPT_CAP_UVT: 240, // Tope mensual de la renta exenta del 25%
+  BENEFITS_CAP_RATE: 0.4, // Tope de deducciones + rentas exentas (Art. 336)
+  BENEFITS_CAP_UVT: 420, // Tope mensual absoluto (5040 UVT/año)
+} as const;
 
 /**
  * Tarifas de ARL por clase de riesgo (Decreto 1772 de 1994).
